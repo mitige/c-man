@@ -4,8 +4,6 @@
 
 c-man est l'environnement complet d'un piscinier qui veut tout finir en premier : des fiches de doc, des exercices dont le code est **vraiment testé**, le checker de Norme Epitech, des quiz, des flashcards, et un éditeur intégré. En français, sobre, rapide.
 
-![c-man](docs/screenshot.png)
-
 ## Pourquoi
 
 Parce que la piscine, c'est 12h par jour dans un terminal. c-man met tout ce dont tu as besoin à une commande — sans navigateur, sans quitter ton flux.
