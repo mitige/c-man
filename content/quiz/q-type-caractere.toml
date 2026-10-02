@@ -1,0 +1,10 @@
+id = "q-type-caractere"
+category = "langage"
+difficulty = 2
+question = "Quel est le type de l'expression 'a' en C ?"
+choices = ["char", "int", "char *", "Cela dépend du compilateur"]
+answer = 1
+explanation = '''
+En C (contrairement au C++), une constante de caractère comme 'a' est de type int : c'est sa valeur numérique (97 en ASCII). Conséquence amusante : sizeof('a') vaut sizeof(int), généralement 4, alors que sizeof(char) vaut toujours 1 par définition. C'est d'ailleurs cohérent avec getchar(), qui renvoie un int et non un char.
+'''
+related = ["variables-types", "chaines-caracteres"]

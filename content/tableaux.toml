@@ -1,0 +1,78 @@
+id = "tableaux"
+title = "tableaux — des cases contiguës à taille fixe"
+category = "langage"
+tags = ["tableaux", "sizeof", "parcours", "memoire", "2d"]
+difficulty = 2
+piscine_day = "J03"
+synopsis = "int tab[10]; /* 10 int contigus, indices 0 à 9, taille fixée à la compilation */"
+description = '''
+## En une phrase
+
+Un tableau, c'est `n` cases du même type collées en mémoire, avec une taille fixée une fois pour toutes à la compilation.
+
+## En pratique
+
+`int tab[10];` réserve 10 int contigus, numérotés de **0 à 9** (jamais 10 !). Tant que tu n'initialises pas, les cases contiennent des restes de mémoire : des valeurs imprévisibles. `int tab[10] = {0};` est l'idiome à connaître : le premier élément vaut 0 et tous les autres sont mis à zéro automatiquement. Tu peux aussi laisser le compilateur compter : `int tab[] = {1, 2, 3};` crée 3 cases.
+
+Pour connaître le nombre de cases : `sizeof(tab) / sizeof(tab[0])`. `sizeof(tab)` donne la taille totale en octets (40 si un int fait 4 octets), `sizeof(tab[0])` la taille d'une case. Ce calcul ne fonctionne QUE dans la portée où le tableau est déclaré.
+
+Piège majeur : passé à une fonction, un tableau **décroit** (decay) en pointeur vers son premier élément. Dans la fonction, `sizeof(tab)` renvoie la taille d'un pointeur (8 octets sur une machine 64 bits), plus celle du tableau : c'est pour ça que tes fonctions reçoivent toujours la taille en second paramètre, comme tes exos de piscine qui passent `size` à côté du tableau.
+
+Les tableaux 2D sont des tableaux de tableaux : `int m[2][3]` = 2 lignes de 3 colonnes, stockées ligne par ligne. On lit `m[ligne][colonne]`, avec une double boucle pour tout parcourir.
+
+## À retenir
+
+- Hors limites (`tab[10]` pour 10 cases) = comportement indéfini : segfault ou corruption silencieuse.
+- `sizeof` ne dit la vérité que dans la portée de déclaration ; ailleurs, passe la taille à côté.
+- `tab[i]` est strictement équivalent à `*(tab + i)` : le nom d'un tableau se comporte presque comme un pointeur.
+'''
+example = '''
+#include <stdio.h>
+
+#define NB_NOTES 5
+
+/* Renvoie la somme des nb premières cases de tab. */
+static int sum_notes(int const tab[], int nb)
+{
+    int i;
+    int total;
+
+    i = 0;
+    total = 0;
+    while (i < nb) {
+        total += tab[i];
+        i++;
+    }
+    return total;
+}
+
+int main(void)
+{
+    int notes[NB_NOTES] = {84, 42, 21, 100, 7};
+    int matrix[2][3] = {{1, 2, 3}, {4, 5, 6}};
+    size_t nb_cases;
+    int i;
+
+    nb_cases = sizeof(notes) / sizeof(notes[0]);
+    printf("nb cases: %zu\n", nb_cases);
+    printf("somme: %d\n", sum_notes(notes, NB_NOTES));
+    i = 0;
+    while (i < 3) {
+        printf("%d ", matrix[1][i]);
+        i++;
+    }
+    printf("\n");
+    return 0;
+}
+'''
+gotchas = [
+  "Lire ou écrire tab[10] sur un tableau de 10 cases : les indices vont de 0 à 9, au-delà c'est du comportement indéfini.",
+  "Compter sur sizeof(tab)/sizeof(tab[0]) à l'intérieur d'une fonction : le paramètre a décru en pointeur, le résultat est faux.",
+  "Oublier d'initialiser : un tableau local non initialisé contient des valeurs imprévisibles.",
+  "Croire que tab2 = tab copie le tableau : impossible en C, il faut copier case par case."
+]
+exercises = [
+  "Écris my_sum(int const *tab, int size) qui renvoie la somme des cases, puis affiche sizeof(tab) dans main ET dans une fonction qui reçoit le tableau pour constater la différence.",
+  "Crée un tableau 3x3, remplis-le de 1 à 9, puis affiche sa transposée avec une double boucle while."
+]
+related = ["pointeurs", "arithmetique-pointeurs", "pointeurs-vs-tableaux", "boucles", "chaines-caracteres"]

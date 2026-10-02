@@ -1,0 +1,97 @@
+id = "arithmetique-pointeurs"
+title = "arithmétique des pointeurs — p + 1 avance d'un élément"
+category = "memoire"
+tags = ["pointeur", "arithmetique", "tableau", "parcours", "ptrdiff_t"]
+difficulty = 3
+piscine_day = "J04"
+synopsis = "p + n avance de n * sizeof(*p) octets ; p[i] est *(p + i) ; p2 - p1 compte des éléments (ptrdiff_t)"
+description = '''
+## En une phrase
+
+Ajouter `n` à un pointeur l'avance de `n` **éléments** — c'est-à-dire `n * sizeof(*p)` octets — jamais de `n` octets.
+
+## En pratique
+
+```c
+int tab[5] = {10, 20, 30, 40, 50};
+int *p = tab;        /* p vaut &tab[0] */
+/* p + 1 vaut &tab[1] : +4 octets si int fait 4 octets */
+```
+
+```
+adresses :  0x1000    0x1004    0x1008    0x100c    0x1010
+contenu :   [ 10 ]    [ 20 ]    [ 30 ]    [ 40 ]    [ 50 ]
+              p         p+1       p+2       p+3       p+4
+```
+
+Le **type pointé dicte le pas** : un `char *` avance d'1 octet, un `int *` de 4, un `double *` de 8. C'est pour ça que le type d'un pointeur compte autant que sa valeur : sans lui, le compilateur ne saurait pas de combien avancer, ni combien d'octets lire au déréférencement.
+
+Conséquence majeure : `p[i]` est **strictement équivalent** à `*(p + i)`. Les crochets ne sont que du sucre syntaxique. (Et oui, `2[p]` compile aussi — ne le fais jamais, mais comprends pourquoi : c'est `*(2 + p)`.)
+
+La **soustraction** de deux pointeurs du même tableau donne le nombre d'éléments entre eux, de type signé `ptrdiff_t` (dans `<stddef.h>`, format printf `%td`) :
+
+```c
+end - tab == 5    /* des éléments, pas des octets */
+```
+
+Les comparaisons `<`, `>`, `<=`, `>=` n'ont de sens défini qu'entre pointeurs du **même tableau** — y compris le pointeur « un après la fin » (`&tab[5]`), valide comme borne mais jamais déréférencé.
+
+Idiome de parcours à connaître par cœur :
+
+```c
+int *p = tab;
+int *end = tab + 5;
+while (p < end) {
+    /* travaille sur *p */
+    p = p + 1;
+}
+```
+
+C'est exactement ainsi que `strlen` et toute la famille `str*` sont implémentées : un pointeur qui avance jusqu'à un sentinelle.
+
+## À retenir
+
+- `p + n` = `n` éléments plus loin ; le compilateur multiplie par `sizeof(*p)` pour toi.
+- `p[i]` ≡ `*(p + i)` : deux écritures, une seule opération.
+- `p2 - p1` compte des éléments (`ptrdiff_t`), pas des octets.
+- Hors du même tableau, comparer ou soustraire des pointeurs n'a pas de sens défini.
+'''
+example = '''
+#include <stdio.h>
+#include <stddef.h>
+
+int main(void)
+{
+    int tab[5] = {10, 20, 30, 40, 50};
+    int *p = tab;            /* decay : tab vaut ici &tab[0] */
+    int *end = tab + 5;      /* borne "un après la fin" : jamais déréférencée */
+    ptrdiff_t len;
+
+    printf("sizeof(int) = %zu octets\n", sizeof(int));
+    printf("p = %p, p + 1 = %p : +%zu octets\n",
+           (void *)p, (void *)(p + 1), sizeof(int));
+    while (p < end) {
+        printf("[%d] ", *p);
+        p = p + 1;
+    }
+    printf("\n");
+    len = end - tab;         /* différence = nombre d'éléments */
+    printf("end - tab = %td éléments\n", len);
+    printf("tab[2] = %d et *(tab + 2) = %d : strictement identique\n",
+           tab[2], *(tab + 2));
+    return 0;
+}
+'''
+gotchas = [
+  "Croire que p + 1 ajoute 1 octet : il ajoute sizeof(*p) octets — 4 pour un int *, 8 pour un double *.",
+  "Soustraire ou comparer des pointeurs de tableaux différents : résultat sans signification définie.",
+  "Déréférencer le pointeur 'un après la fin' (&tab[5]) : il sert de borne, jamais de valeur.",
+  "Imprimer un ptrdiff_t avec %d au lieu de %td : types incompatibles, affichage faussé.",
+  "Mélanger les unités : end - tab compte des éléments, mais (char *)end - (char *)tab compterait des octets."
+]
+exercises = [
+  "Réécris my_strlen sans crochets : avance un pointeur jusqu'au '\\0' et renvoie la différence des deux pointeurs.",
+  "Écris my_memset(void *p, int c, size_t n) avec un unsigned char * qui avance, sans aucun indice.",
+  "Pour double d[4]; double *p = d; prédis combien d'octets séparent p + 1 de p, puis vérifie en affichant les adresses."
+]
+related = ["pointeurs", "pointeurs-vs-tableaux", "tableaux", "chaines-caracteres", "memset"]

@@ -1,0 +1,101 @@
+id = "headers-include-guards"
+title = "headers et include guards — le contrat entre tes .c"
+category = "outils"
+tags = ["headers", "preprocesseur", "organisation"]
+difficulty = 2
+piscine_day = "J05"
+synopsis = "#ifndef MY_H / #define MY_H / ... / #endif"
+description = '''
+## En une phrase
+
+Un header `.h` est un contrat : il déclare ce que tes `.c` offrent au monde (prototypes, structures, constantes), et l'include guard garantit qu'on ne le lit jamais deux fois.
+
+## Ce qui va dans un .h (et ce qui n'y va pas)
+
+On y met des **déclarations**, jamais des définitions :
+
+- prototypes de fonctions
+- `struct`, `typedef`, `enum`
+- `#define` de constantes
+- variables globales déclarées `extern` (rare en piscine)
+
+Jamais le **corps** d'une fonction : si deux `.c` incluent ce `.h`, le linker voit la fonction en double et hurle "multiple definition". (Il existe `static inline`, mais c'est hors scope piscine.)
+
+## Les deux formes d'#include
+
+- `#include "my.h"` : header **local**, gcc cherche d'abord à côté du `.c` courant, puis dans les dossiers indiqués par `-I`.
+- `#include <stdio.h>` : header **système**, gcc cherche dans les dossiers standards du compilateur.
+
+Règle d'or : un `.c` inclut **son propre `.h`** en premier. Tu es ainsi certain que le header est autonome et que le prototype colle à la définition.
+
+## L'include guard, obligatoire
+
+Sans protection, un `.h` inclus deux fois (directement ou via un autre `.h`) redéfinit tout : "redefinition of struct". La parade standard C99 :
+
+```c
+#ifndef MY_STR_H
+#define MY_STR_H
+/* ... tout le contenu du header ... */
+#endif /* MY_STR_H */
+```
+
+Première lecture : la macro n'existe pas, on la définit et on lit le contenu. Lectures suivantes : `#ifndef` échoue, tout est sauté. `#pragma once` fait pareil en une ligne mais n'est **pas standard C99** : banni à la piscine.
+
+## À retenir
+
+- Nom de la macro de guard = nom du fichier en majuscules : `my_str.h` donne `MY_STR_H`. Unique dans tout le projet.
+- Un `.h` n'expose que ce dont les AUTRES ont besoin : les helpers internes restent `static` dans le `.c`.
+- Quand tu changes une fonction, mets son prototype à jour : gcc vérifie que le `.c` et le `.h` sont d'accord.
+'''
+example = '''
+# Trois fichiers, un projet propre : le .h déclare, les .c utilisent
+$ cat my_str.h
+#ifndef MY_STR_H
+#define MY_STR_H
+
+int my_strlen(const char *str);
+void my_putstr(const char *str);
+
+#endif /* MY_STR_H */
+$ cat my_str.c
+#include <unistd.h>
+#include "my_str.h"
+
+int my_strlen(const char *str)
+{
+    int len = 0;
+
+    while (str[len] != '\0')
+        len++;
+    return len;
+}
+
+void my_putstr(const char *str)
+{
+    write(1, str, my_strlen(str));
+}
+$ cat main.c
+#include "my_str.h"
+
+int main(void)
+{
+    my_putstr("la piscine adore les .h\n");
+    return 0;
+}
+# Les .h ne se compilent pas, ils s'incluent :
+$ gcc -Wall -Wextra -Werror -std=c99 main.c my_str.c -o my_prog
+$ ./my_prog
+la piscine adore les .h
+'''
+gotchas = [
+  "Oublier le guard : un jour deux .c incluent ton .h par des chemins croisés et gcc sort 'redefinition of ...'.",
+  "Mettre une fonction complète dans un .h : 'multiple definition' dès que deux .c l'incluent.",
+  "Utiliser #pragma once : pratique mais non standard C99, refusé par la Norme Epitech.",
+  "Inclure un .c dans un autre .c : on passe toujours par un .h, jamais par #include \"utils.c\".",
+  "Oublier d'inclure son propre .h dans le .c : gcc ne peut plus vérifier que prototype et définition concordent."
+]
+exercises = [
+  "Extrais les prototypes de trois de tes fonctions dans un my.h protégé, fais-le inclure par deux .c différents, et compile le tout avec le trio de flags.",
+  "Supprime volontairement le #ifndef, fais inclure le .h en double via un second header, lis l'erreur de redéfinition, puis remets le guard."
+]
+related = ["preprocesseur", "gcc", "linking", "makefile", "typedef"]

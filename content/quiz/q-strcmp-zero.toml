@@ -1,0 +1,15 @@
+id = "q-strcmp-zero"
+category = "libc"
+difficulty = 2
+question = "Que renvoie strcmp(\"abc\", \"abc\") ?"
+choices = [
+  "1, car les chaînes sont égales",
+  "0, car les chaînes sont égales",
+  "Une valeur vraie (non nulle)",
+  "Le caractère 'a'"
+]
+answer = 1
+explanation = '''
+strcmp renvoie 0 quand les deux chaînes sont identiques — contre-intuitif, car 0 se lit comme 'faux' dans un if. Le piège mortel : if (strcmp(a, b)) exécute le bloc quand les chaînes DIFFÈRENT. Retiens le signe du retour : négatif si la première est plus petite, 0 si égales, positif si plus grande, dans l'ordre du dictionnaire.
+'''
+related = ["strcmp-strncmp", "chaines-caracteres", "conditions"]

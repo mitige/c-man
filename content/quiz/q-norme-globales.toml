@@ -1,0 +1,15 @@
+id = "q-norme-globales"
+category = "piscine"
+difficulty = 2
+question = "Que dit la Norme Epitech à propos des variables globales ?"
+choices = [
+  "Elles sont encouragées pour partager l'état entre fonctions",
+  "Elles sont interdites, sauf exception explicite du sujet",
+  "Elles sont autorisées dès qu'elles sont const",
+  "Elles sont obligatoires pour stocker les constantes"
+]
+answer = 1
+explanation = '''
+Les variables globales sont interdites par la Norme, sauf si le sujet l'autorise explicitement. Elles rendent le code imprévisible : n'importe quelle fonction peut les modifier à n'importe quel moment, et le débogage devient un cauchemar. La compétence à développer à la place : passer des paramètres et retourner des valeurs proprement.
+'''
+related = ["la-norme", "portee-variables"]

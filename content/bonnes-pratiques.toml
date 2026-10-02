@@ -1,0 +1,95 @@
+id = "bonnes-pratiques"
+title = "bonnes pratiques — le code qui survit à la moulinette"
+category = "piscine"
+tags = ["piscine", "qualite", "moulinette", "methodologie"]
+difficulty = 2
+synopsis = "Prototypes immuables, retours vérifiés, bornes explicites, fonctions courtes, commits fréquents."
+description = '''
+## En une phrase
+
+La Norme t'impose la forme de ton code ; les bonnes pratiques, elles, t'évitent les bugs que la Norme ne voit pas et les zéros que la moulinette distribue.
+
+## En pratique
+
+- **Prototypes immuables** : le sujet impose `int my_strlen(char const *str);` ? Tu ne changes ni le nom, ni le type de retour, ni les paramètres, ni leur const. La moulinette compile ses tests contre SA vision du prototype : toute dérive, et c'est le zéro sans discussion.
+- **const-correctness** : tout paramètre pointeur que tu ne modifies pas prend `const`. Ça documente, ça te protège de tes propres erreurs, et ça matche les prototypes des sujets.
+- **Vérifie chaque retour** : `malloc`, `open`, `read`, `write`... Un `write` peut échouer (disque plein, pipe cassé), un `read` peut renvoyer 0. Retour ignoré = bug silencieux. `if (ret == -1) return 84;` doit devenir un réflexe, pas une corvée.
+- **Bornes explicites** : les tailles voyagent EN PARAMÈTRE aux côtés des buffers, les boucles `while` ont un compteur clair, jamais de « ça devrait tenir ». Un `strcpy` sans taille de destination est un segfault en attente.
+- **Lisible bat malin** : personne ne te paie à la ligne économisée. Trois lignes claires battent une incrémentation planquée dans un appel de fonction. Dans trois jours, le lecteur de ton code, c'est toi.
+- **Commit tôt, commit souvent, teste avant de push** : la moulinette évalue ton dernier push, pas tes intentions. Un `gcc -Wall -Wextra -Werror` et deux tests maison avant chaque push, c'est trente secondes qui sauvent une journée.
+- **Factorise quand c'est clair** : la règle des 25 lignes de la Norme t'y pousse déjà. Crée une fonction quand son nom dit exactement ce qu'elle fait ; au troisième copier-coller, il est temps, pas avant.
+
+## À retenir
+
+- Un prototype de sujet est un contrat : y toucher coûte la journée.
+- `const` sur les lectures seules : gratuit, utile, attendu.
+- Chaque retour vérifié est un segfault de moins à débugger à 23h.
+- Taille de buffer = paramètre, pas espoir.
+- Push testé, ou pas de push.
+'''
+example = '''
+#include <stddef.h>
+#include <unistd.h>
+
+/* Retour de write verifie : un write peut echouer (pipe casse, disque
+   plein), et un succes partiel ne suffit pas. -1 en erreur, 0 sinon. */
+static int my_putstr(char const *str)
+{
+    size_t len;
+    ssize_t written;
+
+    len = 0;
+    while (str[len] != '\0')
+        len = len + 1;
+    written = write(1, str, len);
+    if (written < 0 || (size_t)written != len)
+        return -1;
+    return 0;
+}
+
+/* Copie bornee : jamais plus de dst_size - 1 octets, '\0' final garanti.
+   La taille voyage EN PARAMETRE avec le buffer, pas dans un espoir. */
+static size_t my_strcpy_safe(char *dst, char const *src, size_t dst_size)
+{
+    size_t i;
+
+    if (dst_size == 0)
+        return 0;
+    i = 0;
+    while (src[i] != '\0' && i < dst_size - 1) {
+        dst[i] = src[i];
+        i = i + 1;
+    }
+    dst[i] = '\0';
+    return i;
+}
+
+/* Fonctions courtes, const partout ou c'est possible, retours testes :
+   ce main ne fait que brancher des pieces qui disent vrai. */
+int main(void)
+{
+    char buffer[16];
+    size_t copied;
+
+    copied = my_strcpy_safe(buffer, "piscine C, bonnes pratiques", sizeof(buffer));
+    if (my_putstr(buffer) == -1)
+        return 84;
+    if (my_putstr("\n") == -1)
+        return 84;
+    if (copied < 4)
+        return 84;
+    return 0;
+}
+'''
+gotchas = [
+  "Changer un prototype impose par le sujet (nom, retour, const) : la moulinette compile avec SA vision, et tu prends un zero sans qu'aucun warning ne te previenne chez toi.",
+  "Ignorer le retour de write ou read : ecriture dans un pipe ferme, lecture d'un fichier vide, et ton programme continue comme si de rien n'etait.",
+  "Buffer sans taille passee en parametre : un strcpy sans borne, c'est le segfault du vendredi soir.",
+  "Push sans tester : la moulinette ne pardonne pas, alors qu'un gcc -Wall -Wextra -Werror de trente secondes t'aurait sauve la journee.",
+  "Code malin incomprehensible : dans trois jours c'est TOI qui ne comprends plus ta propre ligne, et le correcteur non plus."
+]
+exercises = [
+  "Reprends un vieil exercice a toi : ajoute const partout ou c'est possible, verifie chaque retour de fonction, et borne chaque copie.",
+  "Ecris un script de pre-push : compile avec -Wall -Wextra -Werror, lance tes tests, et refuse le push si quoi que ce soit echoue."
+]
+related = ["la-norme", "erreurs-frequentes", "methodologie-debug", "conseils-piscine"]

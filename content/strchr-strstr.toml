@@ -1,0 +1,95 @@
+id = "strchr-strstr"
+title = "strchr et strstr — chercher un caractère ou une sous-chaîne"
+category = "libc"
+tags = ["string", "recherche", "pointeurs", "parsing"]
+difficulty = 3
+piscine_day = "J05"
+synopsis = "char *strchr(const char *s, int c);\nchar *strrchr(const char *s, int c);\nchar *strstr(const char *haystack, const char *needle);"
+description = '''
+## En une phrase
+
+`strchr` cherche un caractère, `strstr` cherche une sous-chaîne ; tous deux renvoient un pointeur DANS la chaîne d'origine, ou `NULL` si rien n'est trouvé.
+
+## Prototype et retour
+
+- Header : `<string.h>`
+- `char *strchr(const char *s, int c);` : pointeur sur la PREMIÈRE occurrence de `c` (converti en `char`), `NULL` sinon. Le `'\0'` final fait partie de la recherche : `strchr(s, '\0')` renvoie un pointeur sur le terminateur.
+- `char *strrchr(const char *s, int c);` : même chose pour la DERNIÈRE occurrence.
+- `char *strstr(const char *haystack, const char *needle);` : pointeur sur la première occurrence de `needle` dans `haystack`, `NULL` sinon. Cas limite officiel : `needle` vide → retourne `haystack`.
+
+> Le pointeur renvoyé est une fenêtre sur la chaîne d'origine : PAS de copie, PAS de malloc. Ne le `free` jamais, et écrire dedans modifie la chaîne originale. L'index se récupère par soustraction de pointeurs : `p - s`.
+
+Note la verrue historique : le paramètre est `const char *` mais le retour est `char *`. Dans ta réimplémentation, un cast `(char *)` sur le retour est nécessaire et accepté.
+
+## En pratique
+
+`my_strchr` : un `while` jusqu'à trouver ou atteindre la fin, puis le cas spécial du terminateur :
+
+- `while (s[i] != '\0')` : si `s[i] == (char)c`, renvoie `(char *)s + i`
+- après la boucle : si `c == '\0'`, renvoie `(char *)s + i`
+- sinon renvoie `NULL`
+
+`my_strstr` : deux boucles imbriquées. La boucle externe essaie chaque position de départ de `haystack` ; la boucle interne compare `needle` caractère par caractère. Si la boucle interne atteint le `'\0'` de `needle`, c'est trouvé, renvoie la position de départ. Gère dès l'entrée le cas `needle[0] == '\0'` : retourne `haystack`. Complexité naïve O(n × m), largement suffisante en piscine.
+
+Usage typique : parser `key=value` (le `strchr` sur `'='` coupe la chaîne en deux), découper une ligne lue par `read`, chercher un motif dans un buffer.
+
+## À retenir
+
+- Toujours tester `!= NULL` avant d'utiliser le retour.
+- Le retour pointe DANS la chaîne d'origine : ni copie ni free.
+- `strchr(s, '\0')` est légal et utile pour pointer la fin d'une chaîne.
+- `strstr(s, "")` renvoie `s` : la moulinette teste ce cas, gère-le en premier.
+'''
+example = '''
+#include <stdio.h>
+#include <string.h>
+
+/* Renvoie un pointeur sur la premiere occurrence de c, NULL sinon. */
+char *my_strchr(const char *s, int c)
+{
+    size_t i;
+
+    i = 0;
+    while (s[i] != '\0') {
+        if (s[i] == (char)c)
+            return ((char *)s + i);
+        i = i + 1;
+    }
+    if (c == '\0')
+        return ((char *)s + i);
+    return NULL;
+}
+
+int main(void)
+{
+    const char *arg = "key=value";
+    const char *fin = "abc";
+    char *egal;
+    char *sous;
+
+    egal = my_strchr(arg, '=');
+    if (egal != NULL)
+        printf("index de '=' : %ld, valeur : %s\n", (long)(egal - arg),
+               egal + 1);
+    sous = strstr("la piscine forge", "piscine");
+    if (sous != NULL)
+        printf("trouve : %s\n", sous);
+    /* Le '\\0' final est cherchable. */
+    printf("index de '\\0' dans \"%s\" : %ld\n", fin,
+           (long)(my_strchr(fin, '\0') - fin));
+    return 0;
+}
+'''
+gotchas = [
+  "Dereferencer le retour sans tester NULL : caractere absent = pointeur NULL = segfault immediat.",
+  "Oublier que le retour pointe DANS la chaine : pas de free dessus, et toute ecriture modifie l'original.",
+  "Ignorer le cas strchr(s, '\\0') : c'est legal et ca renvoie un pointeur sur le terminateur.",
+  "Oublier le cas needle vide dans my_strstr : le contrat impose de renvoyer haystack.",
+  "Confondre strchr (premiere occurrence) et strrchr (derniere occurrence)."
+]
+exercises = [
+  "Ecris my_strchr qui gere le cas c == '\\0', et teste-le en cherchant le terminateur d'une chaine.",
+  "Ecris my_strrchr (derniere occurrence) : un parcours complet en memorisant la derniere position trouvee.",
+  "Ecris my_strstr avec deux boucles while imbriquees et le cas needle vide, puis utilise-le pour compter les occurrences d'un mot dans une phrase (avance le curseur apres chaque trouvaille)."
+]
+related = ["strcmp-strncmp", "pointeurs", "arithmetique-pointeurs", "chaines-caracteres", "strlen"]

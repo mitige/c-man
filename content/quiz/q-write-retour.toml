@@ -1,0 +1,15 @@
+id = "q-write-retour"
+category = "libc"
+difficulty = 2
+question = "Que renvoie write(1, \"abc\", 3) quand tout se passe bien ?"
+choices = [
+  "0, la convention du succès",
+  "1, le descripteur de fichier utilisé",
+  "3, le nombre d'octets réellement écrits",
+  "Rien : write est une fonction void"
+]
+answer = 2
+explanation = '''
+write renvoie le nombre d'octets effectivement écrits — et il peut être INFÉRIEUR à ce que tu as demandé (écriture partielle) : il faut alors boucler pour écrire le reste. En cas d'erreur, write renvoie -1 et errno précise la cause. Ignorer la valeur de retour, c'est ignorer les écritures partielles et les erreurs — la moulinette adore tester ça.
+'''
+related = ["write", "gestion-errno"]

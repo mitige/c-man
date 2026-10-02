@@ -1,0 +1,89 @@
+id = "flags-compilation"
+title = "flags de compilation — le trio sacré -Wall -Wextra -Werror"
+category = "outils"
+tags = ["compilation", "warnings", "gcc"]
+difficulty = 1
+piscine_day = "J01"
+synopsis = "gcc -Wall -Wextra -Werror -std=c99 -g -Iinclude ..."
+description = '''
+## En une phrase
+
+Les flags de gcc sont tes réglages de compilation : en piscine, le trio `-Wall -Wextra -Werror` est non négociable, il transforme chaque avertissement en erreur bloquante.
+
+## Le trio sacré
+
+- `-Wall` : active les warnings essentiels (variables inutilisées, `return` oublié, format `printf` suspect...).
+- `-Wextra` : ajoute une couche (paramètres non utilisés, comparaisons signé/non signé...).
+- `-Werror` : **chaque warning devient une erreur** — plus de compilation tant que le code n'est pas propre. Zéro tolérance.
+
+Ajoute presque toujours :
+
+- `-std=c99` : la piscine code en C99, ce flag impose le bon standard.
+- `-g` : embarque les infos de débogage (noms de variables, numéros de ligne) pour gdb et valgrind. Indispensable dès que ça plante.
+- `-Iinclude` : dit à gcc de chercher tes `.h` aussi dans le dossier `include/`.
+
+## Lire un warning comme un pro
+
+```
+bug.c:7:19: error: format '%s' expects argument of type 'char *'
+```
+
+Se lit : fichier `bug.c`, **ligne 7**, **colonne 19**. La première ligne est souvent précédée de `In function 'main'` : tu sais où tu es. gcc cite même l'option qui a détecté le problème (`-Werror=format=`) : cherche-la dans le man pour comprendre.
+
+> Un warning n'est pas une suggestion : c'est un bug qui n'a pas encore explosé. La moulinette et la Norme Epitech exigent un code qui compile sans aucun warning.
+
+## À retenir
+
+- Compile TOUJOURS avec le trio, même pour tester trois lignes : le réflexe sauve des journées.
+- Warning ≠ erreur : sans `-Werror`, un warning laisse compiler, mais il annonce presque toujours un comportement faux.
+- `-g` ne ralentit pas ton programme : laisse-le en permanence pendant la piscine.
+- Mets tes flags dans la variable `CFLAGS` de ton Makefile, jamais en dur dans chaque règle.
+'''
+example = '''
+# Un warning lu de A à Z (la forme exacte varie selon la version de gcc)
+$ cat bug.c
+#include <stdio.h>
+
+int main(void)
+{
+    int age = 42;
+
+    printf("age: %s\n", age);   /* BUG : %s sur un int */
+    return 0;
+}
+$ gcc -Wall -Wextra -Werror -std=c99 bug.c -o bug
+bug.c: In function 'main':
+bug.c:7:19: error: format '%s' expects argument of type 'char *', but argument 2 has type 'int' [-Werror=format=]
+    7 |     printf("age: %s\n", age);
+      |                  ~^     ~~~
+      |                   |     |
+      |                   char * int
+      |                  %d
+cc1: all warnings being treated as errors
+# Lecture : bug.c, ligne 7, colonne 19, mauvais format, suggestion %d.
+# Corrigé :
+$ cat bug.c
+#include <stdio.h>
+
+int main(void)
+{
+    int age = 42;
+
+    printf("age: %d\n", age);   /* %d pour un int */
+    return 0;
+}
+$ gcc -Wall -Wextra -Werror -std=c99 -g bug.c -o bug
+$ ./bug
+age: 42
+'''
+gotchas = [
+  "Retirer -Werror pour faire passer un warning : tu triches contre toi-même, la moulinette compile avec et te sanctionne.",
+  "Ignorer 'unused variable' : c'est souvent le signe que tu as oublié d'utiliser le résultat d'une fonction.",
+  "N'ajouter -g qu'après le premier crash : mets-le dès le début, gdb et valgrind seront utilisables immédiatement.",
+  "Croire que -Wall voit tout : il ne remplace ni ta rigueur, ni gdb, ni valgrind."
+]
+exercises = [
+  "Écris un programme avec un printf au mauvais format, compile avec le trio, et explique à voix haute chaque morceau du message d'erreur.",
+  "Ajoute -g à un exo existant, compare la taille du binaire avec ls -l, puis lance gdb et vérifie que tu vois les numéros de ligne."
+]
+related = ["gcc", "gdb", "valgrind", "la-norme", "erreurs-frequentes"]

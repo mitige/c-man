@@ -1,0 +1,118 @@
+id = "css-transitions"
+title = "Transitions — des changements d'état en douceur"
+category = "web"
+tags = ["css", "transition", "hover", "transform", "animation"]
+difficulty = 2
+synopsis = "transition: transform 0.3s ease; /* un survol qui glisse au lieu de claquer */"
+description = '''
+## En une phrase
+
+Une transition CSS demande au navigateur d'**interpoler** un changement de propriété dans le temps : au lieu que ton bouton change de couleur d'un coup sec au survol, il glisse en douceur d'un état à l'autre.
+
+## En pratique
+
+La propriété raccourcie réunit quatre réglages :
+
+```css
+.bouton {
+    transition: transform 0.3s ease 0s;
+    /*          propriété durée  timing délai */
+}
+```
+
+- **property** : la propriété à animer (`transform`, `opacity`, `background-color`...). Liste-les explicitement plutôt que `all`.
+- **duration** : `0.2s` à `0.4s` pour une UI réactive ; au-delà de `0.5s`, ça traîne.
+- **timing-function** : `ease` (défaut), `ease-in-out`, `linear`, ou `cubic-bezier(...)` pour du sur-mesure.
+- **delay** : attente avant le départ, souvent `0s`.
+
+Le déclencheur classique est `:hover` (aussi `:focus`, ou une classe ajoutée en JS). La transition se déclare sur **l'état de base**, jamais sur `:hover` seul — sinon elle joue à l'aller mais coupe net au retour.
+
+`transform` est ta meilleure amie, car elle ne coûte presque rien au navigateur :
+
+```css
+.carte:hover {
+    transform: translateY(-4px) scale(1.02) rotate(-1deg);
+}
+```
+
+- `scale(1.05)` : agrandir (1 = taille normale)
+- `translateY(-4px)` : déplacer sans toucher au flux
+- `rotate(-1deg)` : pivoter légèrement
+
+Quand animer — et quand pas : anime en priorité **`transform` et `opacity`**, composées par le GPU. Animer `width`, `top` ou `margin` force le navigateur à recalculer toute la mise en page à chaque image : saccades garanties sur une page chargée. Et une animation attire l'œil : réserve-la aux interactions qui méritent d'être signalées, pas à toute la page.
+
+Pour des séquences en plusieurs étapes, il existe `@keyframes` avec la propriété `animation` : même logique, mais tu définis des images-clés au lieu d'un simple aller entre deux états.
+
+## À retenir
+
+- `transition: <propriété> <durée> <timing> <délai>`, déclarée sur l'état de base.
+- 0.2 à 0.4 s pour de l'UI ; `ease` convient presque toujours.
+- `transform` (scale/translate/rotate) + `opacity` = animations fluides et presque gratuites.
+- Évite d'animer `width`, `top`, `margin` : recalcul de layout à chaque image.
+- `@keyframes` pour les animations en plusieurs temps — les transitions suffisent pour un aller-retour.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Bouton et carte animes</title>
+<style>
+    /* Etat de base : c'est ICI qu'on declare la transition */
+    .bouton {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        background-color: #2d6cdf;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        /* On liste les proprietes animees, avec duree et timing */
+        transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    /* Survol : le bouton grossit legerement et fonce */
+    .bouton:hover {
+        transform: scale(1.08);
+        background-color: #1a4fae;
+    }
+
+    /* Clic : effet "enfonce" */
+    .bouton:active {
+        transform: scale(0.95);
+    }
+
+    /* Carte qui se souleve au survol */
+    .carte {
+        margin-top: 24px;
+        padding: 16px;
+        width: 260px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .carte:hover {
+        transform: translateY(-6px) rotate(-1deg);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+</style>
+</head>
+<body>
+    <button class="bouton">Survole-moi</button>
+    <div class="carte">Une carte qui se souleve au passage de la souris.</div>
+</body>
+</html>
+'''
+gotchas = [
+  "Déclarer la transition sur :hover au lieu de l'état de base : l'animation joue à l'aller mais coupe net quand la souris repart.",
+  "Animer width, height, top ou margin : chaque image déclenche un recalcul de layout — préfère transform et opacity, presque gratuits.",
+  "Croire que display: none peut transitionner : c'est impossible — passe par opacity (avec visibility ou pointer-events) pour un fondu.",
+  "Mettre transition: all partout : cela anime aussi les changements imprévus et masque les problèmes de performance — liste tes propriétés.",
+  "Choisir des durées au-delà de 0.5s pour un survol : l'interface paraît lente, reste entre 0.15s et 0.4s."
+]
+exercises = [
+  "Crée un bouton qui s'agrandit (scale 1.1) et change de couleur en 0.2s au survol, puis s'écrase (scale 0.95) au clic avec :active.",
+  "Fais une rangée de cartes qui se soulèvent (translateY + box-shadow) au survol, avec un léger décalage par carte via transition-delay.",
+  "Anime l'apparition d'une info-bulle (opacity 0 vers 1 et translateY) déclenchée par le survol de son élément parent."
+]
+related = ["css-bases", "css-boxmodel", "js-evenements", "web-devtools"]

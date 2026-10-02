@@ -1,0 +1,94 @@
+id = "js-bases"
+title = "JavaScript — les bases du langage du navigateur"
+category = "web"
+tags = ["javascript", "variables", "types", "console"]
+difficulty = 2
+synopsis = "const par défaut, let sinon, jamais var ; === toujours."
+description = '''
+## En une phrase
+
+JavaScript est le langage de programmation du navigateur : même famille syntaxique que le C (accolades, point-virgules, `if`, `for`), mais typé dynamiquement et exécuté directement dans la page.
+
+## En pratique
+
+Tu retrouves vite tes marques : conditions, boucles, fonctions, accolades — la grammaire te rappelle le C. Les différences majeures :
+
+- **Déclaration** : `let` pour une variable réassignable, `const` par défaut. **`var` est banni** : sa portée de fonction et son hoisting causent des bugs historiques.
+- **Types dynamiques** : pas de type déclaré, la variable porte le type de sa valeur. `number` (entiers et flottants confondus), `string`, `boolean`, `null`, et `undefined` (déclaré mais jamais assigné — le pointeur non initialisé du C, en moins dangereux).
+- **`console.log()`** est ton `printf` : la sortie apparaît dans la console des DevTools (F12), pas sur la page.
+
+Le piège numéro un : `==` fait des **conversions implicites** — `"5" == 5` vaut `true`. C'est le cast sauvage du C sans le warning du compilateur. Règle absolue : **toujours `===`** (et `!==`), qui compare valeur *et* type sans rien convertir.
+
+Les chaînes modernes s'écrivent avec des backticks et interpolent des variables — le `printf` à coups de `%s`, en lisible :
+
+```js
+const nom = "Kevin";
+console.log(`Score de ${nom} : ${42 * 2}`);   // Score de Kevin : 84
+```
+
+Où mettre le code ? Une balise `<script src="app.js"></script>` **juste avant `</body>`**, ou avec l'attribut `defer` dans le `<head>`. Un script placé trop haut s'exécute avant que le HTML existe — comme appeler une fonction sur une struct pas encore initialisée : tout tes `querySelector` renverront `null`.
+
+## À retenir
+
+- `const` par défaut, `let` si réassignation, jamais `var`.
+- `===` toujours ; `==` convertit et ment.
+- `console.log` + F12 : ton duo printf/gdb.
+- Backticks et `${}` pour les chaînes dynamiques (template literals).
+- `<script>` en fin de `<body>` ou avec `defer`.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bases JS</title>
+</head>
+<body>
+    <h1>Ouvre la console (F12)</h1>
+
+    <!-- Le script en fin de body : le HTML existe deja quand il s'execute -->
+    <script>
+        // const par defaut, let si la valeur change, var = banni
+        const promo = 2029;
+        let score = 0;
+
+        // Types dynamiques : le type vit dans la valeur
+        let nom = "Kevin";        // string
+        let moyenne = 13.5;       // number (entiers et flottants confondus)
+        let enPiscine = true;     // boolean
+        let inconnu;              // undefined : declare, jamais assigne
+
+        // console.log = ton printf, sortie dans les DevTools
+        console.log(typeof moyenne);    // "number"
+
+        // === compare valeur ET type, == convertit (et ment)
+        console.log("5" == 5);     // true  (le piege !)
+        console.log("5" === 5);    // false (la verite)
+
+        // Template literals : backticks + ${}, le printf lisible
+        score = score + 42;
+        console.log(`${nom} (promo ${promo}) : ${score} points`);
+
+        // Conditions et boucles : meme syntaxe qu'en C
+        if (score >= 42 && enPiscine) {
+            console.log("Validé !");
+        }
+        for (let i = 0; i < 3; i++) {
+            console.log(`tour ${i}`);
+        }
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "Utiliser == au lieu de === : \"5\" == 5 vaut true à cause des conversions implicites, bug garanti.",
+  "Déclarer avec var : portée de fonction et hoisting piégeux — aujourd'hui on écrit let ou const, point.",
+  "Un script dans le head sans defer s'exécute avant que le HTML existe : tous tes querySelector renvoient null.",
+  "Chercher la sortie de console.log sur la page : elle est dans la console des DevTools (F12).",
+  "Croire que const fige tout : un tableau ou objet const peut changer de contenu, seule la référence est verrouillée."
+]
+exercises = [
+  "Écris un script qui déclare ton prénom (const) et un score (let), incrémente le score dans une boucle for de 10 tours et affiche le résultat avec un template literal.",
+  "Teste dans la console : \"5\" == 5, \"5\" === 5, null == undefined, null === undefined, et explique chaque résultat à voix haute."
+]
+related = ["js-fonctions", "js-dom", "html-bases", "variables-types", "operateurs"]

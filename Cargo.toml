@@ -1,0 +1,27 @@
+[package]
+name = "c-man"
+version = "2.0.0"
+edition = "2021"
+description = "Documentation C interactive dans le terminal, pensée pour la piscine Epitech"
+license = "MIT"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+ratatui = "0.29"
+crossterm = "0.28"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.9"
+syntect = { version = "5", default-features = false, features = ["parsing", "default-syntaxes", "default-themes", "regex-onig"] }
+fuzzy-matcher = "0.3"
+unicode-width = "0.2"
+
+[build-dependencies]
+serde = { version = "1", features = ["derive"] }
+toml = "0.9"
+
+[profile.release]
+opt-level = 2
+lto = true
+codegen-units = 1
+strip = true

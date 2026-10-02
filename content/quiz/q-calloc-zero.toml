@@ -1,0 +1,15 @@
+id = "q-calloc-zero"
+category = "memoire"
+difficulty = 2
+question = "Quelle est la différence entre malloc et calloc ?"
+choices = [
+  "calloc initialise la zone à zéro, malloc laisse le contenu indéterminé",
+  "calloc est plus rapide car optimisé pour les tableaux",
+  "malloc initialise à zéro, calloc non",
+  "Aucune : ce sont deux noms pour la même fonction"
+]
+answer = 0
+explanation = '''
+calloc(n, taille) alloue n * taille octets ET les met à zéro ; malloc(taille) alloue sans rien initialiser. calloc prend donc deux arguments et fait le produit pour toi (avec vérification de débordement sur les implémentations modernes). Choisis calloc pour un tableau que tu veux à zéro, malloc quand tu vas de toute façon écrire chaque case.
+'''
+related = ["calloc-realloc", "malloc"]

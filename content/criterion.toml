@@ -1,0 +1,101 @@
+id = "criterion"
+title = "criterion — les tests unitaires en C"
+category = "outils"
+tags = ["tests", "unitaire", "criterion", "qualité", "moulinette"]
+difficulty = 3
+piscine_day = "J10"
+synopsis = "sudo pacman -S criterion ; gcc -o tests test_*.c -lcriterion"
+description = '''
+## En une phrase
+
+Criterion est LE framework de tests unitaires en C : tu écris des tests dans des fonctions spéciales, il les découvre, les exécute chacun dans un processus isolé (un crash ne tue pas la suite) et te dit exactement ce qui passe et ce qui casse.
+
+## En pratique
+
+Installation sur Arch : `sudo pacman -S criterion`. Le framework fournit son propre `main` : tu n'écris QUE des tests, jamais de main.
+
+Un test minimal :
+
+```c
+#include <criterion/criterion.h>
+
+Test(suite_strlen, compte les caracteres)
+{
+    cr_assert_eq(strlen("abc"), 3);
+}
+```
+
+Compile avec `-lcriterion` et lance : `./tests`. Chaque test passe (vert) ou échoue (rouge, avec fichier:ligne). Options utiles : `--verbose` pour le détail, `--filter 'suite/*'` pour ne lancer qu'une suite, `--list` pour lister sans exécuter.
+
+Les assertions à connaître :
+
+- `cr_assert(expr)` : condition libre
+- `cr_assert_eq(a, b)` / `cr_assert_neq(a, b)` : égalité (affiche les valeurs !)
+- `cr_assert_str_eq(a, b)` : chaînes
+- `cr_assert_null(p)` / `cr_assert_not_null(p)` : pointeurs
+- `cr_assert_float_eq(a, b, epsilon)` : flottants, toujours avec epsilon
+- `cr_expect(...)` : comme assert mais n'arrête pas le test
+- `cr_fail("message")` : échec explicite
+
+> **Tester une fonction qui AFFICHE** (ton my_putstr, ton rush...) : `#include <criterion/redirect.h>`, appelle `cr_redirect_stdout();` au début du test, puis `cr_assert_stdout_eq_str("attendu\n");`. C'est exactement comme ça que la moulinette vérifie tes sorties.
+
+## À retenir
+
+- Un test qui crashe (segfault) est isolé : le rapport dit « crashed » et les autres tests continuent — ton segfault ne se cache plus.
+- Écris les tests AVANT ou PENDANT le code, pas après : un test qui échoue te dit où chercher.
+- En piscine, Criterion n'est pas autorisé dans les rendus de fonctions (my_putchar seulement, souvent) — il sert dans TON dossier de tests local, pas dans le rendu.
+- Vérifie toujours le retour des fonctions (malloc NULL, write partiel...) dans tes tests, pas juste le cas nominal.
+'''
+example = '''
+/* test de my_strlen (fonction maison) + d'une fonction d'affichage.
+** compile : gcc -o tests test_my.c my_strlen.c -lcriterion
+** (PAS besoin de main : criterion le fournit)
+*/
+#include <criterion/criterion.h>
+#include <criterion/redirect.h>
+
+int my_strlen(char *str);
+void my_putstr(char *str);
+
+Test(my_strlen, chaine_simple)
+{
+    cr_assert_eq(my_strlen("piscine"), 7);
+}
+
+Test(my_strlen, chaine_vide)
+{
+    cr_assert_eq(my_strlen(""), 0);
+}
+
+/* rediriger stdout pour tester une fonction qui affiche */
+static void redirect(void)
+{
+    cr_redirect_stdout();
+}
+
+Test(my_putstr, affiche_la_chaine, .init = redirect)
+{
+    my_putstr("abc");
+    cr_assert_stdout_eq_str("abc");
+}
+
+/* un test qui échoue exprès pour voir le rapport : retire-le ensuite */
+Test(demo, echec_volontaire)
+{
+    cr_expect_eq(1 + 1, 2);          /* passe, n'arrête rien */
+    cr_assert_str_eq("abc", "abd");  /* échoue et stoppe le test */
+}
+'''
+gotchas = [
+  "Oublier -lcriterion au link : 'undefined reference' en cascade — la lib s'appelle avec -l + criterion, dans cet ordre APRÈS tes .c.",
+  "Comparer deux chaînes avec cr_assert_eq : ça compare les ADRESSES. Pour le contenu : cr_assert_str_eq.",
+  "Écrire un main dans un fichier de test : Criterion en fournit un — double définition au link.",
+  "cr_assert_float_eq sans epsilon : les flottants ne se comparent jamais avec ==.",
+  "Tester le comportement sans tester les cas d'erreur : malloc NULL, chaîne vide, taille 0 — la moulinette, elle, les teste."
+]
+exercises = [
+  "Écris tests + my_strlen : chaine normale, vide, un caractère. Fais-les passer un par un.",
+  "Écris le test d'un my_putstr avec cr_redirect_stdout, puis code my_putstr jusqu'à ce que ça passe.",
+  "Reprends un exo de la piscine (my_swap, my_put_nbr) et écris 3 tests : nominal, limite, erreur."
+]
+related = ["gcc", "linking", "moulinette", "methodologie-debug", "flags-compilation"]

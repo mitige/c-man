@@ -1,0 +1,21 @@
+id = "q-bash-stderr"
+category = "bash"
+difficulty = 3
+question = '''
+Chasse au bug : l'étudiant veut envoyer stdout ET stderr dans erreurs.log. Pourquoi ses erreurs s'affichent-elles encore à l'écran ?
+
+```bash
+./compiler.sh 2>&1 > erreurs.log
+```
+'''
+choices = [
+  "Les redirections sont traitées de gauche à droite : 2>&1 copie stdout alors qu'il pointe encore vers le terminal ; il faut écrire > erreurs.log 2>&1",
+  "On ne peut jamais envoyer deux flux différents dans un même fichier",
+  "Il manque des guillemets autour de 2>&1",
+  "bash ignore purement et simplement la redirection 2>&1"
+]
+answer = 0
+explanation = '''
+Bash traite les redirections de gauche à droite. Avec 2>&1 > fichier, stderr (descripteur 2) est d'abord dupliqué vers la cible actuelle de stdout, qui est encore le terminal ; ensuite seul stdout est redirigé vers le fichier. Résultat : stdout va dans le fichier mais stderr reste à l'écran. La bonne écriture est ./compiler.sh > erreurs.log 2>&1 : d'abord stdout vers le fichier, puis stderr dupliquée vers stdout, donc vers le fichier aussi. Pour ne garder QUE les erreurs, on utiliserait 2> erreurs.log.
+'''
+related = ["pipes-redirections", "bash-bases"]

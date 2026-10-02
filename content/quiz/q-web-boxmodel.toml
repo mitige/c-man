@@ -1,0 +1,26 @@
+id = "q-web-boxmodel"
+category = "web"
+difficulty = 3
+question = '''
+Avec ce CSS, quelle est la largeur TOTALE occupée par .box à l'écran ?
+
+```css
+.box {
+  box-sizing: border-box;
+  width: 200px;
+  padding: 20px;
+  border: 5px solid black;
+}
+```
+'''
+choices = [
+  "200px : padding et bordure sont inclus dans la width déclarée",
+  "250px : width + padding + bordure s'additionnent",
+  "240px : seul le padding s'ajoute",
+  "210px : seule la bordure s'ajoute"
+]
+answer = 0
+explanation = '''
+Avec box-sizing: border-box, la width déclarée inclut le contenu, le padding ET la bordure : l'élément fait exactement 200px de large et c'est le contenu intérieur qui est réduit d'autant. Sans border-box, le modèle par défaut content-box aurait donné 200 + 2×20 + 2×5 = 250px, ce qui casse vite les mises en page calculées au pixel près. C'est pour cette raison que la plupart des projets commencent par le reset * { box-sizing: border-box; }.
+'''
+related = ["css-boxmodel", "css-bases"]

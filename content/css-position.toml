@@ -1,0 +1,117 @@
+id = "css-position"
+title = "Position — placer un élément au pixel près"
+category = "web"
+tags = ["css", "position", "z-index", "layout"]
+difficulty = 3
+synopsis = "position: absolute dans un parent en position: relative : le duo qui place un élément exactement où tu veux."
+description = '''
+## En une phrase
+
+`position` décide comment un élément se place : dans le flux normal (`static`), décalé par rapport à sa place (`relative`), sorti du flux et ancré à un ancêtre (`absolute`), collé à l'écran (`fixed`) ou hybride au scroll (`sticky`).
+
+## En pratique
+
+Par défaut tout est `static` : les éléments s'empilent dans l'ordre du HTML et `top`, `left`, `right`, `bottom` sont **ignorés**. Les quatre autres valeurs sortent de ces rails :
+
+- `relative` : l'élément garde sa place dans le flux (personne ne la prend), mais tu peux le décaler avec `top`/`left`. Surtout, il devient un **repère** pour ses descendants en `absolute`.
+- `absolute` : l'élément sort du flux (les autres l'ignorent) et se positionne par rapport au **plus proche ancêtre positionné** — c'est-à-dire non-`static`. Aucun ancêtre positionné ? Il remonte jusqu'en haut de la page.
+- `fixed` : par rapport à la **fenêtre**. Ne bouge pas au scroll : barre de navigation, bouton « retour en haut ».
+- `sticky` : un `relative` qui devient `fixed` quand on scrolle jusqu'à un seuil (`top: 0`). Parfait pour un titre de section qui reste visible.
+
+`top`, `right`, `bottom`, `left` fixent les distances depuis les bords de la référence : `top: -10px; right: -10px` plaque un badge dans le coin supérieur droit du parent.
+
+Le duo classique — un badge sur une carte :
+
+```css
+.carte { position: relative; }           /* le repère */
+.badge { position: absolute; top: 0; right: 0; }
+```
+
+Quand deux éléments positionnés se chevauchent, `z-index` décide qui passe devant (le plus grand gagne). Une précision en une phrase : le `z-index` se joue à l'intérieur d'un **contexte d'empilement** (stacking context) — un élément positionné avec `z-index` en crée un, et les `z-index` de ses enfants ne se comparent plus qu'entre eux, jamais avec l'extérieur. C'est pour ça qu'un `z-index: 9999` peut perdre contre un `z-index: 2`.
+
+> Le piège n°1 : un `absolute` sans ancêtre positionné se place par rapport à la page entière. Ta « petite étiquette dans le coin de la carte » part en haut de l'écran. Solution systématique : `position: relative` sur le parent.
+
+## À retenir
+
+- `static` = défaut : les offsets et `z-index` sont ignorés.
+- `absolute` cherche le plus proche ancêtre non-`static` : mets `relative` sur le parent.
+- `fixed` = fenêtre, `sticky` = relative puis collé au scroll.
+- `z-index` ne marche que sur des éléments positionnés, et à l'intérieur de leur contexte d'empilement.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Position en action</title>
+    <style>
+        body {
+            margin: 0;
+            padding-top: 60px;   /* compense la hauteur de la barre fixe */
+            font-family: sans-serif;
+        }
+        /* fixed : collée au viewport, visible même en bas de page */
+        .barre-fixe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #222;
+            color: white;
+            padding: 15px;
+            z-index: 10;   /* passe au-dessus du reste */
+        }
+        /* relative : la carte devient la REFERENCE de son badge */
+        .carte {
+            position: relative;
+            width: 220px;
+            margin: 40px;
+            padding: 20px;
+            border: 2px solid steelblue;
+        }
+        /* absolute : sorti du flux, ancré au coin de .carte */
+        .badge {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background: crimson;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 10px;
+        }
+        /* sticky : normal, puis se colle sous la barre fixe au scroll */
+        .titre-collant {
+            position: sticky;
+            top: 60px;
+            background: lightyellow;
+            padding: 10px 40px;
+        }
+        .remplissage { height: 150vh; }   /* juste pour pouvoir scroller */
+    </style>
+</head>
+<body>
+    <header class="barre-fixe">Barre fixed : je ne bouge jamais</header>
+
+    <div class="carte">
+        Carte avec un badge absolute dans son coin.
+        <span class="badge">NEW</span>
+    </div>
+
+    <h2 class="titre-collant">Titre sticky : je reste visible au scroll</h2>
+    <div class="remplissage">Fais défiler pour tester fixed et sticky.</div>
+</body>
+</html>
+'''
+gotchas = [
+  "Un absolute sans ancêtre positionné remonte jusqu'à la page entière : ton badge part en haut de l'écran. Mets position: relative sur le parent.",
+  "Appliquer top/left sur un élément static : les offsets sont ignorés, sans aucune erreur ni avertissement.",
+  "Mettre z-index sur un élément static : sans effet, il faut une position non-static.",
+  "Oublier que fixed et absolute sortent du flux : le contenu suivant passe dessous, compense avec du padding.",
+  "Un sticky sans seuil (top, left...) ou dont le parent est trop petit ne colle jamais."
+]
+exercises = [
+  "Pose un badge « -50% » dans le coin supérieur droit d'une carte produit : relative sur la carte, absolute sur le badge.",
+  "Fais une barre de navigation fixed en haut, et compense sa hauteur avec un padding-top sur body pour que le contenu ne passe pas dessous.",
+  "Crée une liste avec des titres de section sticky qui se collent en haut quand on scrolle."
+]
+related = ["css-bases", "css-boxmodel", "css-flexbox", "css-responsive", "html-bases"]

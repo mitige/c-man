@@ -1,0 +1,109 @@
+id = "js-fonctions"
+title = "Fonctions JS — des valeurs comme les autres"
+category = "web"
+tags = ["javascript", "fonctions", "callback", "fléchées"]
+difficulty = 2
+synopsis = "const double = x => x * 2; — une fonction est une valeur, à passer en argument."
+description = '''
+## En une phrase
+
+En JavaScript, une fonction est une **valeur** comme une autre : on la stocke dans une variable, on la passe en argument, on la retourne — comme un pointeur de fonction en C, sans la syntaxe douloureuse.
+
+## En pratique
+
+Deux syntaxes à connaître :
+
+```js
+function addition(a, b) {         // déclaration classique
+    return a + b;
+}
+
+const ajouter = (a, b) => a + b;  // fonction fléchée : return implicite
+```
+
+La flèche `=>` est la forme moderne : paramètres à gauche, expression retournée à droite. Sans accolades, le `return` est implicite ; avec accolades, il redevient explicite. Pour tes débuts : `=>` partout, sauf si le `function` classique te semble plus lisible.
+
+Le vrai pouvoir : **passer une fonction en argument** — un callback. Tu as déjà fait ça avec `qsort` et son comparateur ; ici c'est partout, et sans cast :
+
+```js
+const notes = [12, 8, 15];
+notes.forEach(note => console.log(note));   // fonction anonyme en argument
+notes.filter(n => n >= 10);                 // garde les notes >= 10
+notes.map(n => n * 2);                      // transforme chaque élément
+```
+
+Autres différences avec le C :
+
+- **Pas de prototype nécessaire** : les déclarations `function` sont *hoistées* (remontées en haut du fichier), donc appelables avant leur définition. En une phrase : le hoisting déplace les déclarations en haut de leur portée — mais un `const f = () => ...`, lui, ne l'est pas : définis-le avant de l'appeler.
+- **Portée** : `let` et `const` vivent dans le bloc `{}` qui les contient, comme en C.
+- **`return` absent** : la fonction renvoie `undefined`, sans aucune erreur de compilation pour te sauver.
+
+> Oublier un `return` ne provoque aucun warning : la fonction renvoie `undefined` silencieusement et le bug apparaît trois appels plus loin. Si un résultat vaut `undefined`, cherche d'abord un `return` manquant.
+
+## À retenir
+
+- `=>` pour le quotidien, `function` reste valide.
+- Les callbacks sont partout : `forEach`, `map`, `filter`, événements.
+- Pas de `return` → `undefined` silencieux.
+- `const f = () => ...` se définit avant usage ; `function f() {}` est hoistée.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fonctions JS</title>
+</head>
+<body>
+    <h1>Fonctions : regarde la console (F12)</h1>
+    <script>
+        // Declaration classique (hoistee : appelable avant sa definition)
+        function carre(x) {
+            return x * x;
+        }
+
+        // Fonction flechee : la forme moderne
+        const cube = (x) => {
+            return x * x * x;
+        };
+
+        // Une seule expression : return implicite, pas d'accolades
+        const double = x => x * 2;
+
+        // Callback : une fonction passee en argument, le qsort du web
+        const notes = [8, 12, 15, 6, 18];
+
+        notes.forEach(note => console.log(`note : ${note}`));
+
+        const admises = notes.filter(n => n >= 10);   // garde les >= 10
+        const doubles = notes.map(n => n * 2);        // transforme tout
+
+        console.log(admises);   // [12, 15, 18]
+        console.log(doubles);   // [16, 24, 30, 12, 36]
+
+        // Une fonction peut aussi retourner une fonction
+        function compteur() {
+            let total = 0;                 // portee locale, comme en C
+            return function() {
+                total = total + 1;
+                return total;
+            };
+        }
+        const next = compteur();
+        console.log(next(), next(), next());        // 1 2 3
+        console.log(carre(7), cube(3), double(21)); // 49 27 42
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "Oublier le return : la fonction renvoie undefined sans aucun warning, et le bug surgit trois appels plus loin.",
+  "Confondre fonction et appel : passer maFonction (une référence) n'est pas maFonction() (un appel immédiat) — le piège classique des callbacks.",
+  "Appeler une fléchée stockée dans un const avant sa définition : ReferenceError, seules les déclarations function sont hoistées.",
+  "Mettre des accolades à une flèche puis oublier le return explicite : x => { x * 2 } renvoie undefined."
+]
+exercises = [
+  "Réécris trois fonctions classiques (addition, estPair, max) en fonctions fléchées à return implicite et teste-les dans la console.",
+  "Sur un tableau de notes, chaîne filter et map : garde les notes au-dessus de 10, puis double-les, le tout en deux lignes."
+]
+related = ["js-bases", "js-evenements", "js-async", "pointeurs-de-fonctions", "fonctions"]

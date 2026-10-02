@@ -1,0 +1,15 @@
+id = "q-web-position"
+category = "web"
+difficulty = 3
+question = "Un élément en position: absolute avec top: 0 et left: 0 se place par rapport à quoi ?"
+choices = [
+  "Son plus proche ancêtre dont la position n'est pas static, ou la page s'il n'y en a aucun",
+  "Toujours la fenêtre du navigateur, même en faisant défiler la page",
+  "L'endroit où il se serait trouvé normalement dans le flux",
+  "Son parent direct, même si celui-ci est en position static"
+]
+answer = 0
+explanation = '''
+Un élément en position: absolute est retiré du flux normal et se positionne par rapport à son plus proche ancêtre positionné, c'est-à-dire ayant une position relative, absolute, fixed ou sticky. Si aucun ancêtre n'est positionné, le point de référence devient le conteneur initial, en pratique la page entière. C'est pour cela qu'on met souvent position: relative sur le parent pour créer ce point de référence : relative décale l'élément par rapport à sa place normale sans le sortir du flux. Le piège classique du débutant est d'oublier ce relative et de voir l'élément se coller en haut à gauche de la page.
+'''
+related = ["css-position", "css-boxmodel", "css-bases"]

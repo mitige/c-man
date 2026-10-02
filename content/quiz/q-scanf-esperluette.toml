@@ -1,0 +1,23 @@
+id = "q-scanf-esperluette"
+category = "libc"
+difficulty = 2
+question = '''
+Quel est le bug de ce code ?
+
+```c
+int n;
+
+scanf("%d", n);
+```
+'''
+choices = [
+  "Il manque & : scanf a besoin de l'adresse de n pour écrire dedans",
+  "Il manque une espace après le %d",
+  "scanf ne sait pas lire les int, seulement les chaînes",
+  "Il faut mettre n entre guillemets"
+]
+answer = 0
+explanation = '''
+scanf doit ÉCRIRE dans la variable : il lui faut donc son adresse, scanf("%d", &n). Sans le &, la valeur de n (ici indéterminée !) est interprétée comme une adresse mémoire — comportement indéfini, segfault probable. gcc -Wall repère l'incompatibilité entre le format et le type (-Wformat), donc avec -Werror ce code ne compile même pas : encore un coup du compilateur qui te protège.
+'''
+related = ["scanf", "pointeurs", "erreurs-frequentes"]

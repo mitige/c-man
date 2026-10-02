@@ -1,0 +1,10 @@
+id = "q-header-malloc"
+category = "libc"
+difficulty = 1
+question = "Quel header faut-il inclure pour utiliser malloc et free ?"
+choices = ["<stdio.h>", "<string.h>", "<stdlib.h>", "<malloc.h>, obligatoirement"]
+answer = 2
+explanation = '''
+malloc, free, calloc, realloc et exit se déclarent dans <stdlib.h>. Sans cet include, le compilateur ne connaît pas les prototypes — et avec -Werror, la déclaration implicite est directement une erreur. Le header <malloc.h> existe sous Linux mais n'est pas standard : ne t'y habitue jamais, il n'est pas portable.
+'''
+related = ["malloc", "free", "headers-include-guards"]

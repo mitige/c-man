@@ -1,0 +1,15 @@
+id = "q-werror-effet"
+category = "outils"
+difficulty = 2
+question = "Quel est l'effet de l'option -Werror de gcc ?"
+choices = [
+  "Elle supprime les avertissements pour compiler en silence",
+  "Chaque avertissement devient une erreur et bloque la compilation",
+  "Elle active les avertissements supplémentaires de -Wextra",
+  "Elle ignore les erreurs venant des headers système"
+]
+answer = 1
+explanation = '''
+-Werror transforme tout avertissement en erreur : la compilation échoue dès le premier warning. Combinée à -Wall -Wextra, elle t'oblige à corriger immédiatement ce que le compilateur signale — variable inutilisée, format printf douteux, affectation dans un if... C'est précisément pour ça qu'en piscine tu ne peux pas 'ignorer temporairement' un warning.
+'''
+related = ["flags-compilation", "gcc", "erreurs-frequentes"]

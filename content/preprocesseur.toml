@@ -1,0 +1,75 @@
+id = "preprocesseur"
+title = "préprocesseur — la substitution de texte avant compilation"
+category = "langage"
+tags = ["define", "macro", "include", "guard", "compilation"]
+difficulty = 3
+piscine_day = "J05"
+synopsis = "#define SQR(x) ((x) * (x))  /* parenthèses obligatoires, toujours */"
+description = '''
+## En une phrase
+
+Le préprocesseur réécrit ton code **avant** la compilation : substitution de texte pure, sans aucune notion de types ni de portée.
+
+## En pratique
+
+`#include <stdio.h>` copie littéralement le contenu du header à cet endroit. C'est pour ça que tout header partagé exige des **include guards** : sans elles, un double include redéfinit tes structs et la compilation explose avec des erreurs incompréhensibles.
+
+    #ifndef MY_H_
+    # define MY_H_
+    /* déclarations */
+    #endif
+
+`#define` existe en deux saveurs. Objet : `#define NB_LIVES 3` remplace chaque occurrence par le texte. Fonction-like : `#define SQR(x) ((x) * (x))`. Le parenthésage est **obligatoire**, à deux niveaux : chaque paramètre entre parenthèses, et tout le corps. Sans ça, `SQR(1 + 2)` expande en `1 + 2 * 1 + 2` = 5 au lieu de 9, gracieuseté des priorités de opérateurs.
+
+Pire : la macro **réévalue** ses arguments à chaque occurrence. `SQR(i++)` expande en `((i++) * (i++))` : `i` est incrémenté deux fois, avec en prime un comportement indéfini (deux modifications entre deux points de séquence). Règle d'or : jamais d'effet de bord dans un argument de macro.
+
+`#ifdef DEBUG` / `#endif` ne compile le bloc que si le symbole existe (`gcc -DDEBUG`). Parfait pour des traces que la version finale ne verra pas. Tu peux inspecter le résultat du préprocesseur avec `gcc -E fichier.c` : fais-le une fois, ça démystifie tout.
+
+## À retenir
+
+- La macro ne connaît ni types ni portée : elle colle du texte, point.
+- Paramètres ET corps entre parenthèses, toujours. Pas d'effet de bord en argument, jamais.
+- Include guards sur chaque .h, sans exception : la moulinette inclut tout et n'importe quoi.
+'''
+example = '''
+#include <stdio.h>
+
+/* Macro objet : remplacement textuel pur. */
+#define NB_LIVES 3
+
+/* Macros fonction : chaque paramètre ET le corps entre parenthèses. */
+#define SQR(x) ((x) * (x))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+/* Compilation conditionnelle : gcc -DDEBUG active le bloc. */
+#ifdef DEBUG
+# define TRACE(x) printf("trace: %d\n", (x))
+#else
+# define TRACE(x)
+#endif
+
+int main(void)
+{
+    int score;
+    int best;
+
+    /* ((NB_LIVES + 1) * (NB_LIVES + 1)) = 16, pas 7 : merci les parenthèses. */
+    score = SQR(NB_LIVES + 1);
+    best = MAX(score, 21);
+    TRACE(best);
+    printf("score = %d, best = %d\n", score, best);
+    return 0;
+}
+'''
+gotchas = [
+  "#define SQR(x) x * x sans parenthèses : SQR(1 + 2) vaut 5 au lieu de 9. Parenthèse chaque paramètre et le corps, toujours.",
+  "SQR(i++) : l'argument est expansé deux fois, donc i est incrémenté deux fois — comportement indéfini en prime.",
+  "Header sans include guard inclus deux fois : redéfinitions de structs, erreurs de compilation cryptiques.",
+  "Point-virgule après un #define objet (#define MAX 42;) : le ; fait partie du texte et casse le code qui suit.",
+  "Oublier qu'une macro vide comme TRACE(x) laisse un ; solitaire : c'est légal, mais garde l'usage cohérent."
+]
+exercises = [
+  "Écris un header my.h protégé par include guards contenant SQR et MAX correctement parenthésés, et un main qui prouve que SQR(1 + 2) vaut 9.",
+  "Ajoute une macro TRACE(x) activée par -DDEBUG, puis vérifie avec gcc -E que le code disparaît complètement sans le flag."
+]
+related = ["headers-include-guards", "gcc", "flags-compilation", "enum", "makefile"]

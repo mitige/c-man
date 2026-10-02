@@ -1,0 +1,10 @@
+id = "q-portee-bloc"
+category = "langage"
+difficulty = 1
+question = "Vrai ou faux : une variable déclarée à l'intérieur d'un bloc { } peut encore être utilisée après l'accolade fermante du bloc."
+choices = ["Vrai", "Faux"]
+answer = 1
+explanation = '''
+Une variable déclarée dans un bloc a une portée limitée à ce bloc : après l'accolade fermante, elle n'existe plus, et l'utiliser provoque une erreur de compilation. C'est ce qui permet de réutiliser le même nom dans deux blocs frères sans conflit. Et si un bloc interne redéclare un nom déjà utilisé à l'extérieur, c'est la variable la plus interne qui masque l'autre.
+'''
+related = ["portee-variables", "fonctions"]

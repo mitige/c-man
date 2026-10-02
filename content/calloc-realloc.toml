@@ -1,0 +1,102 @@
+id = "calloc-realloc"
+title = "calloc et realloc — allouer à zéro, redimensionner"
+category = "memoire"
+tags = ["calloc", "realloc", "heap", "redimensionnement", "tableau-dynamique"]
+difficulty = 3
+piscine_day = "J08"
+synopsis = "void *calloc(size_t n, size_t size); void *realloc(void *ptr, size_t size);"
+description = '''
+## En une phrase
+
+`calloc` alloue un bloc **intégralement mis à zéro** ; `realloc` change la taille d'un bloc existant — quitte à le **déplacer** ailleurs en mémoire, ce qui invalide l'ancien pointeur.
+
+## En pratique
+
+```c
+void *calloc(size_t nmemb, size_t size);
+void *realloc(void *ptr, size_t size);
+```
+
+`calloc(n, s)` ≡ `malloc(n * s)` suivi d'une mise à zéro de tous les octets — avec en prime une vérification du débordement du produit `n * s`, que tu ferais à la main avec `malloc`. Idéal pour les tableaux de compteurs ou les structs à initialiser. Nuance de standard : « tous bits à zéro » vaut zéro garanti pour les entiers ; pour les pointeurs, NULL n'est pas forcément codé ainsi partout (sur ta machine, si).
+
+`realloc(ptr, new_size)` ajuste un bloc : s'il peut grandir sur place, tant mieux ; sinon il alloue ailleurs, **copie** les anciennes données, libère l'ancien bloc et renvoie la nouvelle adresse. Conséquence : **tout pointeur sur l'ancien bloc devient invalide**, y compris celui que tu viens de passer en argument.
+
+Le piège qui fuite :
+
+```c
+tab = realloc(tab, new_size);   /* si NULL : l'adresse du bloc est perdue */
+```
+
+Si `realloc` échoue, il renvoie NULL **et l'ancien bloc reste valide** — mais tu viens d'écraser ton seul pointeur dessus : fuite. Le pattern correct passe par un temporaire :
+
+```c
+int *tmp = realloc(tab, sizeof(*tmp) * new_cap);
+if (tmp == NULL) {
+    free(tab);   /* l'ancien bloc est toujours là */
+    return 84;
+}
+tab = tmp;
+```
+
+Cas limites utiles : `realloc(NULL, n)` ≡ `malloc(n)` — pratique pour une boucle d'append qui part de NULL. `realloc(p, 0)` a une sémantique subtile selon les implémentations : préfère un `free` explicite. Et rappel : les octets **gagnés** par un agrandissement ne sont pas initialisés.
+
+## À retenir
+
+- `calloc` = malloc + zéro partout, avec contrôle du débordement de la multiplication.
+- `realloc` peut déménager ton bloc : récupère **toujours** le retour dans un pointeur temporaire.
+- Après un realloc, mets à jour tout ce qui pointait sur l'ancien bloc.
+- Qui alloue libère : realloc compris, le bloc final a son `free` comme les autres.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Renvoie le bloc agrandi, ou NULL en laissant l'ancien bloc intact. */
+static int *grow(int *tab, size_t new_cap)
+{
+    int *tmp = realloc(tab, sizeof(*tmp) * new_cap);
+
+    if (tmp == NULL)
+        return NULL;   /* tab est toujours valide ici : pas de fuite */
+    return tmp;        /* le bloc a pu déménager : nouvelle adresse */
+}
+
+int main(void)
+{
+    size_t cap = 4;
+    size_t i = 0;
+    int *tab = calloc(cap, sizeof(*tab));   /* malloc + mise à zéro */
+    int *tmp;
+
+    if (tab == NULL)
+        return 84;
+    printf("après calloc, tab[3] = %d\n", tab[3]);
+    tmp = grow(tab, cap * 2);
+    if (tmp == NULL) {
+        free(tab);   /* l'ancien bloc n'a jamais été perdu */
+        return 84;
+    }
+    tab = tmp;         /* on n'utilise plus que la nouvelle adresse */
+    cap = cap * 2;
+    while (i < cap) {
+        tab[i] = (int)i;
+        i = i + 1;
+    }
+    printf("cap = %zu, dernier = %d\n", cap, tab[cap - 1]);
+    free(tab);
+    return 0;
+}
+'''
+gotchas = [
+  "ptr = realloc(ptr, n) sans variable temporaire : si realloc échoue, tu perds le bloc — fuite instantanée.",
+  "Utiliser l'ancien pointeur après un realloc réussi : le bloc a pu être déplacé, l'ancienne adresse est invalide.",
+  "Oublier que les octets gagnés par realloc ne sont PAS initialisés, contrairement à calloc.",
+  "realloc(p, 0) a un comportement subtil selon les implémentations : préfère un free explicite.",
+  "Garder des pointeurs vers l'intérieur du bloc : après un realloc qui déplace, ils pendent tous."
+]
+exercises = [
+  "Écris un append de tableau dynamique : la capacité double via realloc quand le tableau est plein, avec le pattern du pointeur temporaire.",
+  "Remplace un malloc suivi d'une boucle de mise à zéro par un calloc, et compare la lisibilité des deux versions.",
+  "Simule un échec de realloc (demande une taille astronomique) et vérifie sous valgrind que ton pattern n'entraîne aucune fuite."
+]
+related = ["malloc", "free", "fuites-memoire", "memset", "stack-vs-heap"]

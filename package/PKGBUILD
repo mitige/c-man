@@ -1,0 +1,31 @@
+# Maintainer: ev
+pkgname=c-man
+pkgver=2.0.0
+pkgrel=98
+pkgdesc="Documentation C interactive dans le terminal, pensée pour la piscine Epitech"
+arch=('x86_64')
+url="https://github.com/TON-USER/c-man"
+license=('MIT')
+depends=('gcc-libs')
+makedepends=('cargo' 'rust')
+options=('!debug' '!lto')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname-$pkgver"
+  cargo build --release --locked
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  cargo test --release
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 "target/release/c-man" "$pkgdir/usr/bin/c-man"
+  install -Dm755 "target/release/epitech-nano" "$pkgdir/usr/bin/epitech-nano"
+  install -Dm644 "README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

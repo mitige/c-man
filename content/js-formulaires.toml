@@ -1,0 +1,128 @@
+id = "js-formulaires"
+title = "Formulaires en JS — lire, valider, garder la main"
+category = "web"
+tags = ["javascript", "formulaires", "validation", "evenements"]
+difficulty = 3
+synopsis = "Sur submit, preventDefault() bloque le rechargement et input.value te donne ce que l'utilisateur a tapé."
+description = '''
+## En une phrase
+
+Piloter un formulaire en JS, c'est écouter l'événement `submit` sur le `<form>`, bloquer l'envoi avec `preventDefault()`, puis lire chaque champ avec `input.value` pour valider et traiter toi-même.
+
+## En pratique
+
+Sans JS, un formulaire soumis envoie ses données au serveur et **recharge la page** — tout ton état JS disparaît. La première ligne de ton gestionnaire est donc toujours :
+
+```js
+form.addEventListener("submit", function(event) {
+    event.preventDefault();   // pas d'envoi HTTP, pas de rechargement
+});
+```
+
+Écoute bien le `submit` **sur le form**, pas le `click` sur le bouton : le submit attrape aussi la touche Entrée dans un champ. Même logique qu'en C : ne sécurise pas un seul chemin d'entrée quand il y en a deux.
+
+Lire les valeurs :
+
+```js
+const pseudo = document.querySelector("#pseudo").value;
+```
+
+`value` est **toujours une string**, même sur un `<input type="number">` : `"12" + 1` donne `"121"`. Convertis avec `Number()` (ou utilise `valueAsNumber` sur les champs numériques). Et pense à `.trim()` : un pseudo tapé avec des espaces autour doit passer.
+
+Valider côté client — le confort de l'utilisateur, pas ta sécurité :
+
+```js
+if (pseudo.trim().length < 3) { /* afficher l'erreur, return */ }
+if (!email.includes("@"))       { /* idem */ }
+```
+
+Le HTML5 valide déjà tout seul avec `required`, `type="email"`, `minlength`... mais dès que ta règle est métier (« les deux mots de passe sont identiques »), c'est du JS. L'attribut `novalidate` sur le `<form>` désactive la validation native pour laisser ton code décider.
+
+Récupérer tout d'un coup : `FormData` lit les champs **par leur attribut `name`** :
+
+```js
+const donnees = new FormData(form);
+donnees.get("pseudo");   // la value du champ name="pseudo"
+```
+
+Enfin, `form.reset()` remet tous les champs à leur valeur initiale — pratique après un envoi réussi.
+
+> La validation côté client se contourne en dix secondes (DevTools, curl). Elle sert à guider l'utilisateur avec des messages clairs ; la vraie vérification se refait toujours côté serveur.
+
+## À retenir
+
+- `submit` sur le form + `preventDefault()` : tu gardes la main, la page ne recharge pas.
+- `input.value` = string, toujours ; `Number()` avant de calculer.
+- `novalidate` pour laisser ton JS valider, avec des messages d'erreur près des champs.
+- `new FormData(form)` lit par `name` ; `form.reset()` réinitialise.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire validé en JS</title>
+    <style>
+        .erreur { color: crimson; }
+        form { display: flex; flex-direction: column; gap: 8px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>Inscription</h1>
+    <!-- novalidate : on désactive la validation native, notre JS décide -->
+    <form id="inscription" novalidate>
+        <label for="pseudo">Pseudo</label>
+        <input id="pseudo" name="pseudo" type="text">
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email">
+
+        <button type="submit">Valider</button>
+    </form>
+    <p id="message" class="erreur"></p>
+
+    <script>
+        const form = document.querySelector("#inscription");
+        const message = document.querySelector("#message");
+
+        // submit sur le FORM : attrape le clic sur le bouton ET la touche Entrée
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();   // garde la main : pas de rechargement
+
+            // value est TOUJOURS une string ; trim() enlève les espaces autour
+            const pseudo = document.querySelector("#pseudo").value.trim();
+            const email = document.querySelector("#email").value.trim();
+
+            if (pseudo.length < 3) {
+                message.textContent = "Pseudo : 3 caractères minimum.";
+                return;
+            }
+            if (!email.includes("@")) {
+                message.textContent = "Email invalide.";
+                return;
+            }
+
+            // FormData récupère toutes les valeurs par leur attribut name
+            const donnees = new FormData(form);
+            console.log("Envoyé :", donnees.get("pseudo"), donnees.get("email"));
+
+            message.textContent = "Inscription validée !";
+            form.reset();   // remet tous les champs à leur valeur initiale
+        });
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "Écouter le click du bouton au lieu du submit du form : la touche Entrée envoie le formulaire en contournant ta validation.",
+  "Oublier event.preventDefault() : la page recharge et tout ton traitement JS disparaît avec elle.",
+  "Oublier que value est une string : '12' + 1 = '121' — convertis avec Number() avant de calculer.",
+  "Croire que la validation côté client protège : elle se contourne via les DevTools ou curl — elle sert au confort, la sécurité est côté serveur.",
+  "Un champ sans attribut name est invisible pour FormData et pour l'envoi classique : l'id ne suffit pas."
+]
+exercises = [
+  "Ajoute un champ mot de passe + confirmation, et vérifie en JS que les deux sont identiques avant d'accepter.",
+  "Affiche les erreurs champ par champ : un span .erreur à côté de chaque input, rempli uniquement si ce champ est invalide.",
+  "Bloque le bouton Valider tant que le formulaire n'est pas valide, en écoutant l'événement input sur chaque champ."
+]
+related = ["html-formulaires", "js-dom", "js-evenements", "js-bases", "js-localstorage"]

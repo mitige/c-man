@@ -1,0 +1,26 @@
+id = "q-arithmetique-pointeurs"
+category = "memoire"
+difficulty = 3
+question = '''
+Quelle est la sortie de ce programme ?
+
+```c
+#include <stdio.h>
+
+int main(void)
+{
+    int tab[5] = {0, 10, 20, 30, 40};
+    int *p = tab;
+
+    p = p + 2;
+    printf("%d\n", *p);
+    return 0;
+}
+```
+'''
+choices = ["2", "30", "20", "10"]
+answer = 2
+explanation = '''
+L'arithmétique de pointeurs raisonne en ÉLÉMENTS, pas en octets : p + 2 avance de 2 x sizeof(int), c'est-à-dire de deux cases du tableau. p pointe donc sur tab[2], qui vaut 20. Ce n'est pas un hasard : tab[i] est par définition exactement équivalent à *(tab + i).
+'''
+related = ["arithmetique-pointeurs", "pointeurs", "tableaux"]

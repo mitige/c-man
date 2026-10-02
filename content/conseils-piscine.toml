@@ -1,0 +1,59 @@
+id = "conseils-piscine"
+title = "Conseils de survie — tenir un mois à 8h45-21h"
+category = "piscine"
+tags = ["survie", "organisation", "git", "rythme"]
+difficulty = 1
+synopsis = "Dors, push, lis le sujet deux fois, avance par petits pas."
+description = '''
+## En une phrase
+
+La piscine n'est pas un sprint de code, c'est un marathon de gestion de soi : voici les habitudes qui séparent ceux qui tiennent un mois de ceux qui craquent en semaine 2.
+
+## Le corps avant le code
+
+- **Dors.** 8h45-21h ne veut pas dire nuits blanches : ton cerveau consolide la nuit ce que tu as appris le jour. Cinq heures de sommeil te coûtent deux jours de productivité.
+- **Mange et hydrate-toi.** Un cerveau déshydraté débogue trois fois moins vite.
+- **Une journée ratée n'est pas une piscine ratée.** Tout le monde a son J08 noir. Paniquer consomme l'énergie qui servirait à rebondir.
+
+## Le code, intelligemment
+
+- **Lis le sujet DEUX fois avant de coder.** La moitié des journées perdues vient d'une consigne mal lue : noms de fonctions, prototypes, fichiers à rendre, fonctions autorisées.
+- **Commence par un main de test minimal.** Fais marcher la version la plus bête possible, puis grandis par petites étapes compilées.
+- **git add / commit / push réguliers.** Un push par fonction qui marche. Le jour où tout part en vrille à 20h50, ton rendu existe déjà.
+- **Travaille avec tes pairs sans copier.** Expliquer ta solution te la fait comprendre ; copier celle du voisin te fait perdre le mois (et le bocal le détecte).
+
+## Le rythme
+
+- **Le rush du week-end se prépare dès le vendredi.** Lis le sujet vendredi soir, dors dessus, attaque samedi matin avec un plan.
+- **Alterne lecture et pratique** : c-man le matin à jeun, code le reste de la journée.
+- **Fais de vraies pauses** : dix minutes par heure, loin de l'écran.
+
+## À retenir
+
+- La piscine récompense la régularité, pas l'héroïsme d'une nuit.
+- Un bug se résout mieux après huit heures de sommeil qu'après trois heures d'acharnement.
+- Tu es là pour APPRENDRE : celui qui explique progresse plus vite que celui qui copie.
+'''
+example = '''
+# Anatomie d'une bonne journee de piscine
+08h45  $ git pull && c-man roadmap             # rituel du matin
+09h00  $ cat sujet.pdf                         # lecture COMPLETE, deux fois
+09h30  $ vim main_test.c                       # plus petit programme qui compile
+10h00  $ gcc -Wall -Wextra -Werror *.c         # compiler TOT, compiler SOUVENT
+12h30  $ git add . && git commit -m "ex03 ok" && git push
+13h00  # vraie pause dejeuner, loin de l'ecran
+18h00  # pause, on marche, on respire
+20h30  $ norminette && make fclean && make re  # derniere ligne droite
+21h00  # on rentre DORMIR : le cerveau bosse cette nuit
+'''
+gotchas = [
+  "Coder jusqu'à 3h du matin la veille d'un rendu : les erreurs de fatigue coûtent plus cher que les heures gagnées.",
+  "Ruminer un bug pendant la pause déjeuner au lieu de décrocher : tu reviens crevé ET toujours bloqué.",
+  "Copier le code d'un voisin : tu passes la journée, tu rates la piscine, et la détection de plagiat ne rate pas.",
+  "Oublier de push le soir : un disque qui lâche à J18 et c'est un mois de travail envolé."
+]
+exercises = [
+  "Écris ton rituel de fin de journée (norminette, make re, commit, push) et respecte-le dès demain.",
+  "Bloque dans ton emploi du temps les vraies pauses — repas, sommeil — avec la même rigueur que tes heures de code."
+]
+related = ["roadmap", "moulinette", "methodologie-debug", "bienvenue"]

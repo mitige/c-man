@@ -1,0 +1,15 @@
+id = "q-lm-oublie"
+category = "outils"
+difficulty = 2
+question = "Tu as inclus <math.h> et tu appelles sqrt(). gcc main.c échoue à l'édition de liens : undefined reference to 'sqrt'. Quelle est la cause ?"
+choices = [
+  "Le header <math.h> est mal installé sur ta machine",
+  "sqrt() n'existe qu'en C++, pas en C",
+  "Il faut compiler avec -g pour les fonctions mathématiques",
+  "Il manque -lm, placé après les fichiers sources, pour lier la librairie mathématique"
+]
+answer = 3
+explanation = '''
+Le header <math.h> ne fournit que les PROTOTYPES : le code de sqrt vit dans la librairie libm, que gcc ne lie pas par défaut. Il faut ajouter -lm à la fin de la ligne de commande : gcc main.c -lm. Apprends à lire l'erreur : undefined reference signifie que le compilateur connaît la fonction (prototype OK) mais que le linker ne trouve pas son code.
+'''
+related = ["linking", "math", "flags-compilation"]

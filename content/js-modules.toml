@@ -1,0 +1,126 @@
+id = "js-modules"
+title = "Modules — un fichier par idée, import/export pour tout relier"
+category = "web"
+tags = ["javascript", "modules", "import", "export", "organisation"]
+difficulty = 3
+synopsis = "import { addition } from './maths.js'; // ton JS range en fichiers qui se parlent proprement"
+description = '''
+## En une phrase
+
+Les modules ES découpent ton JavaScript en fichiers indépendants qui **exportent** explicitement ce qu'ils offrent et **importent** ce dont ils ont besoin — fini le script unique de 800 lignes où toutes les variables se marchent dessus.
+
+## En pratique
+
+Côté HTML, déclare ton point d'entrée comme un module :
+
+```html
+<script type="module" src="main.js"></script>
+```
+
+`type="module"` change tout : chaque fichier a **sa propre portée** (plus de variables globales accidentelles), le strict mode est activé, et le chargement est différé par défaut (comme `defer`).
+
+**Export nommé** — un fichier peut en avoir plusieurs :
+
+```js
+// maths.js
+export function addition(a, b) { return a + b; }
+export const TVA = 0.2;
+```
+
+**Import nommé** — accolades obligatoires, mêmes noms :
+
+```js
+import { addition, TVA } from './maths.js';
+```
+
+**Export default** — un seul par fichier, pour la chose « principale ». À l'import : pas d'accolades, et tu choisis le nom :
+
+```js
+// panier.js
+export default class Panier { /* ... */ }
+// main.js
+import Panier from './panier.js';
+```
+
+Les deux cohabitent dans un même fichier, mais reste raisonnable : un default plus quelques nommés, pas davantage.
+
+Organisation conseillée : un fichier par **responsabilité** (`api.js` pour les `fetch`, `dom.js` pour la manipulation du document, `main.js` qui orchestre). `main.js` importe et assemble : c'est le chef d'orchestre, les autres sont des spécialistes — exactement comme tu découpes un projet C en `.c` et `.h`.
+
+> **Piège majeur** : les modules ne fonctionnent **pas** en `file://` — le navigateur refuse de charger `./maths.js` depuis le disque (politique CORS). Il te faut un serveur local : lance `c-man serve` dans ton dossier de projet, puis ouvre l'URL indiquée.
+
+## À retenir
+
+- `<script type="module">` : portée isolée par fichier, strict mode, chargement différé.
+- Export **nommé** (plusieurs, accolades à l'import) vs export **default** (un seul, nom libre à l'import).
+- Le chemin est relatif et l'extension obligatoire : `./maths.js`, pas `maths` ni `./maths`.
+- Jamais en `file://` : lance `c-man serve` (ou tout serveur local) et passe par l'URL http.
+- Un fichier = une responsabilité ; `main.js` orchestre les imports.
+'''
+example = '''
+// ============================================================
+// maths.js — fonctions et constantes exportees de facon nominative
+// ============================================================
+// export function addition(a, b) { return a + b; }
+// export const TVA = 0.2;
+
+// ============================================================
+// panier.js — un export default : la "chose principale" du fichier
+// ============================================================
+// export default class Panier {
+//     constructor() { this.articles = []; }
+//     ajouter(nom, prix) { this.articles.push({ nom, prix }); }
+//     totalHT() { return this.articles.reduce((acc, a) => acc + a.prix, 0); }
+// }
+
+// ============================================================
+// main.js — point d'entree : <script type="module" src="main.js">
+// (ce fichier est le seul directement executable : il simule les
+//  deux autres pour que tu puisses le tester avec node --check)
+// ============================================================
+
+// --- debut du contenu de maths.js (export nomme) ---
+function addition(a, b) {
+    return a + b;
+}
+const TVA = 0.2;
+// --- fin de maths.js ---
+
+// --- debut du contenu de panier.js (export default) ---
+class Panier {
+    constructor() {
+        this.articles = [];
+    }
+    ajouter(nom, prix) {
+        this.articles.push({ nom, prix });
+    }
+    totalHT() {
+        return this.articles.reduce((acc, a) => acc + a.prix, 0);
+    }
+}
+// --- fin de panier.js ---
+
+// Dans le vrai main.js, les deux blocs ci-dessus sont remplaces par :
+// import Panier from './panier.js';            // default : pas d'accolades
+// import { addition, TVA } from './maths.js';  // nommes : accolades, memes noms
+
+const panier = new Panier();
+panier.ajouter("Clavier", 30);
+panier.ajouter("Souris", 20);
+
+const ht = panier.totalHT();
+console.log(`Total HT  : ${addition(ht, 0)} EUR`);
+console.log(`Total TTC : ${(ht * (1 + TVA)).toFixed(2)} EUR`);
+'''
+gotchas = [
+  "Ouvrir la page en file:// (double-clic sur le HTML) : le navigateur bloque les imports avec une erreur CORS — lance c-man serve et passe par l'URL http locale.",
+  "Oublier l'extension dans le chemin : import ... from './maths' échoue au navigateur, il faut './maths.js' (contrairement à Node outillé d'un bundler).",
+  "Mettre des accolades sur un export default : import { Panier } from './panier.js' échoue si Panier est default — les accolades sont réservées aux exports nommés.",
+  "Compter sur les variables globales entre fichiers : chaque module a sa propre portée, ce qui n'est pas exporté est invisible ailleurs.",
+  "Écrire un chemin sans ./ : import 'maths.js' est interprété comme un paquet externe, pas comme un fichier relatif — préfixe toujours par ./ ou ../."
+]
+exercises = [
+  "Découpe un script unique en trois modules (maths.js, dom.js, main.js), branche-les avec type=\"module\" et vérifie que tout fonctionne via c-man serve.",
+  "Crée compteur.js avec un export default (une fonction fabriquant un compteur) et un export nommé MAX, puis importe les deux dans main.js.",
+  "Provoque volontairement l'erreur file:// en ouvrant ton HTML en double-cliquant, lis le message dans la console, puis corrige avec un serveur local."
+]
+related = ["js-bases", "js-fonctions", "js-dom", "web-devtools"]

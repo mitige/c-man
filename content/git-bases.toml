@@ -1,0 +1,85 @@
+id = "git-bases"
+title = "git-bases — livrer avant l'heure H, sans exception"
+category = "bash"
+tags = ["git", "commit", "push", "livraison"]
+difficulty = 2
+synopsis = "git add -A && git commit -m \"message\" && git push"
+description = '''
+## En une phrase
+
+Git est la machine à remonter le temps de ton code et, en piscine, le **seul** canal de livraison : pas de push, pas de correction.
+
+## En pratique
+
+Le cycle quotidien tient en six commandes :
+
+```bash
+git clone git@git.epitech.eu:/login/repo.git   # récupérer le dépôt
+git status              # où en est-on ? (à taper compulsivement)
+git add main.c          # préparer des fichiers (ou git add -A pour tout)
+git commit -m "feat: ex02 terminé"   # photographier localement
+git pull                # récupérer les changements distants
+git push                # envoyer sur le serveur = LIVRER
+```
+
+`git log --oneline` montre l'historique compact de tes commits, un par ligne.
+
+Le fichier `.gitignore` liste ce qui ne doit **jamais** entrer dans le dépôt :
+
+```
+*.o
+a.out
+my_prog
+.vscode/
+```
+
+Un conflit simple arrive quand deux commits modifient la même ligne : Git insère des marqueurs `<<<<<<<`, `=======`, `>>>>>>>` dans le fichier. Tu l'ouvres, tu gardes la bonne version, tu retires les marqueurs, puis `git add` et `git commit` pour clore la fusion.
+
+> **Règle d'or piscine** : le correcteur récupère ce qui est sur le serveur à l'heure H. Un commit local magnifique mais non pushé n'existe pas. Push tôt, push souvent, et surtout push avant de partir manger.
+
+## À retenir
+
+- add → commit → push : les trois étapes sont nécessaires, aucune ne remplace l'autre.
+- `git status` avant et après chaque opération : c'est ton tableau de bord.
+- Un message de commit clair se relit dans trois semaines : « fix segfault sur liste vide », pas « oui ».
+- Jamais de binaires dans le dépôt : le `.gitignore` se crée dès le premier commit.
+- En cas de doute, ne supprime rien : fais `git status` et lis calmement ce que Git te dit — il parle.
+'''
+example = '''
+# Une livraison piscine complète, du clone au push salvateur
+login@epitech:~$ git clone git@git.epitech.eu:/login/piscine-j05.git
+Cloning into 'piscine-j05'...
+login@epitech:~$ cd piscine-j05
+login@epitech:~/piscine-j05$ printf '*.o\na.out\n' > .gitignore
+login@epitech:~/piscine-j05$ git status
+On branch master
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.gitignore
+	my_putnbr.c
+login@epitech:~/piscine-j05$ git add -A          # tout préparer
+login@epitech:~/piscine-j05$ git commit -m "feat: my_putnbr fonctionnel"
+[master a1b2c3d] feat: my_putnbr fonctionnel
+ 2 files changed, 28 insertions(+)
+login@epitech:~/piscine-j05$ git pull            # au cas où le remote aurait bougé
+Already up to date.
+login@epitech:~/piscine-j05$ git push            # LIVRAISON EFFECTIVE
+To git@git.epitech.eu:/login/piscine-j05.git
+   9f8e7d6..a1b2c3d  master -> master
+login@epitech:~/piscine-j05$ git log --oneline
+a1b2c3d feat: my_putnbr fonctionnel
+9f8e7d6 Initial commit
+'''
+gotchas = [
+  "Commit sans push : le correcteur ne voit rien, et tu rates la deadline avec un dépôt distant vide.",
+  "git add -A sans regarder : les .o, a.out et core dumps partent dans le commit — vérifie avec git status.",
+  "Messages de commit vides ou incompréhensibles : le git log du groupe devient illisible en deux jours.",
+  "Push refusé en non-fast-forward : le remote a avancé — git pull d'abord, résous, puis repush.",
+  "Laisser les marqueurs de conflit dans un fichier : ça ne compile plus, et c'est le genre de détail qui coûte cher."
+]
+exercises = [
+  "Sur un dépôt de test, fais le cycle complet : modification, status, add, commit -m, push, puis vérifie avec git log --oneline.",
+  "Crée un .gitignore qui ignore *.o et a.out, compile un projet, et vérifie avec git status qu'aucun binaire n'apparaît.",
+  "Avec deux clones du même dépôt, modifie la même ligne des deux côtés, pushe le premier, puis résous le conflit du second proprement."
+]
+related = ["bash-bases", "scripts-bash", "conseils-piscine", "moulinette"]

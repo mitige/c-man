@@ -1,0 +1,95 @@
+id = "conditions-bash"
+title = "conditions-bash — if, tests de fichiers et comparaisons"
+category = "bash"
+tags = ["if", "test", "condition", "crochets"]
+difficulty = 3
+synopsis = "if [ -f \"$f\" ]; then ... fi ; cmd && echo OK || echo KO"
+description = '''
+## En une phrase
+
+Le `if` de bash teste le **code de retour** d'une commande — et `[ ... ]` est précisément une commande qui évalue une condition et renvoie 0 ou 1.
+
+## En pratique
+
+La structure de base, avec des espaces **obligatoires** juste après `[` et juste avant `]` :
+
+```bash
+if [ -f "$FILE" ]; then
+    echo "le fichier existe"
+elif [ -d "$FILE" ]; then
+    echo "c'est un dossier"
+else
+    echo "introuvable"
+fi
+```
+
+Les tests de fichiers à connaître : `-e` existe, `-f` fichier régulier, `-d` dossier, `-r` lisible, `-w` modifiable, `-x` exécutable, `-s` existe et n'est pas vide.
+
+Deux familles de comparaisons à ne **jamais mélanger** :
+
+- Entiers : `-eq` (égal), `-ne` (différent), `-lt` (<), `-le` (<=), `-gt` (>), `-ge` (>=)
+- Chaînes : `=`, `!=`, `-z` (chaîne vide), `-n` (chaîne non vide)
+
+`[[ ... ]]` est la version bash améliorée : les variables n'y sont pas découpées, `&&` et `||` s'y utilisent directement, et `==` accepte des motifs comme `[[ $f == *.c ]]`.
+
+En une ligne, `&&` et `||` enchaînent selon le succès de la commande précédente :
+
+```bash
+make && echo "BUILD OK" || echo "BUILD KO"
+[ -f Makefile ] && make    # make seulement si le Makefile existe
+```
+
+## À retenir
+
+- `[` est une commande : sans espaces, `[ -f "$f" ]` devient un jeton incompréhensible et tout casse.
+- `-eq` exige des entiers, `=` compare du texte caractère par caractère : choisis ta famille.
+- Quote toujours tes variables dans les tests : `[ -f "$f" ]` survit aux noms avec espaces.
+- Le `if` regarde `$?` : n'importe quelle commande peut servir de condition, comme `if grep -q OK log.txt; then`.
+'''
+example = '''
+#!/bin/bash
+# check_files.sh — vérifie les fichiers d'un rendu piscine
+# Usage : ./check_files.sh fichier1 [fichier2 ...]
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <fichier> [autres fichiers...]" >&2
+    exit 84
+fi
+
+MISSING=0
+
+for FILE in "$@"; do
+    if [ ! -e "$FILE" ]; then
+        echo "ABSENT    : $FILE"
+        MISSING=$((MISSING + 1))
+    elif [ ! -r "$FILE" ]; then
+        echo "ILLISIBLE : $FILE"
+        MISSING=$((MISSING + 1))
+    elif [ -s "$FILE" ]; then
+        echo "OK        : $FILE ($(wc -l < "$FILE") lignes)"
+    else
+        echo "VIDE      : $FILE"
+        MISSING=$((MISSING + 1))
+    fi
+done
+
+if [ $MISSING -gt 0 ]; then
+    echo "$MISSING fichier(s) en échec" >&2
+    exit 84
+fi
+echo "Tous les fichiers sont présents et remplis."
+exit 0
+'''
+gotchas = [
+  "Les espaces dans les crochets sont syntaxiques : [-f $f] ou [ -f $f] provoquent des erreurs absconses.",
+  "Comparer des chaînes avec -eq donne integer expression expected ; comparer des nombres avec = teste l'égalité du texte, pas de la valeur.",
+  "Variable non quotée dans un test : [ -f $f ] explose en too many arguments si le nom contient un espace.",
+  "Confondre [ ] et [[ ]] : les motifs comme *.c et les && internes ne fonctionnent proprement que dans [[ ]].",
+  "Oublier que if teste un code de retour : if grep -q motif fichier est légitime, pas besoin de $? intermédiaire."
+]
+exercises = [
+  "Écris un script qui prend un argument et affiche fichier, dossier ou autre selon le cas, avec exit 84 si l'argument manque.",
+  "En une seule ligne : si gcc *.c -o test_bin réussit, lance ./test_bin, sinon affiche BUILD KO (avec && et ||).",
+  "Teste [[ $f == *.c ]] et [ $f = *.c ] sur un nom de fichier : observe la différence et explique-la."
+]
+related = ["scripts-bash", "variables-shell", "conditions", "exit"]

@@ -1,0 +1,15 @@
+id = "q-stack-locales"
+category = "memoire"
+difficulty = 1
+question = "Où sont stockées les variables locales (non statiques) d'une fonction ?"
+choices = [
+  "Sur le heap",
+  "Sur la stack",
+  "Dans le segment de données, avec les globales",
+  "Dans une zone allouée automatiquement par malloc"
+]
+answer = 1
+explanation = '''
+Les variables locales vivent sur la stack : elles sont créées à l'entrée de la fonction et détruites automatiquement au retour. Le heap, lui, ne sert qu'aux allocations manuelles (malloc et compagnie), qui survivent jusqu'au free. C'est exactement pour cela que renvoyer l'adresse d'une variable locale est un piège mortel : la case mémoire est recyclée dès le return.
+'''
+related = ["stack-vs-heap", "portee-variables"]

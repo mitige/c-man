@@ -1,0 +1,26 @@
+id = "q-pointeur-priorite-increment"
+category = "memoire"
+difficulty = 5
+question = '''
+Quelle est la sortie de ce programme ?
+
+```c
+#include <stdio.h>
+
+int main(void)
+{
+    int tab[3] = {10, 20, 30};
+    int *p = tab;
+    int x = *p++;
+
+    printf("%d %d\n", x, *p);
+    return 0;
+}
+```
+'''
+choices = ["10 11", "20 20", "11 20", "10 20"]
+answer = 3
+explanation = '''
+Le ++ postfixe est prioritaire sur le déréférencement : *p++ se lit *(p++). On prend d'abord la valeur pointée (10) pour x, PUIS p avance sur tab[1], qui vaut 20 — d'où l'affichage 10 20. Pour incrémenter la valeur pointée, il aurait fallu écrire (*p)++, ce qui aurait affiché 10 11. Quand le doute existe, parenthèse : ton futur relecteur te remerciera.
+'''
+related = ["arithmetique-pointeurs", "pointeurs", "operateurs"]

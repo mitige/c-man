@@ -1,0 +1,22 @@
+id = "q-division-entiere"
+category = "langage"
+difficulty = 1
+question = '''
+Quelle est la sortie de ce programme ?
+
+```c
+#include <stdio.h>
+
+int main(void)
+{
+    printf("%d\n", 7 / 2);
+    return 0;
+}
+```
+'''
+choices = ["3.5", "3", "4", "Erreur de compilation"]
+answer = 1
+explanation = '''
+En C, la division entre deux int est une division ENTIÈRE : la partie décimale est tronquée (vers zéro), donc 7 / 2 donne 3 et non 3.5. Pour obtenir un résultat décimal, il faut qu'au moins un opérande soit flottant : 7.0 / 2 ou (double)7 / 2. Le format %d attend bien un int, tout est cohérent ici.
+'''
+related = ["operateurs", "variables-types"]

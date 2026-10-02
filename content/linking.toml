@@ -1,0 +1,116 @@
+id = "linking"
+title = "édition de liens — assembler les .o et les bibliothèques"
+category = "outils"
+tags = ["linker", "bibliotheques", "compilation"]
+difficulty = 3
+synopsis = "gcc main.o -L. -lmy -o my_prog"
+description = '''
+## En une phrase
+
+L'édition de liens est la dernière étape de la compilation : le linker assemble tes `.o` et les bibliothèques en un seul exécutable, en vérifiant que chaque fonction appelée existe quelque part.
+
+## Le message que tu verras mille fois
+
+```
+undefined reference to 'my_putstr'
+```
+
+Traduction : le code compile (syntaxe et prototypes sont bons), mais au moment du lien **personne ne fournit** `my_putstr`. Causes typiques :
+
+- tu as oublié un `.c` (ou son `.o`) dans la commande
+- la fonction n'existe pas encore, ou son nom est mal orthographié
+- il manque une bibliothèque : `-lm` pour `sqrt`, `cos`...
+- l'ordre des arguments est mauvais (voir plus bas)
+
+## Bibliothèque statique : ta première libmy.a
+
+Une bibliothèque statique (`.a`) est une archive de `.o`, copiée **dans** l'exécutable au moment du lien :
+
+```bash
+gcc -c my_putchar.c              # produit my_putchar.o
+ar rcs libmy.a my_putchar.o      # crée ou met à jour l'archive
+```
+
+`ar rcs` : `r` insère/remplace, `c` crée sans rouspéter, `s` indexe les symboles. C'est exactement le format de la fameuse **libmy** des premières semaines de piscine. À l'inverse, une bibliothèque dynamique (`.so`) est chargée à l'exécution : plus légère et partagée, mais hors scope piscine.
+
+## -L et -l : dire où et quoi chercher
+
+```bash
+gcc main.o -o my_prog -L. -lmy
+```
+
+- `-L.` : cherche les bibliothèques aussi dans le dossier courant
+- `-lmy` : lie `libmy.a` — le préfixe `lib` et le suffixe `.a` sont ajoutés automatiquement, donc `-llibmy` est faux
+
+> **L'ordre compte** : le linker balaie de gauche à droite et ne garde d'une bibliothèque que ce qui est déjà demandé à ce moment-là. Mets les `-l` APRÈS les `.o` : `gcc -lmy main.o` échoue, `gcc main.o -lmy` réussit.
+
+## À retenir
+
+- Erreur de compilation = problème dans un fichier ; erreur de lien = problème entre fichiers.
+- "undefined reference" se répare en ajoutant le bon `.o` ou le bon `-l`, jamais en retouchant la syntaxe.
+- `nm libmy.a` liste les symboles d'une archive : parfait pour vérifier qu'une fonction y est bien rangée.
+'''
+example = '''
+# Construire une libmy.a et l'utiliser (transcript complet)
+$ cat my.h
+#ifndef MY_H
+#define MY_H
+
+void my_putchar(char c);
+void my_putstr(const char *str);
+
+#endif /* MY_H */
+$ cat my_putchar.c
+#include <unistd.h>
+#include "my.h"
+
+void my_putchar(char c)
+{
+    write(1, &c, 1);
+}
+$ cat my_putstr.c
+#include "my.h"
+
+void my_putstr(const char *str)
+{
+    int i = 0;
+
+    while (str[i] != '\0') {
+        my_putchar(str[i]);
+        i++;
+    }
+}
+$ cat main.c
+#include "my.h"
+
+int main(void)
+{
+    my_putstr("lie-moi\n");
+    return 0;
+}
+# 1. On compile les sources de la lib en .o :
+$ gcc -Wall -Wextra -Werror -std=c99 -c my_putchar.c -o my_putchar.o
+$ gcc -Wall -Wextra -Werror -std=c99 -c my_putstr.c -o my_putstr.o
+# 2. On archive les .o en bibliothèque statique :
+$ ar rcs libmy.a my_putchar.o my_putstr.o
+# 3. On compile main.c puis on lie contre la lib :
+$ gcc -Wall -Wextra -Werror -std=c99 -c main.c -o main.o
+$ gcc main.o -o my_prog -L. -lmy
+$ ./my_prog
+lie-moi
+# Mauvais ordre, pour voir (le -lmy arrive avant main.o) :
+$ gcc -L. -lmy main.o -o my_prog
+/usr/bin/ld: main.o: undefined reference to 'my_putstr'
+'''
+gotchas = [
+  "Mettre -lmy avant les .o : undefined reference garanti ; les bibliothèques vont toujours en fin de commande.",
+  "Écrire -llibmy : gcc ajoute déjà 'lib' et '.a', il cherchera liblibmy.a sans jamais le trouver.",
+  "Oublier -lm avec math.h : la compilation passe, l'erreur n'apparaît qu'au link, d'où la confusion classique.",
+  "Confondre 'undefined reference' (link) et 'implicit declaration' (compile) : la seconde signale un prototype manquant, pas un fichier oublié."
+]
+exercises = [
+  "Crée libmy.a avec my_putchar et my_putstr via ar rcs, lie un main contre elle avec -L et -l, et vérifie les symboles avec nm libmy.a.",
+  "Provoque volontairement un undefined reference en inversant l'ordre des arguments, lis le message, puis corrige l'ordre.",
+  "Écris un programme qui utilise sqrt(), compile sans -lm puis avec : compare les deux résultats."
+]
+related = ["gcc", "makefile", "math", "flags-compilation", "headers-include-guards"]

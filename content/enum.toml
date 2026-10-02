@@ -1,0 +1,79 @@
+id = "enum"
+title = "enum — des noms pour des entiers"
+category = "langage"
+tags = ["enum", "constantes", "etats", "switch", "codes-retour"]
+difficulty = 2
+synopsis = "enum color { RED, GREEN, BLUE };  /* RED == 0, GREEN == 1, BLUE == 2 */"
+description = '''
+## En une phrase
+
+Un `enum` donne des noms lisibles à des valeurs entières : fini les `if (status == 3)` magiques.
+
+## En pratique
+
+`enum color { RED, GREEN, BLUE };` crée trois constantes entières : `RED` vaut 0, `GREEN` 1, `BLUE` 2 — le comptage part de 0 et s'incrémente de 1. Tu peux imposer tes valeurs : `enum error { OK = 0, ERR_ARGS = 84 };`, et les constantes suivantes repartent de la dernière valeur posée (`OK, ERR_ARGS, X` vaudrait 0, 84, 85).
+
+Usage roi : les **états** et les **codes de retour**. Un `enum state { MENU, PLAYING, GAME_OVER };` rend ton `switch` auto-documenté, et gcc peut même t'avertir si tu oublies un cas dans un switch sur un enum sans `default` (`-Wswitch`, activé par `-Wall`).
+
+Les constantes d'enum vivent dans la portée englobante, comme des variables globales de fait : deux enums du même bloc ne peuvent pas partager un nom de constante. Préfixe si collision possible (`STATE_MENU`).
+
+Enum ou `#define` ? Préfère l'enum dès que les valeurs forment un ensemble cohérent : valeurs auto-incrémentées sans risque de doublon, nom visible dans gdb, et pas de substitution textuelle sauvage. Garde `#define` pour les constantes isolées ou les macros.
+
+Un enum tient dans un `int` en pratique : tu peux l'imprimer avec `%d` et le comparer avec `==`.
+
+## À retenir
+
+- Valeurs implicites : 0, 1, 2... — explicites dès qu'une valeur a du sens (84 !).
+- Les noms de constantes partagent la portée : deux enums, deux fois le même nom = erreur.
+- enum > #define pour les ensembles liés : type réel, debug, incrémentation automatique.
+'''
+example = '''
+#include <stdio.h>
+
+enum direction {
+    NORTH,
+    EAST,
+    SOUTH,
+    WEST
+};
+
+enum error_code {
+    ERR_NONE = 0,
+    ERR_FILE = 1,
+    ERR_ARGS = 84
+};
+
+/* Renvoie le nom lisible d'une direction. */
+static char const *dir_name(enum direction dir)
+{
+    if (dir == NORTH)
+        return "nord";
+    if (dir == EAST)
+        return "est";
+    if (dir == SOUTH)
+        return "sud";
+    return "ouest";
+}
+
+int main(void)
+{
+    enum direction dir;
+
+    dir = NORTH;
+    printf("%s vaut %d\n", dir_name(dir), dir);
+    printf("WEST vaut %d\n", WEST);
+    printf("code erreur args: %d\n", ERR_ARGS);
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier que la numérotation part de 0 : si le premier état doit porter un vrai code, écris-le explicitement.",
+  "Réutiliser le même nom de constante dans deux enums du même fichier : conflit de portée, erreur de compilation.",
+  "Additionner des enums comme des int sans réfléchir : PLAYING + 1 compile, mais ne veut peut-être rien dire.",
+  "Croire qu'un enum restreint les valeurs : on peut caster n'importe quel int dedans, rien n'est vérifié à l'exécution."
+]
+exercises = [
+  "Écris enum state { MENU, PLAYING, PAUSED, GAME_OVER } et un switch qui affiche un message différent par état.",
+  "Refactor un vieux programme qui renvoie 0, 1 et 84 magiques en utilisant un enum error_code nommé."
+]
+related = ["typedef", "union", "structures", "preprocesseur", "conditions"]

@@ -1,0 +1,61 @@
+id = "methodologie-debug"
+title = "Méthodologie de debug — cinq étapes, zéro panique"
+category = "piscine"
+tags = ["debug", "methode", "gdb", "rubber-duck"]
+difficulty = 2
+synopsis = "Reproduire, lire, isoler, instrumenter, expliquer — puis demander de l'aide."
+description = '''
+## En une phrase
+
+Débugger n'est pas relire son code en boucle : c'est une méthode en cinq étapes qui transforme trois heures de galère en quinze minutes de logique.
+
+## La méthode en cinq étapes
+
+**1. Reproduire de façon minimale.** Trouve la plus petite entrée qui déclenche le bug. Si ton programme crash sur un fichier de 1000 lignes, isole la ligne qui tue et fabrique un cas de 3 lignes. Un bug reproductible est un bug à moitié mort.
+
+**2. Lire VRAIMENT le message.** Le compilateur donne un fichier, une ligne et une raison. Valgrind donne le type d'erreur ET la pile d'appels. Lis chaque mot au lieu de survoler : "Invalid read of size 1 at 0x..." te dit exactement où chercher.
+
+**3. Isoler.** Coupe le problème en deux : commente la moitié du code, teste, garde la moitié fautive, recommence. La dichotomie brutale marche à tous les coups.
+
+**4. Instrumenter.** Ajoute des `write` ou `printf` de debug TEMPORAIRES (que tu retires avant le rendu) pour afficher les valeurs intermédiaires, ou ouvre gdb : breakpoint, step, print. Voir les valeurs réelles tue les hypothèses fausses.
+
+**5. Expliquer à voix haute.** Décris ton code ligne par ligne à un canard en peluche ou à un piscineux : "ici i vaut 3, donc j'accède à..." Le bug se dénonce tout seul, souvent avant la fin de la phrase.
+
+## La règle d'or
+
+Bloqué plus de **45 minutes** sur le même problème malgré la méthode ? Demande de l'aide. Pas trois heures d'acharnement : 45 minutes de vrai travail, puis un œil neuf. En piscine, le temps est ta ressource la plus rare.
+
+## À retenir
+
+- Le bug est toujours dans TES hypothèses, pas dans le compilateur.
+- gdb pour les crashs, valgrind pour la mémoire, printf pour la logique.
+- Un correctif sans explication de la cause d'origine est une bombe à retardement.
+'''
+example = '''
+$ gcc -g -Wall -Wextra -Werror -std=c99 main.c -o prog
+$ ./prog < cas_qui_crashe.txt
+Segmentation fault (core dumped)
+
+$ gdb ./prog
+(gdb) run < cas_qui_crashe.txt
+Program received signal SIGSEGV, Segmentation fault.
+parse_line (line=0x...) at parse.c:42
+(gdb) print i
+$1 = 4096        # i depasse la taille du buffer : voila le coupable
+(gdb) quit
+
+$ valgrind --leak-check=full ./prog < cas_qui_crashe.txt
+==1234== Invalid read of size 1
+==1234==    at 0x...: parse_line (parse.c:42)
+'''
+gotchas = [
+  "Relire le code en espérant voir le bug : sans instrument, tu ne vois que ce que tu CROIS avoir écrit.",
+  "Laisser des printf de debug dans le rendu : la moulinette exige une sortie exacte, retire-les systématiquement.",
+  "Corriger au hasard jusqu'à ce que ça passe : sans comprendre la cause, le bug reviendra au prochain test.",
+  "Compiler sans -g : sans symboles de debug, gdb et valgrind ne peuvent plus te montrer les lignes."
+]
+exercises = [
+  "Prends un programme qui segfaulte, réduis l'entrée au cas minimal qui crash encore, puis localise la ligne coupable avec gdb.",
+  "Explique ton dernier bug à voix haute en 60 secondes : symptôme, cause, correctif."
+]
+related = ["gdb", "valgrind", "segfault", "erreurs-frequentes", "moulinette"]

@@ -1,0 +1,23 @@
+id = "q-realloc-echec"
+category = "memoire"
+difficulty = 4
+question = '''
+Quel piège contient ce code ?
+
+```c
+int *p = malloc(10 * sizeof(int));
+
+p = realloc(p, 20 * sizeof(int));
+```
+'''
+choices = [
+  "realloc ne peut pas agrandir une zone, seulement la réduire",
+  "realloc libère toujours p : il faut recopier les données avant de l'appeler",
+  "Si realloc échoue, il renvoie NULL : l'ancien pointeur est écrasé et la zone d'origine devient une fuite",
+  "Il manque le cast (int *) devant realloc"
+]
+answer = 2
+explanation = '''
+En cas d'échec, realloc renvoie NULL mais laisse le bloc d'origine intact : écrire p = realloc(p, ...) écrase alors le seul pointeur vers ce bloc — fuite irrécupérable. Le pattern correct passe par un temporaire : int *tmp = realloc(p, taille); puis if (tmp != NULL) p = tmp;. À noter aussi : realloc conserve le contenu existant jusqu'à l'ancienne taille, mais la partie nouvelle reste indéterminée.
+'''
+related = ["calloc-realloc", "fuites-memoire", "malloc"]

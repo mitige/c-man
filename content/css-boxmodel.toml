@@ -1,0 +1,110 @@
+id = "css-boxmodel"
+title = "Box model — chaque élément est une boîte"
+category = "web"
+tags = ["css", "box-model", "layout", "display"]
+difficulty = 2
+synopsis = "box-sizing: border-box; — width inclut enfin contenu, padding et border."
+description = '''
+## En une phrase
+
+En CSS, chaque élément HTML est une boîte rectangulaire de quatre couches concentriques — contenu, padding, border, margin — et tout le layout du web découle de ce modèle.
+
+## En pratique
+
+```
+┌────────────────── MARGIN (exterieur, transparent) ──────────────────┐
+│   ┌──────────────── BORDER (bordure visible) ───────────────┐       │
+│   │   ┌──────────── PADDING (interieur, respire) ────────┐  │       │
+│   │   │                                                  │  │       │
+│   │   │            CONTENT (texte, image,                │  │       │
+│   │   │             dimensionne par width/height)        │  │       │
+│   │   │                                                  │  │       │
+│   │   └──────────────────────────────────────────────────┘  │       │
+│   └─────────────────────────────────────────────────────────┘       │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+- **content** : le texte ou l'image, dimensionné par `width` et `height`
+- **padding** : l'espace entre le contenu et la bordure, à l'intérieur — il prend la couleur de fond
+- **border** : la bordure visible
+- **margin** : l'espace autour de la boîte, transparent — il pousse les voisins
+
+Le piège historique : par défaut (`box-sizing: content-box`), `width: 200px` ne dimensionne **que le contenu** ; la taille totale devient `200 + padding + border`. C'est comme si `sizeof(struct)` ne comptait pas le padding d'alignement : contre-intuitif, source de bugs. La correction universelle, première règle de tout projet :
+
+```css
+*, *::before, *::after {
+    box-sizing: border-box;   /* width inclut contenu + padding + border */
+}
+```
+
+Avec `border-box`, `width: 200px` fait 200 px au total, point : le navigateur réduit le contenu pour absorber padding et bordure.
+
+Dernière pièce : `display`. **block** (`div`, `p`, `h1`) prend toute la largeur disponible et passe à la ligne ; **inline** (`span`, `a`, `strong`) s'écoule dans le texte et **ignore** `width`, `height` et les marges verticales ; **inline-block** s'écoule comme inline mais accepte des dimensions — le meilleur des deux mondes.
+
+> Debug express : dans les DevTools (F12), onglet Computed, le schéma du box model s'affiche avec les valeurs exactes de chaque couche. Ton meilleur ami quand « ma boîte est trop large ».
+
+## À retenir
+
+- Quatre couches : content → padding → border → margin.
+- `box-sizing: border-box` partout, toujours, dès la première ligne.
+- margin pousse les voisins, padding fait respirer le contenu.
+- inline ignore les dimensions : passe en `inline-block` ou `block`.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Box model</title>
+    <style>
+        /* La regle d'or : width inclut contenu + padding + border */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        .boite {
+            width: 200px;        /* 200 px AU TOTAL grace a border-box */
+            padding: 20px;       /* l'interieur respire */
+            border: 4px solid steelblue;
+            margin: 24px;        /* pousse les voisins */
+            background: #e8f0fe;
+        }
+        /* block : toute la largeur, a la ligne */
+        .bloc {
+            display: block;
+            background: #ddffdd;
+        }
+        /* inline : dans le flux, ignore width et height */
+        .en-ligne {
+            background: #ffdddd;
+        }
+        /* inline-block : dans le flux MAIS dimensionnable */
+        .bouton {
+            display: inline-block;
+            width: 120px;
+            padding: 8px;
+            background: #ffffdd;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="boite">200 px au total, padding compris</div>
+    <p class="bloc">Je suis un block : je prends toute la largeur.</p>
+    <p>Texte avec <span class="en-ligne">un span inline</span> au milieu.</p>
+    <span class="bouton">Bouton A</span>
+    <span class="bouton">Bouton B</span>
+</body>
+</html>
+'''
+gotchas = [
+  "Sans box-sizing: border-box, width ne compte que le contenu : ta boîte de 200px en fait 248 avec padding et border.",
+  "Mettre width et height sur un élément inline (span, a) : totalement ignoré — passe en inline-block.",
+  "Les marges verticales de deux blocs voisins fusionnent (margin collapsing) : 30px + 20px donnent 30px, pas 50px.",
+  "Confondre margin et padding : margin pousse les voisins, padding agrandit la boîte et prend sa couleur de fond."
+]
+exercises = [
+  "Crée trois boîtes de 150px avec padding, border et margin différents, puis vérifie chaque couche dans l'onglet Computed des DevTools.",
+  "Ajoute la règle universelle box-sizing: border-box et observe les tailles recalculées dans les DevTools.",
+  "Transforme un span en inline-block et constate que width et le padding vertical s'appliquent enfin."
+]
+related = ["css-bases", "css-flexbox", "html-bases", "variables-types"]

@@ -1,0 +1,133 @@
+id = "qsort"
+title = "qsort — trier n'importe quoi avec un comparateur"
+category = "libc"
+tags = ["tri", "pointeur-fonction", "stdlib", "comparateur"]
+difficulty = 4
+synopsis = "void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));"
+description = '''
+## En une phrase
+
+`qsort` trie un tableau de n'importe quel type : tu fournis le tableau, la taille des éléments et une fonction de comparaison — c'est toi qui définis l'ordre.
+
+## Prototype et retour
+
+```c
+#include <stdlib.h>
+void qsort(void *base, size_t nmemb, size_t size,
+           int (*compar)(const void *, const void *));
+```
+
+- `base` : adresse du premier élément (un `void *`, donc n'importe quel tableau).
+- `nmemb` : nombre d'éléments.
+- `size` : taille d'UN élément (`sizeof(tab[0])`, jamais une valeur en dur).
+- `compar` : pointeur vers TA fonction qui compare deux éléments.
+- Retour : rien (`void`). Le tableau est trié sur place.
+
+## Le comparateur
+
+`qsort` ne connaît pas ton type : il passe au comparateur des **pointeurs vers les éléments**, pas les éléments eux-mêmes. Ton boulot : caster, déréférencer, comparer.
+
+```c
+int cmp_int(const void *a, const void *b)
+{
+    int ia = *(const int *)a;
+    int ib = *(const int *)b;
+
+    if (ia < ib)
+        return -1;
+    if (ia > ib)
+        return 1;
+    return 0;
+}
+```
+
+Convention de retour : négatif si `*a` doit passer avant `*b`, zéro s'ils sont égaux, positif sinon. Inverse les signes pour un tri décroissant.
+
+> **Piège débordement** : le réflexe `return *(int *)a - *(int *)b;` est DANGEREUX. Si `a` vaut INT_MAX et `b` vaut -1, la soustraction déborde : comportement indéfini. Utilise toujours la comparaison à trois branches ci-dessus.
+
+## En pratique
+
+C'est l'application directe des pointeurs de fonctions : `qsort` appelle TA fonction sans jamais connaître son nom à l'avance. Pour des structs, caste en pointeur vers ta struct et compare les champs (note, nom avec `strcmp`...). Attention : le tri n'est PAS stable — deux éléments égaux peuvent changer d'ordre relatif. Ajoute un critère secondaire dans le comparateur si ça compte.
+
+## À retenir
+
+- Troisième argument = `sizeof(tab[0])`, PAS la taille totale du tableau.
+- Le comparateur reçoit des adresses : cast puis déréférence, double indirection mentale obligatoire.
+- Jamais de soustraction dans un comparateur d'entiers.
+- `qsort` modifie le tableau en place : copie-le avant si tu dois garder l'original.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct student {
+    char name[32];
+    int grade;
+};
+
+/* Comparateur d'int : trois branches, jamais de soustraction. */
+static int cmp_int(const void *a, const void *b)
+{
+    int ia = *(const int *)a;
+    int ib = *(const int *)b;
+
+    if (ia < ib)
+        return -1;
+    if (ia > ib)
+        return 1;
+    return 0;
+}
+
+/* Comparateur de struct student : note decroissante,
+   puis nom croissant (strcmp) en cas d'egalite. */
+static int cmp_student(const void *a, const void *b)
+{
+    const struct student *sa = a;
+    const struct student *sb = b;
+
+    if (sa->grade < sb->grade)
+        return 1;
+    if (sa->grade > sb->grade)
+        return -1;
+    return strcmp(sa->name, sb->name);
+}
+
+int main(void)
+{
+    int scores[] = {42, 7, -3, 100, 0, 21};
+    struct student promo[] = {
+        {"Zoe", 18}, {"Alice", 15}, {"Karim", 18}, {"Bob", 9}
+    };
+    size_t i;
+
+    qsort(scores, 6, sizeof(scores[0]), &cmp_int);
+    printf("Scores tries :");
+    i = 0;
+    while (i < 6) {
+        printf(" %d", scores[i]);
+        i = i + 1;
+    }
+    printf("\n");
+    qsort(promo, 4, sizeof(promo[0]), &cmp_student);
+    i = 0;
+    while (i < 4) {
+        printf("%s : %d/20\n", promo[i].name, promo[i].grade);
+        i = i + 1;
+    }
+    return 0;
+}
+'''
+gotchas = [
+  "Passer sizeof(tab) au lieu de sizeof(tab[0]) : qsort decoupe le tableau en tranches geantes, resultat imprevisible.",
+  "Ecrire return *(int *)a - *(int *)b : debordement possible (INT_MAX - (-1)), donc UB. Trois branches if, toujours.",
+  "Oublier que le comparateur recoit des POINTEURS vers les elements : comparer a et b directement compare des adresses, pas des valeurs.",
+  "Comparer des chaines avec == dans le comparateur : il faut strcmp sur les champs de type chaine.",
+  "Supposer le tri stable : qsort ne garantit pas l'ordre des elements egaux, ajoute un critere secondaire."
+]
+exercises = [
+  "Trie un tableau d'int en croissant puis en decroissant en changeant UNIQUEMENT le comparateur.",
+  "Trie un tableau de struct student {name, grade} par note decroissante, puis par nom (strcmp) a note egale.",
+  "Reecris un mini qsort generique : bubble sort qui marche sur du void * avec size et compar (utilise memcpy pour echanger les elements)."
+]
+related = ["pointeurs-de-fonctions", "structures", "strcmp-strncmp", "debordements-entiers", "tableaux"]

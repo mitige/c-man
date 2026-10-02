@@ -1,0 +1,129 @@
+id = "css-responsive"
+title = "Responsive — un site qui tient sur tous les écrans"
+category = "web"
+tags = ["css", "responsive", "media-queries", "mobile-first"]
+difficulty = 3
+synopsis = "@media (max-width: 600px) { ... } : du CSS qui ne s'applique que sous condition de taille d'écran."
+description = '''
+## En une phrase
+
+Le responsive design adapte ta page à la taille de l'écran : des **media queries** qui appliquent du CSS sous condition, des **unités relatives** au lieu de pixels fixes, et des **images fluides**.
+
+## En pratique
+
+D'abord, la ligne magique dans le `<head>`, sans laquelle rien ne marche sur téléphone :
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1">
+```
+
+Sans elle, le mobile simule un écran de bureau (~980px de large) puis dézoome : tes media queries ne se déclenchent jamais au bon moment. Avec elle, la largeur CSS = la largeur réelle de l'appareil.
+
+Ensuite, les media queries — du CSS conditionnel :
+
+```css
+@media (max-width: 600px) {
+    .menu { flex-direction: column; }
+}
+```
+
+Le bloc ne s'applique que si la fenêtre fait 600px de large **ou moins**. Teste en redimensionnant ton navigateur ou avec l'émulation d'appareils des DevTools.
+
+**Mobile-first** : écris ton CSS de base pour le petit écran, puis **ajoute** des règles avec `min-width` quand l'écran grandit :
+
+```css
+.grille { display: flex; flex-direction: column; }  /* mobile d'abord */
+
+@media (min-width: 768px) {
+    .grille { flex-direction: row; }                /* tablette et plus */
+}
+```
+
+Pourquoi pas l'inverse ? En partant du grand écran, tu passes ton temps à **annuler** des styles complexes sur mobile. En partant du mobile — le cas le plus contraignant — tu ne fais qu'enrichir. Et c'est comme ça que la majorité du trafic web consulte tes pages.
+
+Les unités qui vivent bien avec le responsive :
+
+- `%` : fraction de la taille du parent
+- `rem` : multiple de la taille de police racine (16px par défaut) — `1.5rem` = 24px, partout, de façon prévisible
+- `vw` / `vh` : 1% de la largeur / hauteur de la fenêtre — `font-size: 5vw` suit l'écran en continu
+
+Et les images : une image fixée en pixels déborde d'un écran étroit. La recette standard :
+
+```css
+img { max-width: 100%; height: auto; }
+```
+
+Elle ne dépassera jamais son conteneur et gardera ses proportions.
+
+## À retenir
+
+- La meta `viewport` d'abord, sinon le mobile simule un écran géant.
+- Mobile-first : base pour petit écran, enrichissements en `@media (min-width: ...)`.
+- `%`, `rem`, `vw` pour suivre l'écran ; les pixels pour ce qui ne doit jamais bouger.
+- `max-width: 100%; height: auto` sur toutes tes images.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <!-- LA ligne indispensable : sans elle, le mobile simule un écran géant -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mobile-first</title>
+    <style>
+        /* ===== BASE : pensée pour mobile d'abord ===== */
+        body { margin: 0; font-family: sans-serif; }
+        .grille {
+            display: flex;
+            flex-direction: column;   /* empilé sur petit écran */
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .carte {
+            background: steelblue;
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        /* Image fluide : jamais plus large que son conteneur */
+        img { max-width: 100%; height: auto; }
+
+        /* ===== TABLETTE : 600px et plus, on ENRICHIT ===== */
+        @media (min-width: 600px) {
+            .grille {
+                flex-direction: row;   /* les cartes passent côte à côte */
+                flex-wrap: wrap;
+            }
+            .carte { flex: 1 1 40%; }  /* deux par ligne environ */
+        }
+
+        /* ===== BUREAU : 1024px et plus ===== */
+        @media (min-width: 1024px) {
+            .grille { max-width: 1200px; margin: 0 auto; }
+            .carte { flex: 1; }        /* colonnes égales */
+        }
+    </style>
+</head>
+<body>
+    <h1>Redimensionne la fenêtre</h1>
+    <main class="grille">
+        <div class="carte">Carte 1</div>
+        <div class="carte">Carte 2</div>
+        <div class="carte">Carte 3</div>
+    </main>
+</body>
+</html>
+'''
+gotchas = [
+  "Oublier la meta viewport : le mobile rend la page comme sur ~980px de large puis dézoome, et tes media queries max-width ne se déclenchent jamais.",
+  "Écrire desktop-first et patcher avec max-width : tu passes ton temps à annuler des styles au lieu d'en ajouter.",
+  "Tout fixer en px : un titre de 40px mange la moitié d'un téléphone — passe aux rem.",
+  "width: 100% sur une image sans height: auto : elle s'étire et se déforme.",
+  "Ne tester qu'en redimensionnant la fenêtre : vérifie aussi avec l'émulation d'appareils des DevTools."
+]
+exercises = [
+  "Pars d'une page desktop existante et réécris-la en mobile-first : base empilée, puis deux paliers min-width.",
+  "Fais passer une navbar de colonne (mobile) à ligne (desktop) avec une seule media query.",
+  "Fais varier la taille d'un titre en continu avec vw, puis borne-le avec clamp() pour qu'il reste lisible."
+]
+related = ["css-bases", "css-position", "css-flexbox", "css-boxmodel", "html-bases"]

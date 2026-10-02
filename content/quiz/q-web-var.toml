@@ -1,0 +1,20 @@
+id = "q-web-var"
+category = "web"
+difficulty = 2
+question = '''
+Vrai ou faux : ce code provoque une erreur.
+
+```js
+const t = [1, 2];
+t.push(3);
+```
+'''
+choices = [
+  "Faux : const interdit de réassigner la variable (t = autre chose), pas de modifier le contenu du tableau",
+  "Vrai : const rend la valeur complètement immuable, push est interdit"
+]
+answer = 0
+explanation = '''
+const verrouille le lien entre le nom et la valeur, pas la valeur elle-même : t = [9] lèverait une TypeError, mais t.push(3) modifie le tableau en place et fonctionne parfaitement. Pour les objets et tableaux, const ne protège donc pas le contenu (il faudrait Object.freeze pour cela). Côté portée, let et const sont limitées au bloc { ... }, alors que var est portée fonction et remontée (hoisting) : utilise const par défaut, let si tu dois réassigner, et oublie var.
+'''
+related = ["js-bases", "js-fonctions"]

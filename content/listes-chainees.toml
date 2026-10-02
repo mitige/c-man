@@ -1,0 +1,155 @@
+id = "listes-chainees"
+title = "listes chaînées — la structure de données de la piscine"
+category = "langage"
+tags = ["listes", "struct", "malloc", "pointeurs", "données"]
+difficulty = 4
+piscine_day = "J09"
+synopsis = "typedef struct s_list { void *data; struct s_list *next; } t_list;"
+description = '''
+## En une phrase
+
+Une liste chaînée est une série de nœuds alloués un par un sur le heap, chacun contenant une donnée et l'adresse du nœud suivant — le dernier pointe vers NULL.
+
+## Le modèle mental
+
+Imagine des boîtes reliées par des ficelles : chacune contient une donnée et l'adresse de la suivante, mais aucune ne connaît la précédente. Ton programme ne possède qu'une chose : le **pointeur de tête** (`head`). Perds-le et toute la chaîne devient inaccessible — une fuite de mémoire. La fin de la chaîne est marquée par un `next` qui vaut NULL : c'est ton signal d'arrêt.
+
+```
+  head
+    |
+    v
++----------+    +----------+    +----------+
+| "un"     |    | "deux"   |    | "trois"  |
+| next     |--->| next     |--->| next     |---> NULL
++----------+    +----------+    +----------+
+   nœud 1          nœud 2          nœud 3
+```
+
+Contrairement à un tableau, les nœuds ne sont **pas contigus** en mémoire : pas d'accès par indice, pas de `list[i]`. Pour atteindre le troisième élément, tu suis les flèches une par une depuis la tête. En échange, insérer ou supprimer en tête coûte O(1), sans déplacer personne.
+
+## En pratique
+
+Créer un nœud suit toujours le même triptyque : `malloc(sizeof(*node))`, test du retour NULL, puis remplissage (`node->data = data; node->next = next;`). Factorise-le dans un `my_create_node` : tout le reste devient simple.
+
+Parcourir se fait avec un **curseur local**, jamais en avançant la tête elle-même :
+
+```c
+t_list *cur = head;
+while (cur != NULL) {
+    /* utiliser cur->data */
+    cur = cur->next;
+}
+```
+
+Ajouter en tête est l'opération reine : le nouveau nœud pointe vers l'ancienne tête, puis la tête devient le nouveau nœud — deux affectations, O(1). Conséquence : l'ordre de la liste est **l'inverse** de l'ordre d'insertion.
+
+Supprimer un nœud demande de recoudre la chaîne : le nœud **précédent** doit pointer vers le suivant du supprimé (`prev->next = cur->next;`), puis `free(cur)`. Sans accès au précédent, impossible de recoudre : d'où les parcours avec un `prev`, ou un `t_list **`.
+
+Libérer toute la liste (`my_free_list`) reprend le schéma du parcours, avec une subtilité vitale : sauvegarde `cur->next` **avant** `free(cur)`, sinon tu lis de la mémoire déjà libérée. Termine en remettant la tête à NULL.
+
+## Le pointeur de tête par référence
+
+C'est **le** point qui bloque tout le monde. En C, tout argument est passé par valeur : la fonction reçoit une **copie**. Si `my_push` prend un `t_list *head` et fait `head = node;`, elle réassigne sa copie locale ; la variable `list` du `main` vaut toujours NULL au retour. C'est exactement comme `void f(int n) { n = 5; }`, qui ne change pas l'`int` de l'appelant.
+
+La solution : passer l'**adresse** de la tête, donc un `t_list **`. À l'intérieur, `*head` désigne le vrai pointeur de tête de l'appelant, et `*head = node;` le modifie pour de bon. Apprends à lire : `head` est l'adresse du pointeur de tête, `*head` est la tête, `(*head)->next` est le deuxième nœud (parenthèses obligatoires : `->` est prioritaire sur `*`). Règle simple : dès qu'une fonction peut créer, changer ou vider la tête — push, remove, free_list — elle prend un `t_list **`.
+
+## À retenir
+
+- Un nœud = malloc + test NULL + remplissage ; les nœuds vivent sur le heap, un par un.
+- On parcourt avec un curseur `cur`, jamais en déplaçant la tête : `while (cur != NULL) { cur = cur->next; }`.
+- Toute fonction qui peut modifier la tête prend un `t_list **` et écrit `*head`.
+- Avant chaque `free(cur)`, sauvegarde `cur->next` ; en fin de free_list, remets la tête à NULL.
+- Ajout en tête = O(1) mais ordre inversé ; suppression = recoudre depuis le précédent.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Un nœud : la donnée + l'adresse du suivant (NULL = fin de chaîne). */
+typedef struct s_list {
+    void *data;
+    struct s_list *next;
+} t_list;
+
+/* Crée un nœud : malloc, test NULL, remplissage. */
+static t_list *my_create_node(void *data, t_list *next)
+{
+    t_list *node = malloc(sizeof(*node));
+
+    if (node == NULL) {
+        return (NULL);
+    }
+    node->data = data;
+    node->next = next;
+    return (node);
+}
+
+/* Ajoute en tête : la tête change, donc on reçoit son adresse (t_list **). */
+static int my_list_push(t_list **head, void *data)
+{
+    t_list *node = my_create_node(data, *head);
+
+    if (node == NULL) {
+        return (84);
+    }
+    *head = node;
+    return (0);
+}
+
+/* Libère chaque nœud : on sauvegarde next AVANT le free. */
+static void my_free_list(t_list **head)
+{
+    t_list *cur = *head;
+    t_list *next = NULL;
+
+    while (cur != NULL) {
+        next = cur->next;
+        free(cur);
+        cur = next;
+    }
+    *head = NULL;
+}
+
+/* Parcours classique : un curseur qui avance jusqu'à NULL. */
+static void my_list_print(const t_list *head)
+{
+    const t_list *cur = head;
+
+    while (cur != NULL) {
+        printf("%s", (const char *)cur->data);
+        if (cur->next != NULL) {
+            printf(" -> ");
+        }
+        cur = cur->next;
+    }
+    printf(" -> NULL\n");
+}
+
+int main(void)
+{
+    t_list *list = NULL;
+
+    if (my_list_push(&list, "trois") != 0
+        || my_list_push(&list, "deux") != 0
+        || my_list_push(&list, "un") != 0) {
+        my_free_list(&list);
+        return (84);
+    }
+    my_list_print(list);
+    my_free_list(&list);
+    return (0);
+}
+'''
+gotchas = [
+  "Oublier de free chaque nœud : libérer seulement la tête abandonne tous les autres nœuds — fuite garantie sous valgrind.",
+  "Avancer la tête elle-même (head = head->next) au lieu d'utiliser un curseur : le début de la liste est perdu à jamais, impossible de libérer.",
+  "Déréférencer NULL en fin de liste : cur->data ou cur->next quand cur vaut NULL segfaulte — la boucle doit tester cur != NULL.",
+  "Déclarer my_push(t_list *head) puis s'étonner que la liste reste vide : la fonction a modifié sa copie locale — il faut un t_list **.",
+  "Croire que l'ordre d'insertion est conservé : l'ajout en tête inverse la liste (push 1, 2, 3 donne 3 -> 2 -> 1)."
+]
+exercises = [
+  "Écris my_list_size(t_list *head) qui compte les nœuds avec un while et un compteur : teste sur une liste vide (0), un seul nœud, puis cinq.",
+  "Code my_list_push (ajout en tête via t_list **), puis my_rev_list qui inverse la liste en réattribuant les next, sans malloc : trois pointeurs prev, cur et next suffisent.",
+  "Écris my_free_list(t_list **head) qui libère chaque nœud et met la tête à NULL, puis vérifie sous valgrind --leak-check=full que tout est libéré (All heap blocks were freed)."
+]
+related = ["malloc", "free", "pointeurs", "stack-vs-heap", "structures", "typedef", "fuites-memoire", "valgrind", "recursivite", "erreurs-frequentes"]

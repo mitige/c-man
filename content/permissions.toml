@@ -1,0 +1,73 @@
+id = "permissions"
+title = "permissions — rwx, chmod et le droit d'exécuter"
+category = "bash"
+tags = ["chmod", "rwx", "droits", "ls"]
+difficulty = 2
+synopsis = "ls -l ; chmod 755 script.sh ; chmod u+x script.sh"
+description = '''
+## En une phrase
+
+Chaque fichier Unix porte trois droits — lecture, écriture, exécution — déclinés pour trois publics : toi, ton groupe et les autres.
+
+## En pratique
+
+`ls -l` te dit tout :
+
+```
+-rwxr-xr-- 1 login users 148 jan 12 09:30 build.sh
+```
+
+Le premier caractère est le type (`-` fichier, `d` dossier, `l` lien symbolique). Suivent trois triplets : **user** (le propriétaire), **group**, **others**. Dans chaque triplet : `r` = lire (vaut 4), `w` = écrire (vaut 2), `x` = exécuter ou traverser (vaut 1). Additionne et tu obtiens la notation octale.
+
+`chmod` modifie ces droits, en octal ou en symbolique :
+
+```bash
+chmod 755 build.sh    # rwxr-xr-x : le classique des scripts
+chmod 644 notes.txt   # rw-r--r-- : le classique des fichiers
+chmod u+x build.sh    # ajoute l'exécution au propriétaire seul
+chmod +x build.sh     # ajoute l'exécution pour tout le monde
+```
+
+Pourquoi `./script.sh` réclame-t-il le `x` ? Parce qu'exécuter un fichier, c'est demander au noyau de le charger comme programme : sans `x`, `Permission denied`, même si tu peux parfaitement le lire. Astuce : `bash script.sh` passe quand même, car c'est **bash** qui lit le fichier.
+
+Sur les **dossiers**, le sens change : `x` signifie « entrer et traverser », `r` signifie « lister le contenu ». Un dossier en `rw-` sans `x` est une porte murée.
+
+> `chown user:group fichier` change le propriétaire — opération réservée à root la plupart du temps ; tu n'en auras quasiment jamais besoin en piscine.
+
+## À retenir
+
+- 755 pour ce qui s'exécute, 644 pour ce qui se lit : ces deux valeurs couvrent 95 % des cas.
+- Tes `.c` n'ont pas besoin du `x` : c'est gcc qui les lit, pas le noyau.
+- `chmod 777` n'est jamais une solution : c'est laisser la porte grande ouverte à tout le monde.
+- Un script livré sans `+x` peut faire échouer une moulinette qui tente de l'exécuter.
+'''
+example = '''
+# Du script non exécutable au script livré proprement
+login@epitech:~/j03$ ls -l build.sh
+-rw-r--r-- 1 login users 148 jan 12 09:30 build.sh
+login@epitech:~/j03$ ./build.sh
+bash: ./build.sh: Permission denied
+login@epitech:~/j03$ chmod u+x build.sh        # ajoute x au propriétaire
+login@epitech:~/j03$ ls -l build.sh
+-rwxr--r-- 1 login users 148 jan 12 09:30 build.sh
+login@epitech:~/j03$ ./build.sh                # cette fois ça tourne
+Compilation...
+login@epitech:~/j03$ chmod 644 main.c          # rw-r--r-- : un .c se lit, point
+login@epitech:~/j03$ ls -ld secret/            # droits d'un dossier
+drwx------ 2 login users 4096 jan 12 09:31 secret/
+login@epitech:~/j03$ chmod 755 scripts/        # dossier traversable par tous
+login@epitech:~/j03$ stat -c "%a %n" build.sh  # afficher les droits en octal
+744 build.sh
+'''
+gotchas = [
+  "chmod 777 par réflexe : tu donnes l'écriture à tout le monde, y compris à n'importe quel processus qui passe.",
+  "Permission denied alors que le fichier est bien là : vérifier le x avec ls -l avant de paniquer.",
+  "Retirer le x d'un dossier : impossible d'y entrer, même pour lire un fichier dont tu as les droits.",
+  "Croire que chmod +x rend un .c exécutable : seuls les scripts avec shebang et les binaires compilés s'exécutent.",
+  "Git conserve le bit d'exécution : un script commité sans +x arrive sans +x chez le correcteur."
+]
+exercises = [
+  "Crée un script, observe ses droits avec ls -l, rends-le exécutable deux fois de suite : une fois en octal (755), une fois en symbolique (u+x).",
+  "Décode -rwxr-x--- en notation octale sur papier, puis écris la commande chmod qui produit exactement ces droits et vérifie avec stat."
+]
+related = ["bash-bases", "scripts-bash", "processus"]

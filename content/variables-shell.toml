@@ -1,0 +1,83 @@
+id = "variables-shell"
+title = "variables-shell — stocker, lire, exporter"
+category = "bash"
+tags = ["variables", "export", "path", "quoting"]
+difficulty = 2
+synopsis = "NOM=valeur ; echo \"${NOM}\" ; export NOM ; echo $?"
+description = '''
+## En une phrase
+
+Une variable shell stocke une chaîne de caractères sous un nom, le `$` la relit — et tout le drame vient des espaces et des quotes.
+
+## En pratique
+
+L'affectation n'accepte **aucun espace** autour du `=` :
+
+```bash
+LOGIN=abourdar     # OK
+LOGIN = abourdar   # ERREUR : le shell cherche une commande nommée LOGIN
+```
+
+La lecture se fait avec `$`, et la forme blindée est `"${VAR}"` :
+
+```bash
+echo $LOGIN                 # abourdar
+echo "Bonjour ${LOGIN}42"   # les accolades délimitent le nom de variable
+echo '$LOGIN'               # affiche littéralement $LOGIN : simples quotes = rien n'est interprété
+```
+
+Une variable n'existe que dans le shell courant. Pour la transmettre aux programmes que tu lances (comme `PATH` ou `HOME`), il faut l'**exporter** : `export LOGIN`. La commande `env` liste toutes les variables exportées.
+
+Les variables spéciales à connaître :
+
+- `$?` : code de retour de la dernière commande (0 = succès, tout le reste = échec)
+- `$0` : nom du script, `$1`, `$2`... : ses arguments
+- `$#` : nombre d'arguments, `$@` : la liste complète des arguments
+
+`PATH` mérite une minute : c'est la liste des dossiers (séparés par `:`) où le shell cherche les commandes. Quand tu tapes `gcc`, il parcourt ces dossiers dans l'ordre. C'est pour ça que `./my_prog` réclame son `./` : le dossier courant n'est pas dans le PATH.
+
+> `echo` est ton premier débogueur : `echo "DEBUG: fichier=[$f]"` juste avant la commande qui plante te montre exactement ce que le shell a compris.
+
+## À retenir
+
+- Pas d'espaces autour du `=`, jamais, sous aucun prétexte.
+- Doubles quotes : le `$` est interprété. Simples quotes : rien n'est interprété.
+- `"$VAR"` entre guillemets protège les espaces ; sans guillemets, la valeur est découpée en plusieurs mots.
+- `$?` s'écrase à chaque commande : lis-le immédiatement ou stocke-le.
+'''
+example = '''
+# Variables, codes de retour et export en action
+login@epitech:~$ PRENOM=ada            # pas d'espaces autour du =
+login@epitech:~$ echo "Salut $PRENOM"  # doubles quotes : interprété
+Salut ada
+login@epitech:~$ echo 'Salut $PRENOM'  # simples quotes : brut
+Salut $PRENOM
+login@epitech:~$ ls /etc/passwd > /dev/null   # une commande qui réussit
+login@epitech:~$ echo $?               # 0 = succès
+0
+login@epitech:~$ ls /fichier/inexistant 2> /dev/null
+login@epitech:~$ echo $?               # non nul = échec (ici 2)
+2
+login@epitech:~$ MY_VAR=locale         # non exportée...
+login@epitech:~$ bash -c 'echo "enfant voit: [$MY_VAR]"'   # vide chez l'enfant
+enfant voit: []
+login@epitech:~$ export MY_VAR=globale
+login@epitech:~$ bash -c 'echo "enfant voit: [$MY_VAR]"'
+enfant voit: [globale]
+login@epitech:~$ echo $PATH | tr ':' '\n' | head -3   # où le shell cherche les commandes
+/usr/local/bin
+/usr/bin
+/bin
+'''
+gotchas = [
+  "VAR = 42 ne marche pas : le moindre espace autour du = transforme ta variable en nom de commande introuvable.",
+  "Les simples quotes bloquent tout remplacement : echo '$VAR' affiche $VAR tel quel.",
+  "Une variable non exportée est invisible pour les programmes enfants, y compris tes propres binaires C.",
+  "Sans guillemets, $VAR est découpée sur les espaces : cd $DIR casse si DIR contient un espace.",
+  "$? s'écrase à chaque commande : un echo de debug entre la commande et le test de $? fausse le diagnostic."
+]
+exercises = [
+  "Crée une variable LOGIN avec ton login, affiche-la avec echo, vérifie avec env qu'elle n'y est pas, exporte-la, revérifie.",
+  "Exécute true puis false en affichant $? après chacune, et explique la différence à ton voisin."
+]
+related = ["scripts-bash", "pipes-redirections", "environnement", "exit"]

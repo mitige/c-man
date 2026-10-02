@@ -1,0 +1,99 @@
+id = "memcpy-memmove"
+title = "memcpy et memmove — copier des octets bruts"
+category = "libc"
+tags = ["memoire", "copie", "octets", "ub"]
+difficulty = 3
+piscine_day = "J05"
+synopsis = "void *memcpy(void *dest, const void *src, size_t n);\nvoid *memmove(void *dest, const void *src, size_t n);"
+description = '''
+## En une phrase
+
+`memcpy` copie `n` octets bruts d'une zone à une autre sans rien comprendre au contenu ; `memmove` fait pareil en tolérant le chevauchement des zones.
+
+## Prototype et retour
+
+- Header : `<string.h>`
+- `void *memcpy(void *dest, const void *src, size_t n);`
+- `void *memmove(void *dest, const void *src, size_t n);`
+- Retour : `dest`, dans les deux cas.
+
+Les pointeurs sont en `void *` : la fonction ignore totalement le type pointé et travaille en OCTETS. Pas de `'\0'`, pas de sémantique de chaîne : exactement `n` octets sont transférés, même au-delà d'un éventuel terminateur.
+
+Règle d'or : avec `memcpy`, `dest` et `src` NE DOIVENT PAS se chevaucher — c'est un comportement indéfini. Si les zones peuvent se recouvrir (décaler les éléments d'un tableau vers la droite, par exemple), utilise `memmove`, qui se comporte COMME SI la copie passait par une zone temporaire.
+
+## En pratique
+
+Réimplémentation (`my_memcpy`) : caster en pointeurs d'octets et boucler `n` fois :
+
+- `unsigned char *d = dest;` et `const unsigned char *s = src;`
+- `while (i < n) { d[i] = s[i]; i = i + 1; }`
+- renvoie `dest`
+
+Pour `my_memmove`, toute la subtilité tient dans le SENS de la copie : si `dest < src`, copie de gauche à droite (indice croissant) ; si `dest > src`, copie de droite à gauche (de `n - 1` vers 0). Ainsi les octets déjà copiés n'écrasent jamais ceux pas encore lus. C'est ça, la tolérance au chevauchement.
+
+Usages réels : dupliquer une struct entière en un appel (`memcpy(&b, &a, sizeof(a))`), copier un buffer binaire rempli par `read`, sauvegarder un tableau. C'est aussi LE moyen légal de réinterpréter des octets d'un type vers un autre sans violer les règles d'aliasing.
+
+## À retenir
+
+- `n` est en OCTETS : pour `k` éléments, écris `k * sizeof(*dest)`.
+- Chevauchement + `memcpy` = comportement indéfini : ça peut marcher sur ta machine et exploser à la moulinette.
+- `memcpy` ne s'arrête JAMAIS au `'\0'` : il copie exactement `n` octets, point.
+- En cas de doute sur le recouvrement, prends `memmove` : le surcoût est négligeable.
+'''
+example = '''
+#include <stdio.h>
+#include <string.h>
+
+struct s_point {
+    int x;
+    int y;
+    char nom[16];
+};
+
+/* Copie brute de n octets, octet par octet. */
+void *my_memcpy(void *dest, const void *src, size_t n)
+{
+    unsigned char *d;
+    const unsigned char *s;
+    size_t i;
+
+    d = dest;
+    s = src;
+    i = 0;
+    while (i < n) {
+        d[i] = s[i];
+        i = i + 1;
+    }
+    return dest;
+}
+
+int main(void)
+{
+    struct s_point a;
+    struct s_point b;
+    char texte[32] = "piscine";
+
+    a.x = 3;
+    a.y = 42;
+    my_memcpy(a.nom, "orig", 5);
+    my_memcpy(&b, &a, sizeof(a));
+    printf("b = {%d, %d, %s}\n", b.x, b.y, b.nom);
+    /* Chevauchement : memmove, jamais memcpy. */
+    memmove(texte + 2, texte, 8);
+    printf("%s\n", texte);
+    return 0;
+}
+'''
+gotchas = [
+  "Zones qui se chevauchent avec memcpy : comportement indefini, le resultat peut changer selon le compilateur ou l'optimisation.",
+  "Confondre elements et octets : memcpy(dest, src, 10) copie 10 OCTETS, pas 10 int ; il faut 10 * sizeof(*dest).",
+  "Attendre un '\\0' final : memcpy copie n octets bruts et ne s'arrete jamais au terminateur.",
+  "Caster en int* au lieu d'octets dans my_memcpy : tu copierais 4 fois trop d'octets par tour de boucle.",
+  "Utiliser memmove par habitude sans comprendre : c'est le SENS de copie (avant ou arriere) qui gere le recouvrement."
+]
+exercises = [
+  "Ecris my_memcpy avec des pointeurs unsigned char et une boucle while, puis duplique une struct entiere en un seul appel et affiche ses champs.",
+  "Ecris my_memmove qui choisit le sens de copie selon que dest < src ou non, et teste-le en decalant une chaine de 2 octets vers la droite.",
+  "Ecris un programme qui remplit un buffer de 64 octets avec read, puis le duplique avec my_memcpy, et compare les deux zones octet par octet."
+]
+related = ["memset", "undefined-behavior", "arithmetique-pointeurs", "structures", "strcpy-strncpy"]

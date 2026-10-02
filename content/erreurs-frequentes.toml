@@ -1,0 +1,77 @@
+id = "erreurs-frequentes"
+title = "Erreurs fréquentes — le top 10 qui coûte des heures"
+category = "piscine"
+tags = ["erreurs", "debug", "segfault", "debutant"]
+difficulty = 2
+synopsis = "Les dix erreurs qui coûtent des heures à chaque promo — symptôme et remède."
+description = '''
+## En une phrase
+
+L'immense majorité des galères de piscine se range dans dix erreurs : apprends à reconnaître le symptôme et applique le remède sans réfléchir.
+
+## Le top 10
+
+1. **Oublier le `\0` final** — Symptôme : chaîne qui déborde à l'affichage, strlen incohérent. Remède : toute chaîne allouée fait `longueur + 1` octets, et tu écris le `\0` explicitement.
+2. **Déréférencer NULL** — Symptôme : segfault immédiat. Remède : tester CHAQUE retour de malloc et chaque pointeur venu de l'extérieur.
+3. **Off-by-one sur les boucles** — Symptôme : dernier élément raté, ou une case lue en trop. Remède : dérouler la boucle à la main sur un tableau de 2 éléments.
+4. **`=` au lieu de `==`** — Symptôme : condition toujours vraie, variable écrasée. Remède : compiler avec -Wall -Wextra, le warning te sauve.
+5. **Oublier de free / double free** — Symptôme : fuite sous valgrind, ou "double free or corruption". Remède : un malloc = un free, jamais deux ; `free(NULL)` est légal, pas deux fois le même pointeur.
+6. **Retourner l'adresse d'une variable locale** — Symptôme : valeur correcte parfois, corrompue souvent. Remède : la variable meurt en fin de fonction ; alloue sur le heap ou remplis un buffer fourni par l'appelant.
+7. **Déborder d'un buffer** — Symptôme : crash aléatoire loin de la cause. Remède : connaître la taille exacte de chaque tableau et borner chaque copie.
+8. **Oublier un prototype** — Symptôme : warning "implicit declaration", puis comportement indéfini. Remède : tous les prototypes dans un .h, inclus partout.
+9. **Push sans -Wall -Wextra -Werror** — Symptôme : moulinette à zéro alors que "ça marchait". Remède : ces trois flags dans ton Makefile dès le J01.
+10. **Mal lire le sujet** — Symptôme : 6 heures perdues sur la mauvaise fonction. Remède : lire deux fois, surligner les noms EXACTS attendus.
+
+## À retenir
+
+- Le symptôme est rarement à l'endroit de la cause : remonte la piste.
+- Un warning est une erreur en costume : traite-les tous.
+- Quand ça crash : valgrind AVANT de paniquer.
+'''
+example = '''
+#include <unistd.h>
+
+/* L'ANTI-EXEMPLE classique (refuse par -Werror, heureusement) :
+ *
+ * char *get_name_wrong(void)
+ * {
+ *     char name[12];
+ *
+ *     return name;    // name meurt ici : adresse invalide
+ * }
+ */
+
+/* BIEN : l'appelant fournit le buffer, on borne, on termine. */
+void get_name(char *dest, int size)
+{
+    int i;
+
+    i = 0;
+    while (i < size - 1) {
+        dest[i] = 'a';
+        i = i + 1;
+    }
+    dest[i] = '\0';             /* le fameux '\0' final */
+}
+
+int main(void)
+{
+    char buf[12];
+
+    get_name(buf, 12);
+    write(1, buf, 3);
+    write(1, "\n", 1);
+    return 0;
+}
+'''
+gotchas = [
+  "Chercher le bug à l'endroit du crash : le débordement qui tue ton heap a eu lieu des dizaines de lignes plus tôt.",
+  "Corriger le symptôme au lieu de la cause : un printf qui fait disparaître le bug ne l'a pas réparé, c'est de l'undefined behavior.",
+  "Se dire 'chez moi ça marche' : un UB fonctionne jusqu'au jour où il ne fonctionne plus, souvent devant la moulinette.",
+  "Corriger dix choses d'un coup : tu ne sauras jamais laquelle a réparé, corrige une chose à la fois."
+]
+exercises = [
+  "Compile un de tes anciens programmes avec -Wall -Wextra -Werror et corrige tous les warnings.",
+  "Écris volontairement un programme avec un off-by-one, observe le crash sous valgrind, puis corrige-le."
+]
+related = ["segfault", "undefined-behavior", "valgrind", "methodologie-debug", "fuites-memoire"]

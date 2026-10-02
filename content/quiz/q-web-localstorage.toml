@@ -1,0 +1,21 @@
+id = "q-web-localstorage"
+category = "web"
+difficulty = 2
+question = '''
+Qu'affiche ce code dans la console ?
+
+localStorage.setItem('score', 42);
+const s = localStorage.getItem('score');
+console.log(typeof s, s + 1);
+'''
+choices = [
+  "string 421",
+  "number 43",
+  "string 43",
+  "number 421"
+]
+answer = 0
+explanation = '''
+localStorage ne stocke QUE des chaînes de caractères : le nombre 42 est converti en '42' au moment du setItem. getItem renvoie donc une string, d'où typeof s === 'string'. L'opérateur + sur une chaîne fait de la concaténation : '42' + 1 donne '421', pas 43. Pour faire du calcul, convertis d'abord avec Number(s) ou parseInt(s, 10).
+'''
+related = ["js-localstorage", "js-bases"]

@@ -1,0 +1,26 @@
+id = "q-retour-adresse-locale"
+category = "memoire"
+difficulty = 4
+question = '''
+Que renvoie cette fonction ?
+
+```c
+int *alloue(void)
+{
+    int x = 42;
+
+    return &x;
+}
+```
+'''
+choices = [
+  "Un pointeur valide vers un int contenant 42",
+  "NULL, car x est une variable locale",
+  "Un pointeur vers une variable détruite au retour : l'utiliser est un comportement indéfini",
+  "Une copie de x automatiquement placée sur le heap"
+]
+answer = 2
+explanation = '''
+x vit sur la stack de la fonction : dès le return, sa case mémoire est recyclée et le pointeur renvoyé devient un dangling pointer. Lire *p après coup peut sembler marcher... jusqu'au prochain appel de fonction qui écrase la zone. gcc -Wall détecte ce cas (-Wreturn-local-addr) et -Werror bloque la compilation ; la bonne solution est un malloc, ou un buffer fourni par l'appelant.
+'''
+related = ["stack-vs-heap", "segfault", "fonctions"]

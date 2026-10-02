@@ -1,0 +1,103 @@
+id = "pointeurs"
+title = "pointeurs — des variables qui contiennent des adresses"
+category = "memoire"
+tags = ["pointeur", "adresse", "dereferencement", "null", "swap"]
+difficulty = 3
+piscine_day = "J03"
+synopsis = "int *p = &x;  /* p contient l'adresse de x, *p est la valeur de x */"
+description = '''
+## En une phrase
+
+Un pointeur est une variable dont la valeur est une **adresse mémoire** : au lieu de contenir une donnée, il contient l'emplacement d'une donnée.
+
+## En pratique
+
+Deux opérateurs à maîtriser jusqu'au bout des doigts :
+
+- `&x` : « l'adresse de x » — où x habite en mémoire.
+- `*p` : « le contenu pointé par p » — va à l'adresse stockée dans p et lis (ou écris) ce qui s'y trouve.
+
+```c
+int x = 42;
+int *p = &x;   /* p contient l'adresse de x */
+*p = 84;       /* écrit 84 DANS x, via p */
+```
+
+Vue mémoire (adresses inventées) :
+
+```
+adresse      variable   contenu
+----------   --------   ----------
+0x7ffd1000   x          42           <- l'int, 4 octets
+0x7ffd1008   p          0x7ffd1000   <- p "pointe vers" x
+```
+
+Lis la déclaration `int *p` ainsi : « déréférencé, p donne un int ». Le pointeur lui-même occupe la taille d'une adresse : 8 octets sur x86-64, quel que soit le type pointé.
+
+`NULL` (défini dans `<stddef.h>`, `<stdio.h>`...) est la valeur « ne pointe nulle part ». Déréférencer NULL = comportement indéfini, segfault quasi garanti. Un pointeur **non initialisé** contient une adresse poubelle : c'est encore pire, car l'écriture peut réussir n'importe où sans planter tout de suite. Réflexe inconditionnel : toujours initialiser, fût-ce à NULL.
+
+Pourquoi les fonctions prennent-elles des pointeurs ? En C, **tout argument est passé par copie**. Pour qu'une fonction modifie TA variable, donne-lui son adresse :
+
+```c
+void my_swap(int *a, int *b);
+my_swap(&x, &y);   /* la fonction écrit directement dans x et y */
+```
+
+C'est exactement pour ça que `scanf` exige des `&` : il doit écrire chez toi.
+
+Enfin, un pointeur peut pointer vers un pointeur : `char **`. Tu l'utilises déjà : `int main(int argc, char **argv)` — argv mène à un tableau de `char *`, un pointeur de pointeurs.
+
+## À retenir
+
+- Un pointeur = une adresse. `&` obtient l'adresse, `*` la suit.
+- Toujours initialiser (NULL par défaut), jamais déréférencer sans savoir où ça mène.
+- Passer une adresse à une fonction = lui donner le droit d'écrire chez toi.
+- `char **` : juste « un pointeur vers des pointeurs », pas de magie.
+'''
+example = '''
+#include <stdio.h>
+
+/* Modifier les variables de l'appelant : impossible sans pointeurs. */
+static void my_swap(int *a, int *b)
+{
+    int tmp;
+
+    tmp = *a;   /* lit la valeur pointée par a */
+    *a = *b;    /* écrit à l'adresse contenue dans a */
+    *b = tmp;
+}
+
+int main(int argc, char **argv)
+{
+    int x = 42;
+    int y = 7;
+    int *p = &x;   /* p contient l'adresse de x */
+
+    printf("&x = %p, x = %d\n", (void *)&x, x);
+    printf("p  = %p, *p = %d\n", (void *)p, *p);
+    *p = 84;       /* écrit dans x sans jamais nommer x */
+    printf("x vaut maintenant %d\n", x);
+    my_swap(&x, &y);
+    printf("après swap : x = %d, y = %d\n", x, y);
+    if (argc > 0)
+        printf("argv[0] = %s : argv est un char **, un pointeur de pointeurs\n",
+               argv[0]);
+    p = NULL;      /* NULL = "ne pointe nulle part" */
+    if (p == NULL)
+        printf("p ne pointe plus nulle part : ne JAMAIS déréférencer NULL\n");
+    return 0;
+}
+'''
+gotchas = [
+  "Déréférencer un pointeur non initialisé : adresse poubelle, écriture n'importe où, bug intermittent et injouable.",
+  "Déréférencer NULL : segfault quasi immédiat (et c'est encore de la chance : le standard dit comportement indéfini).",
+  "Confondre p et *p : p est l'adresse, *p est la valeur — printf(\"%d\", p) au lieu de *p affiche une adresse tronquée.",
+  "Croire que int *p, q; déclare deux pointeurs : q est un int ! Écris int *p, *q; ou mieux, une déclaration par ligne.",
+  "Oublier que les arguments sont copiés : une fonction ne peut pas modifier ta variable sans recevoir son adresse."
+]
+exercises = [
+  "Écris my_swap(int *a, int *b) et vérifie dans main que deux variables sont bien échangées. Tente ensuite la version sans pointeurs et constate l'échec.",
+  "Écris my_strlen(char *str) en avançant un pointeur jusqu'à '\\0', sans jamais écrire str[i].",
+  "Sur papier, dessine la mémoire de int x = 5; int *p = &x; int **pp = &p; avec des adresses inventées, prédis la valeur de **pp, puis vérifie avec un programme."
+]
+related = ["variables-types", "fonctions", "arithmetique-pointeurs", "pointeurs-vs-tableaux", "main-argc-argv"]

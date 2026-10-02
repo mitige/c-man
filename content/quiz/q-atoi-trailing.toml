@@ -1,0 +1,15 @@
+id = "q-atoi-trailing"
+category = "libc"
+difficulty = 2
+question = "Que renvoie atoi(\"42abc\") ?"
+choices = [
+  "0, car la chaîne n'est pas un nombre valide",
+  "42 : atoi s'arrête au premier caractère non numérique, sans signaler d'erreur",
+  "Un comportement indéfini est garanti",
+  "Une erreur est levée et le programme s'arrête"
+]
+answer = 1
+explanation = '''
+atoi lit les chiffres en tête de chaîne et s'arrête au premier caractère non numérique : "42abc" donne 42, sans aucune erreur signalée. Pire : atoi("abc") renvoie 0, indiscernable d'un vrai zéro saisi. Pour une conversion robuste avec détection d'erreur et de débordement, utilise strtol — c'est exactement pour cela qu'il existe.
+'''
+related = ["atoi-strtol", "chaines-caracteres"]

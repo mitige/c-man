@@ -1,0 +1,92 @@
+id = "gdb"
+title = "gdb — ton débogueur pas à pas"
+category = "outils"
+tags = ["debug", "gdb", "segfault"]
+difficulty = 3
+synopsis = "gdb ./prog puis : run, break, next, step, print, bt"
+description = '''
+## En une phrase
+
+`gdb` exécute ton programme pas à pas, t'arrête où tu veux et te laisse inspecter la mémoire : fini les printf de debug oubliés partout.
+
+## Préparer et lancer
+
+Compile avec `-g` (infos de débogage), sinon gdb ne connaît ni tes lignes ni tes variables :
+
+```bash
+gcc -g -Wall -Wextra -Werror -std=c99 crash.c -o crash
+gdb ./crash
+```
+
+## Les commandes de survie
+
+- `run` (r) : lance le programme
+- `break main` ou `break crash.c:5` : point d'arrêt sur une fonction ou une ligne
+- `next` (n) : ligne suivante, **survole** les appels de fonctions
+- `step` (s) : ligne suivante, **rentre** dans les fonctions
+- `print var` (p) : affiche la valeur d'une variable
+- `display var` : réaffiche la variable après chaque pas
+- `backtrace` (bt) : la pile d'appels, qui a appelé qui
+- `continue` (c) : reprend jusqu'au prochain breakpoint ou crash
+- `quit` (q) : quitter
+
+## Scénario : un segfault résolu en deux minutes
+
+1. `run` : le programme crash, gdb gèle tout au moment exact de la faute.
+2. `bt` : la pile d'appels. `#0` est la ligne du crash, les cadres suivants remontent jusqu'à `main`.
+3. `print ptr` : la variable coupable apparaît — `(int *) 0x0`, un NULL déréférencé.
+
+Tu connais la ligne, la variable et sa valeur : c'est tout ce qu'il faut pour corriger.
+
+> Bonus confort : `tui enable` (ou `layout src`) affiche le code source au-dessus du prompt gdb. Essaye, tu ne reviendras pas en arrière.
+
+## À retenir
+
+- Sans `-g`, gdb est presque aveugle : recompile dès que tu débogues.
+- `next` quand l'appel ne t'intéresse pas, `step` quand c'est lui le suspect.
+- Le crash est en `#0`, mais la CAUSE est souvent dans l'appelant : remonte avec `up` ou `frame 1`.
+- gdb ne modifie rien : relance `run` autant de fois que nécessaire.
+'''
+example = '''
+# Retrouver un segfault en 2 minutes (les adresses 0x... varient selon la machine)
+$ cat crash.c
+#include <stdio.h>
+
+static int get_value(int *ptr)
+{
+    return *ptr + 1;        /* crash si ptr est NULL */
+}
+
+int main(void)
+{
+    int *values = NULL;
+
+    printf("value = %d\n", get_value(values));
+    return 0;
+}
+$ gcc -g -Wall -Wextra -Werror -std=c99 crash.c -o crash
+$ gdb ./crash
+(gdb) run
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555555149 in get_value (ptr=0x0) at crash.c:5
+5           return *ptr + 1;
+(gdb) bt
+#0  get_value (ptr=0x0) at crash.c:5
+#1  0x000055555555516e in main () at crash.c:12
+(gdb) print ptr
+$1 = (int *) 0x0
+(gdb) quit
+# Diagnostic : main passe NULL à get_value, qui le déréférence ligne 5.
+# Variante utile : break crash.c:5 avant run pour inspecter AVANT le crash.
+'''
+gotchas = [
+  "Compiler sans -g : gdb tourne mais affiche des adresses au lieu de lignes et de noms ; recompile avec -g.",
+  "Confondre next et step : avec next tu survoles l'appel suspect et tu rates le crash.",
+  "S'arrêter au cadre #0 : la faute est là, mais la cause est souvent dans #1 ou #2 (un NULL passé en argument).",
+  "Oublier de recompiler après une correction : gdb exécute l'ancien binaire et tu débogues un fantôme."
+]
+exercises = [
+  "Reproduis le scénario de la fiche : crée crash.c, puis run, bt, print — trouve la ligne fautive sans regarder la solution.",
+  "Sur un exo qui boucle trop longtemps, pose un break sur la boucle, display le compteur, et continue jusqu'à voir où ça dérape ; essaie ensuite tui enable."
+]
+related = ["segfault", "flags-compilation", "valgrind", "methodologie-debug", "pointeurs"]

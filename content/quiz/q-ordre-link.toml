@@ -1,0 +1,15 @@
+id = "q-ordre-link"
+category = "outils"
+difficulty = 3
+question = "Quelle commande lie correctement prog.o avec la librairie statique libmy.a ?"
+choices = [
+  "gcc -lmy prog.o -o prog",
+  "gcc prog.o -lmy -o prog",
+  "gcc -o prog -lmy prog.o",
+  "L'ordre des arguments n'a aucune importance"
+]
+answer = 1
+explanation = '''
+Le linker traite les fichiers de GAUCHE À DROITE et ne prélève dans une librairie statique que ce qui résout les symboles déjà rencontrés. Si -lmy arrive AVANT prog.o, aucun symbole n'est encore manquant à ce moment-là : la librairie est ignorée et tu récoltes des undefined reference. Règle d'or : les options -l toujours APRÈS les .o et .c qui les utilisent.
+'''
+related = ["linking", "makefile", "flags-compilation"]

@@ -1,0 +1,76 @@
+id = "bash-bases"
+title = "bash-bases — le terminal, ta maison de piscinier"
+category = "bash"
+tags = ["terminal", "navigation", "fichiers", "shell"]
+difficulty = 1
+synopsis = "pwd ; ls -la ; cd dossier ; mkdir -p a/b ; cp -r src dst ; mv ; rm -i"
+description = '''
+## En une phrase
+
+Le shell est ta maison pendant la piscine : ces dix commandes te permettent de t'y déplacer, d'y ranger tes fichiers et de ne jamais te perdre.
+
+## En pratique
+
+L'invite (le prompt) te dit où tu es : `login@host:~/piscine/j01$`. Ce qui suit le `:` est ton **répertoire courant** : chaque commande que tu tapes s'exécute depuis là.
+
+Un chemin **absolu** commence par `/` (la racine) : `/home/login/piscine`. Un chemin **relatif** part de là où tu es : `../j02`. Trois raccourcis vitaux : `~` (ton home), `.` (le dossier courant), `..` (le dossier parent).
+
+Le kit de survie :
+
+- `pwd` : affiche où tu es
+- `ls`, `ls -l`, `ls -a` : liste les fichiers (détails, fichiers cachés)
+- `cd dossier` : se déplacer ; `cd` seul ramène au home, `cd -` revient au dossier précédent
+- `mkdir -p a/b/c` : crée des dossiers, même imbriqués
+- `cp fichier copie` (`-r` pour un dossier) : copier
+- `mv ancien nouveau` : déplacer ou renommer — écrase la cible sans demander
+- `rm fichier` : supprimer **définitivement**, il n'y a pas de corbeille
+
+> **DANGER** : `rm -rf` supprime tout, récursivement, sans confirmation. Un espace mal placé (`rm -rf foo / bar`) ou une variable vide peut effacer ton home. Relis deux fois avant d'appuyer sur Entrée.
+
+Trois réflexes de pro :
+
+- **Tab** complète les noms de fichiers et de commandes : tape le moins possible
+- **Flèches haut/bas** rappellent l'historique, **Ctrl+R** y recherche une ancienne commande
+- `man commande` ouvre le manuel, `which commande` dit quel binaire s'exécute, `clear` (ou Ctrl+L) nettoie l'écran
+
+## À retenir
+
+- Tu ne tapes presque jamais un nom de fichier en entier : Tab le fait pour toi.
+- `mv` et `rm` ne préviennent pas : ils écrasent et suppriment en silence.
+- Perdu ? `pwd` pour savoir où tu es, `ls` pour voir ce qu'il y a, `cd ~` pour rentrer à la maison.
+- Le manuel est ton ami : `man ls` répond plus vite qu'un voisin occupé.
+'''
+example = '''
+# Une matinée de piscine, de la connexion au premier exo
+login@epitech:~$ pwd                        # où suis-je ?
+/home/login
+login@epitech:~$ mkdir -p piscine/j01/ex01  # -p crée toute la chaîne
+login@epitech:~$ cd piscine/j01/ex01        # chemin relatif
+login@epitech:~/piscine/j01/ex01$ ls -a     # -a montre aussi les fichiers cachés
+.  ..
+login@epitech:~/piscine/j01/ex01$ cp ~/modeles/my_putchar.c .   # le point = ici
+login@epitech:~/piscine/j01/ex01$ mv my_putchar.c my_putstr.c   # renomme
+login@epitech:~/piscine/j01/ex01$ ls
+my_putstr.c
+login@epitech:~/piscine/j01/ex01$ cd ..     # remonter d'un cran
+login@epitech:~/piscine/j01$ cd -           # revenir où j'étais
+/home/login/piscine/j01/ex01
+login@epitech:~/piscine/j01/ex01$ which gcc # quel binaire gcc va tourner ?
+/usr/bin/gcc
+login@epitech:~/piscine/j01/ex01$ man ls    # le manuel, q pour quitter
+# Ctrl+R puis taper "gcc" : recherche dans l'historique des commandes
+login@epitech:~/piscine/j01/ex01$ rm my_putstr.c   # définitif, pas de corbeille !
+'''
+gotchas = [
+  "rm -rf avec un espace de trop ou une variable vide peut raser ton home : il n'y a ni confirmation ni corbeille.",
+  "mv écrase la cible sans prévenir : mv a.c b.c détruit b.c s'il existait.",
+  "Taper les noms de fichiers à la main au lieu d'utiliser Tab : fautes de frappe et temps perdu garantis.",
+  "Croire que cd sans argument reste sur place : il te ramène directement dans ton home.",
+  "Oublier cp -r pour un dossier : « ommiting directory » et la copie ne se fait pas."
+]
+exercises = [
+  "Crée l'arborescence piscine/j01/ex01 à ex03 avec une seule commande mkdir -p, déplace-toi en chemin absolu, reviens en relatif avec .., puis rentre au home avec cd seul.",
+  "Utilise Ctrl+R pour retrouver ta dernière commande gcc et relance-la sans la retaper.",
+  "Crée un fichier test.txt, copie-le, renomme la copie, supprime l'original : enchaîne les quatre sans quitter le terminal."
+]
+related = ["permissions", "scripts-bash", "commandes-texte", "conseils-piscine"]

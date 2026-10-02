@@ -1,0 +1,89 @@
+id = "la-norme"
+title = "La Norme Epitech — des contraintes qui te rendent meilleur"
+category = "demarrer"
+tags = ["norme", "style", "norminette", "epitech"]
+difficulty = 2
+synopsis = "Fonctions ≤ 25 lignes, lignes ≤ 80 colonnes, pas de for, header Epitech obligatoire."
+description = '''
+## En une phrase
+
+La Norme Epitech est un ensemble de règles de style strictes qui te forcent à écrire du code lisible — voici les règles classiques, mais vérifie TOUJOURS le PDF officiel de ta promo, elles évoluent.
+
+## Les règles qui coûtent des points
+
+- Fonctions de **25 lignes maximum**.
+- **5 fonctions maximum par fichier .c**.
+- Lignes de **80 colonnes maximum**.
+- **Une seule instruction par ligne**, une seule déclaration par ligne.
+- Boucles **`for` interdites** : `while` uniquement (règle historique de la piscine).
+- **Header Epitech obligatoire** en tête de chaque fichier (généré par ton éditeur configuré, à garder à jour).
+- **Variables globales interdites**, sauf exception explicite du sujet.
+- **Switch et opérateur ternaire généralement interdits** en piscine.
+- Prototypes dans les fichiers **.h**, pas en haut du .c.
+- **norminette** pour vérifier tout ça avant chaque push.
+
+## Pourquoi tant de contraintes
+
+Elles ne sont pas là pour t'humilier. Les 25 lignes t'obligent à **découper le problème** : une fonction courte tient entièrement dans ta tête. L'interdiction du `for` te force à maîtriser `while`, où l'initialisation, la condition et l'incrément sont visibles et séparées. Les 80 colonnes rendent ton code lisible partout, y compris dans un diff ou un écran partagé. Et l'interdiction des globales t'apprend le passage de paramètres, la compétence qui te servira toute ta vie.
+
+## En pratique
+
+- Lance norminette AVANT chaque commit : une erreur de Norme coûte des points même si le code marche.
+- Configure ton éditeur : limite de 80 colonnes visible, header auto.
+- Une fonction à 26 lignes se découpe presque toujours naturellement en deux.
+
+## À retenir
+
+- La Norme se vérifie en continu, pas la veille du rendu.
+- Une fonction trop longue est un problème de design, pas de style.
+- Le PDF de la Norme de TA promo fait foi : cette fiche donne les classiques.
+'''
+example = '''
+/*
+** EPITECH PROJECT, 2025
+** my_project
+** File description:
+** Affiche les arguments du programme
+*/
+
+#include <unistd.h>
+
+void my_putstr(char const *str)
+{
+    int len;
+
+    len = 0;
+    while (str[len] != '\0')
+        len++;
+    write(1, str, len);
+}
+
+static void print_one(char const *arg)
+{
+    my_putstr(arg);
+    write(1, "\n", 1);
+}
+
+int main(int argc, char **argv)
+{
+    int i;
+
+    i = 1;
+    while (i < argc) {
+        print_one(argv[i]);
+        i = i + 1;
+    }
+    return 0;
+}
+'''
+gotchas = [
+  "Une ligne à 81 colonnes : norminette ne pardonne pas, affiche la limite dans ton éditeur.",
+  "Écrire un `for` par réflexe : entraîne-toi à penser `while` dès le premier jour.",
+  "Oublier de régénérer ou mettre à jour le header Epitech après avoir renommé le fichier.",
+  "Tricher pour rester sous 25 lignes en collant deux instructions sur une ligne : double faute de Norme."
+]
+exercises = [
+  "Prends une de tes fonctions de 35 lignes et découpe-la en deux fonctions conformes.",
+  "Lance norminette sur ton rendu de la veille et corrige toutes les erreurs avant de coder quoi que ce soit."
+]
+related = ["moulinette", "fonctions", "bienvenue", "erreurs-frequentes"]

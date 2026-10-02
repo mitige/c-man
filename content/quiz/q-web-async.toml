@@ -1,0 +1,15 @@
+id = "q-web-async"
+category = "web"
+difficulty = 3
+question = "Que retourne l'appel fetch('https://api.example.com/data') en JavaScript ?"
+choices = [
+  "Une Promise qui se résoudra avec un objet Response",
+  "Directement les données JSON renvoyées par l'API",
+  "Une chaîne de caractères contenant le corps de la réponse",
+  "undefined, car la fonction est asynchrone"
+]
+answer = 0
+explanation = '''
+fetch est asynchrone : il retourne immédiatement une Promise, sans attendre la réponse du réseau. Cette promesse se résout avec un objet Response, dont il faut encore appeler response.json() — qui retourne LUI AUSSI une promesse — pour obtenir les données. D'où les deux étapes classiques : const r = await fetch(url); const data = await r.json();. Piège : fetch ne rejette PAS sur une erreur HTTP comme 404, il faut tester response.ok soi-même.
+'''
+related = ["js-async", "js-fonctions"]

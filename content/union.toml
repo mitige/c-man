@@ -1,0 +1,83 @@
+id = "union"
+title = "union — plusieurs membres, une seule mémoire"
+category = "langage"
+tags = ["union", "memoire", "variante", "type-punning"]
+difficulty = 4
+synopsis = "union value { int i; float f; char c; };  /* un seul membre valide à la fois */"
+description = '''
+## En une phrase
+
+Une `union` fait cohabiter plusieurs membres **dans la même mémoire** : un seul est valide à un instant donné.
+
+## En pratique
+
+Là où une struct additionne ses membres, une union les **superpose** : tous commencent à la même adresse. `sizeof` d'une union vaut la taille de son **plus grand membre** (arrondie pour l'alignement). `union value { int i; float f; char c; };` occupe 4 octets : écrire `v.i` écrase les mêmes octets que `v.f`. Modifier un membre **détruit** la valeur des autres.
+
+L'usage propre, c'est la **variante étiquetée** (tagged union) : une union ne sait pas quel membre est actif, c'est à toi de le mémoriser dans un `enum` à côté. Le trio struct + enum + union est un pattern classique pour des données polymorphes : valeurs d'un interpréteur, options d'un parsing, événements d'une boucle de jeu. Tu y gagnes une empreinte mémoire minimale.
+
+La lecture tentante mais dangereuse : écrire `v.i` puis relire `v.f` pour réinterpréter les mêmes octets sous un autre type (**type punning**). En C99, c'est un terrain délicat, adjacent au comportement indéfini : la valeur relue peut être une représentation piège (un float invalide), et l'optimiseur peut te surprendre. En pratique ça sert à inspecter la représentation binaire, mais en piscine : évite, sauf si tu sais exactement ce que tu fais.
+
+## À retenir
+
+- Un seul membre valide à la fois : mémorise lequel dans un enum étiquette.
+- `sizeof(union)` = taille du plus grand membre, jamais la somme.
+- Le type punning via union est délicat en C99 : pas en piscine sans raison précise.
+'''
+example = '''
+#include <stdio.h>
+
+/* L'étiquette qui dit quel membre de l'union est valide. */
+enum kind {
+    KIND_INT,
+    KIND_FLOAT,
+    KIND_CHAR
+};
+
+union value {
+    int i;
+    float f;
+    char c;
+};
+
+/* Variante étiquetée : le pattern propre pour utiliser une union. */
+struct variant {
+    enum kind kind;
+    union value value;
+};
+
+/* Affiche une variante selon son étiquette. */
+static void print_variant(struct variant const *v)
+{
+    if (v->kind == KIND_INT)
+        printf("int: %d\n", v->value.i);
+    else if (v->kind == KIND_FLOAT)
+        printf("float: %f\n", v->value.f);
+    else
+        printf("char: %c\n", v->value.c);
+}
+
+int main(void)
+{
+    struct variant v;
+
+    printf("sizeof(union value) = %zu\n", sizeof(union value));
+    v.kind = KIND_INT;
+    v.value.i = 42;
+    print_variant(&v);
+    v.kind = KIND_FLOAT;
+    v.value.f = 3.5f;
+    print_variant(&v);
+    return 0;
+}
+'''
+gotchas = [
+  "Lire un membre différent de celui qu'on vient d'écrire : type punning, terrain délicat en C99, valeur potentiellement piège.",
+  "Oublier que modifier un membre écrase les autres : tous partagent les mêmes octets.",
+  "Perdre l'étiquette enum qui dit quel membre est actif : tu relis n'importe quoi sans t'en rendre compte.",
+  "Croire que sizeof(union) somme les membres : c'est la taille du plus grand, arrondie pour l'alignement."
+]
+exercises = [
+  "Construis une struct variant (enum kind + union value) et une fonction print_variant qui respecte strictement l'étiquette.",
+  "Affiche sizeof de plusieurs unions avec des membres de tailles variées, et prédis chaque résultat AVANT de compiler."
+]
+related = ["structures", "enum", "typedef", "undefined-behavior"]

@@ -1,0 +1,10 @@
+id = "q-free-null"
+category = "memoire"
+difficulty = 1
+question = "Vrai ou faux : appeler free(NULL) fait planter le programme."
+choices = ["Vrai", "Faux"]
+answer = 1
+explanation = '''
+Le standard garantit que free(NULL) ne fait rien : c'est un appel sans effet, parfaitement légal. C'est pour cela qu'après un free, beaucoup écrivent ptr = NULL; — un second free accidentel devient alors inoffensif. Attention toutefois : cela ne protège pas les autres copies du pointeur, elles restent des dangling pointers.
+'''
+related = ["free", "malloc"]

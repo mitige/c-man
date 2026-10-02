@@ -1,0 +1,15 @@
+id = "q-include-guard"
+category = "outils"
+difficulty = 2
+question = "À quoi servent les lignes #ifndef MON_HEADER_H / #define MON_HEADER_H / #endif qui encadrent un fichier .h ?"
+choices = [
+  "À accélérer la compilation en cachant le contenu du header",
+  "À empêcher les inclusions multiples du header, qui causeraient des redéfinitions",
+  "À rendre le header compatible avec le C++",
+  "À rendre les fonctions du header static"
+]
+answer = 1
+explanation = '''
+Sans protection, inclure deux fois le même .h — souvent indirectement, via deux autres headers — redéfinit types, structures et prototypes : erreurs de compilation garanties. Le guard fait que la seconde inclusion voit la macro déjà définie et saute tout le contenu. La convention : nommer la macro d'après le fichier, en majuscules, avec un préfixe unique au projet.
+'''
+related = ["headers-include-guards", "preprocesseur"]

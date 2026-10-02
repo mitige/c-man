@@ -1,0 +1,121 @@
+id = "html-semantique"
+title = "HTML sémantique — des balises qui disent ce qu'elles contiennent"
+category = "web"
+tags = ["html", "semantique", "accessibilite", "seo"]
+difficulty = 1
+synopsis = "<main>, <nav>, <article> plutôt que des <div> partout : même rendu, sens en plus."
+description = '''
+## En une phrase
+
+Le HTML sémantique, c'est choisir la balise qui décrit le **rôle** du contenu — `<header>`, `<nav>`, `<main>`, `<article>` — plutôt qu'une soupe de `<div>` anonymes qui ne veulent rien dire.
+
+## En pratique
+
+Un `<div>` est une boîte générique : pour le navigateur, un lecteur d'écran ou Google, il ne signifie rien. Les balises sémantiques portent un sens :
+
+- `<header>` : en-tête (de la page, ou d'un article)
+- `<nav>` : bloc de navigation principale
+- `<main>` : le contenu principal — **un seul par page**
+- `<section>` : un regroupement thématique, en général avec un titre
+- `<article>` : un contenu autonome (un post, une carte produit) qui aurait du sens hors de la page
+- `<aside>` : contenu annexe (barre latérale, liens liés)
+- `<footer>` : pied de page (ou pied d'article)
+
+Pourquoi s'en soucier si le rendu visuel est identique ? Trois raisons concrètes :
+
+1. **Accessibilité** : un lecteur d'écran propose de sauter directement au `<main>` ou à la `<nav>`. Avec des div partout, l'utilisateur doit écouter ta page du début à la fin.
+2. **SEO** : les moteurs de recherche pondèrent mieux un contenu dans `<article>` ou `<main>` que dans le 37e `<div>` imbriqué.
+3. **Lisibilité** : `document.querySelector("main")` se comprend tout de suite ; une pyramide de `div.wrapper > div.inner > div.content`, beaucoup moins. Ton futur toi — et ta revue de code — te remercieront.
+
+La structure type d'une page :
+
+```html
+<body>
+    <header>
+        <nav>...</nav>
+    </header>
+    <main>
+        <section>
+            <h2>...</h2>
+            <article>...</article>
+        </section>
+    </main>
+    <footer>...</footer>
+</body>
+```
+
+Et `<div>` alors ? Il reste parfait pour le **regroupement purement visuel** : un conteneur pour centrer, un wrapper pour flexbox, une grille CSS. Dès qu'aucune balise sémantique ne correspond au rôle, `div` (ou `span` en ligne) est le bon choix. Le mal, ce n'est pas `div` — c'est `div` **à la place** d'un sens qui existe.
+
+Dernier point de structure : un seul `<h1>` par page, et une hiérarchie de titres qui ne saute pas de niveau (`h1` -> `h2` -> `h3`). Un titre se choisit pour sa place dans le plan, pas pour sa taille — la taille, c'est du CSS.
+
+## À retenir
+
+- La balise décrit le rôle, le CSS fait le look : les deux sont indépendants.
+- Un seul `<main>` ; `<header>` et `<footer>` peuvent aussi exister dans un article.
+- Accessibilité, SEO, lisibilité : trois gains pour zéro effort de style.
+- `div` reste OK pour du regroupement purement visuel, sans sens propre.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mon blog</title>
+</head>
+<body>
+    <!-- En-tête du site : titre + navigation -->
+    <header>
+        <h1>Mon blog de piscine</h1>
+        <nav>
+            <a href="/">Accueil</a>
+            <a href="/articles">Articles</a>
+            <a href="/apropos">À propos</a>
+        </nav>
+    </header>
+
+    <!-- Le contenu principal : UN SEUL main par page -->
+    <main>
+        <section>
+            <h2>Derniers articles</h2>
+
+            <!-- Un article : contenu autonome, lisible hors contexte -->
+            <article>
+                <h3>J'ai enfin compris les pointeurs</h3>
+                <p>Récit d'une semaine de segfaults...</p>
+                <footer>Publié le 12 mars — 4 min de lecture</footer>
+            </article>
+
+            <article>
+                <h3>Flexbox m'a sauvé la vie</h3>
+                <p>Centrer une div en trois lignes...</p>
+                <footer>Publié le 14 mars — 3 min de lecture</footer>
+            </article>
+        </section>
+    </main>
+
+    <!-- Contenu annexe, à côté du principal -->
+    <aside>
+        <h2>Liens utiles</h2>
+        <p>La doc MDN, le sujet de la piscine...</p>
+    </aside>
+
+    <!-- Pied de page du site -->
+    <footer>
+        <p>Copyright 2025 — Fait pendant la piscine.</p>
+    </footer>
+</body>
+</html>
+'''
+gotchas = [
+  "La div soup : 15 div imbriqués pour une page simple — ni lecteur d'écran ni moteur de recherche ne s'y retrouvent.",
+  "Plusieurs <main> dans la page : un seul, c'est LE repère du contenu principal.",
+  "Choisir un <h3> pour sa taille : la balise donne le niveau dans le plan, la taille se règle en CSS.",
+  "Sauter des niveaux de titre (h1 puis h4) : le plan du document devient incohérent pour les lecteurs d'écran.",
+  "Utiliser <section> comme un div : une section a un thème et presque toujours un titre ; sinon, assume le div."
+]
+exercises = [
+  "Reprends une de tes pages pleine de div et remplace-les par header/nav/main/section/article/footer là où le rôle existe.",
+  "Vérifie la hiérarchie de tes titres (h1 unique, aucun niveau sauté) avec l'onglet Accessibilité des DevTools."
+]
+related = ["html-bases", "html-formulaires", "css-bases", "css-responsive", "css-flexbox"]

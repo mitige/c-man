@@ -1,0 +1,15 @@
+id = "q-fonction-interdite"
+category = "piscine"
+difficulty = 2
+question = "Le sujet n'autorise que write et malloc. Tu utilises printf, qui marche très bien sur ta machine. Que risques-tu ?"
+choices = [
+  "Rien : si le programme fonctionne, c'est accepté",
+  "Un simple avertissement de la moulinette",
+  "Un 0 à l'exercice (voire -42) : seules les fonctions listées par le sujet sont autorisées",
+  "Une faute de Norme, rattrapable au push suivant"
+]
+answer = 2
+explanation = '''
+Chaque sujet liste explicitement les fonctions autorisées : en sortir, c'est de la triche aux yeux du correcteur, sanctionnée par un 0 à l'exercice voire -42 au module. Le fait que printf marche sur ta machine ne change rien à la règle. Réflexe de survie : lis le sujet DEUX fois avant de coder, et surligne la liste des fonctions permises.
+'''
+related = ["conseils-piscine", "moulinette"]

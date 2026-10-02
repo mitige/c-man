@@ -1,0 +1,84 @@
+id = "variables-types"
+title = "variables-types — la matière première de tout programme"
+category = "langage"
+tags = ["types", "variables", "sizeof", "bases"]
+difficulty = 1
+piscine_day = "J01"
+synopsis = "int age = 21; /* sizeof(int) == 4 octets sur x86_64 */"
+description = '''
+## En une phrase
+
+Une variable C, c'est un nom collé sur une zone mémoire dont le TYPE décide la taille et l'interprétation des bits.
+
+## En pratique
+
+Les entiers, du plus petit au plus grand (tailles typiques sur x86_64) :
+
+- `char` : 1 octet, de -128 à 127 en signé. C'est un entier comme les autres : `'A'` vaut 65 et `c + 1` vaut `'B'`.
+- `short` : 2 octets
+- `int` : 4 octets, le type entier par défaut
+- `long` : 8 octets sur Linux x86_64 (mais 4 sous Windows !)
+- `long long` : 8 octets garantis partout (C99)
+
+Chacun existe en version `unsigned` : même taille, mais de 0 à 2^n - 1 au lieu de valeurs négatives. Un `unsigned int` monte donc à environ 4,2 milliards.
+
+Les flottants : `float` (4 octets, environ 7 chiffres de précision) et `double` (8 octets, environ 15 chiffres). En piscine, prends `double` par défaut.
+
+`sizeof` donne la taille en octets d'un type ou d'une variable : `sizeof(int)`, `sizeof x`. Ne devine JAMAIS une taille, demande-la. Le résultat est un `size_t` (type non signé prévu pour les tailles), qui s'affiche avec `%zu`.
+
+Les bornes exactes vivent dans `<limits.h>` : `INT_MAX`, `INT_MIN`, `CHAR_MAX`... Indispensable pour éviter les débordements.
+
+Quand tu mélanges les types, C convertit implicitement vers le type "le plus large" : `int + double` donne un `double`. Le cast explicite `(double)a` force la conversion : c'est lui qui sauve `7 / 2` de la division entière.
+
+## À retenir
+
+- `char` EST un entier : la table ASCII fait le lien entre caractère et valeur.
+- `sizeof` est un opérateur évalué à la compilation : zéro coût à l'exécution.
+- Les conversions implicites vers unsigned sont traîtresses : `-1 < 1u` est FAUX, car -1 devient un énorme unsigned.
+'''
+example = '''
+#include <stdio.h>
+#include <limits.h>
+
+/* Affiche la taille des types de base et deux limites de int. */
+static void show_sizes(void)
+{
+    printf("char      : %zu octet(s)\n", sizeof(char));
+    printf("short     : %zu octet(s)\n", sizeof(short));
+    printf("int       : %zu octet(s)\n", sizeof(int));
+    printf("long      : %zu octet(s)\n", sizeof(long));
+    printf("long long : %zu octet(s)\n", sizeof(long long));
+    printf("float     : %zu octet(s)\n", sizeof(float));
+    printf("double    : %zu octet(s)\n", sizeof(double));
+    printf("INT_MIN   : %d\n", INT_MIN);
+    printf("INT_MAX   : %d\n", INT_MAX);
+}
+
+/* Demontre qu'un char est un entier et le piege de la division. */
+int main(void)
+{
+    char c = 'A';
+    int a = 7;
+    int b = 2;
+    double exact = (double)a / b;
+
+    printf("c = %c, code ASCII = %d, c + 1 = %c\n", c, c, c + 1);
+    printf("a / b (entier)  = %d\n", a / b);
+    printf("a / b (caste)   = %.1f\n", exact);
+    show_sizes();
+    return 0;
+}
+'''
+gotchas = [
+  "Division entiere : 7 / 2 vaut 3, pas 3.5. Cast d'abord : (double)7 / 2.",
+  "char peut etre signe ou non signe selon la plateforme : un caractere accentue stocke dedans peut devenir negatif.",
+  "int n'est PAS garanti 32 bits partout : utilise sizeof, jamais de supposition.",
+  "Depasser INT_MAX (INT_MAX + 1) est un comportement indefini, pas un warning : le compilateur peut supposer que ca n'arrive jamais.",
+  "Afficher un size_t avec %d : mauvais format. size_t s'affiche avec %zu."
+]
+exercises = [
+  "Ecris un programme qui affiche sizeof de chaque type entier, puis compare avec le tableau de la fiche.",
+  "Affiche UINT_MAX en partant de -1 caste en unsigned int, et explique le resultat.",
+  "Convertis 37.5 degres Celsius en Fahrenheit avec un double, puis refais le calcul en int pur et observe ce qui disparait."
+]
+related = ["operateurs", "const", "debordements-entiers", "fonctions"]

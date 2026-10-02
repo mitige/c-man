@@ -1,0 +1,87 @@
+id = "valgrind"
+title = "valgrind — zéro fuite, zéro accès interdit"
+category = "outils"
+tags = ["debug", "memoire", "fuites"]
+difficulty = 3
+synopsis = "valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./prog"
+description = '''
+## En une phrase
+
+`valgrind` exécute ton programme sous surveillance et détecte les deux péchés capitaux de la piscine : les accès mémoire interdits et les fuites de `malloc`.
+
+## La commande à connaître par cœur
+
+```bash
+gcc -g -Wall -Wextra -Werror -std=c99 leak.c -o leak
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./leak
+```
+
+- `--leak-check=full` : détaille chaque bloc perdu
+- `--show-leak-kinds=all` : montre toutes les catégories de fuites
+- `--track-origins=yes` : remonte à l'origine des valeurs non initialisées
+
+Compile avec `-g` : sans lui, valgrind donne des adresses au lieu de numéros de ligne.
+
+## Lire le rapport sans paniquer
+
+- **Invalid read / Invalid write** : tu lis ou écris hors d'une zone valide (tableau trop court, malloc trop petit, double free...). C'est un bug, correction immédiate.
+- **definitely lost** : un bloc malloc auquel plus aucun pointeur ne mène. Vraie fuite, interdite en piscine.
+- **still reachable** : mémoire encore pointée à la sortie (souvent des buffers internes de la libc). Moins grave : vise d'abord zéro definitely lost.
+
+La stack trace se lit **de bas en haut** jusqu'à TON code : la première ligne est dans malloc ou la libc, ta ligne fautive est quelques cadres plus bas, repérable à ton nom de fichier (`leak.c:12`).
+
+> Objectif piscine sur tout projet avec malloc : `All heap blocks were freed -- no leaks are possible`, et zéro erreur.
+
+## À retenir
+
+- valgrind ralentit énormément l'exécution : normal, il vérifie chaque accès mémoire.
+- Une Invalid write d'un seul octet peut corrompre tout le tas : ne la minimise jamais.
+- Corrige les erreurs dans l'ordre d'apparition : la première en provoque souvent dix autres.
+- valgrind ne voit que l'exécution réelle : une fuite sur un chemin non testé reste invisible. Teste aussi les cas d'erreur.
+'''
+example = '''
+# Un programme fautif passé au crible (les numéros ==PID== et adresses varient)
+$ cat leak.c
+#include <stdlib.h>
+#include <string.h>
+
+int main(void)
+{
+    char *buffer;
+    char *lost;
+
+    buffer = malloc(16);
+    lost = malloc(32);
+    strcpy(buffer, "piscine");
+    lost[0] = 'x';              /* utilisé... mais jamais libéré : fuite */
+    buffer[20] = '!';           /* BUG : en dehors des 16 octets */
+    free(buffer);
+    return 0;
+}
+$ gcc -g -Wall -Wextra -Werror -std=c99 leak.c -o leak
+$ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./leak
+==4242== Invalid write of size 1
+==4242==    at 0x1091B9: main (leak.c:13)
+==4242==  Address 0x4a58064 is 4 bytes after a block of size 16 alloc'd
+==4242==    at 0x483B7F3: malloc (vg_replace_malloc.c:307)
+==4242==    by 0x109185: main (leak.c:9)
+==4242==
+==4242== LEAK SUMMARY:
+==4242==    definitely lost: 32 bytes in 1 blocks
+==4242==    by 0x10918E: main (leak.c:10)
+# Lecture : écriture 1 octet, 4 cases après un bloc de 16 alloué ligne 9 ;
+# fuite des 32 octets de lost, alloués ligne 10 et jamais libérés.
+# Fix : rester dans buffer[0..15], et free(lost) avant le return.
+'''
+gotchas = [
+  "Compiler sans -g : valgrind donne des adresses sans lignes de code ; ajoute -g et recompile.",
+  "Lire la stack trace de haut en bas : la première ligne est dans malloc, remonte jusqu'à TON code.",
+  "Ignorer les Invalid read/write parce que le programme 'marche' : c'est de l'undefined behavior qui explosera ailleurs.",
+  "Ne tester que le chemin nominal : les fuites se cachent aussi dans les branches d'erreur (mauvais argument, malloc échoué).",
+  "Paniquer sur 'still reachable' : traite d'abord les 'definitely lost', ce sont les vraies fuites."
+]
+exercises = [
+  "Reproduis leak.c, corrige les deux problèmes, et relance valgrind jusqu'à obtenir 'no leaks are possible'.",
+  "Ajoute volontairement un second malloc sans free sur un chemin d'erreur, et vérifie que valgrind ne le voit que si tu empruntes ce chemin."
+]
+related = ["malloc", "free", "fuites-memoire", "gdb", "segfault"]

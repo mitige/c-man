@@ -1,0 +1,23 @@
+id = "q-string-litterale-modifiee"
+category = "langage"
+difficulty = 3
+question = '''
+Que peut-on dire de ce code ?
+
+```c
+char *str = "piscine";
+
+str[0] = 'P';
+```
+'''
+choices = [
+  "Il compile, mais modifier une chaîne littérale est un comportement indéfini (segfault probable)",
+  "Il ne compile pas : les chaînes littérales sont const en C",
+  "Il compile et la chaîne devient Piscine sans problème",
+  "str[0] n'existe pas, seul *str est accessible"
+]
+answer = 0
+explanation = '''
+Les chaînes littérales sont placées dans une zone en lecture seule : y écrire est un comportement indéfini, souvent un segfault immédiat. Pire, gcc -Wall -Wextra ne prévient PAS (il faudrait -Wwrite-strings), donc le code compile en silence. Le type honnête est const char *, qui transforme l'erreur en refus de compiler. Pour modifier une chaîne, copie-la dans un tableau : char str[] = "piscine"; réserve la mémoire sur la stack.
+'''
+related = ["chaines-caracteres", "undefined-behavior", "const"]

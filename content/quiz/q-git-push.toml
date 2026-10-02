@@ -1,0 +1,15 @@
+id = "q-git-push"
+category = "bash"
+difficulty = 2
+question = "Quel est le bon ordre des commandes pour livrer ton travail sur ton dépôt distant ?"
+choices = [
+  "git add → git commit → git push",
+  "git push → git add → git commit",
+  "git commit → git push → git add",
+  "git push → git pull → git add"
+]
+answer = 0
+explanation = '''
+git add sélectionne les fichiers à inclure (staging area), git commit enregistre cet instantané en local avec un message, puis git push envoie tes commits sur le dépôt distant. Un commit sans push reste sur ta machine : la moulinette Epitech ne voit que ce qui est poussé sur le bon dépôt et la bonne branche. Vérifie toujours avec git status que tout est commité, puis relis la sortie du push pour confirmer qu'il n'y a pas eu d'erreur.
+'''
+related = ["git-bases"]

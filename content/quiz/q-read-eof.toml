@@ -1,0 +1,10 @@
+id = "q-read-eof"
+category = "libc"
+difficulty = 3
+question = "Que renvoie read(fd, buf, n) lorsque la fin du fichier est atteinte ?"
+choices = ["-1", "0", "EOF, une constante négative", "NULL"]
+answer = 1
+explanation = '''
+read renvoie 0 en fin de fichier : il n'y a simplement plus rien à lire, ce n'est PAS une erreur. La valeur -1 signale une vraie erreur, à analyser avec errno, et une valeur positive donne le nombre d'octets lus — possiblement moins que demandé. La boucle de lecture classique : while ((ret = read(fd, buf, n)) > 0).
+'''
+related = ["read", "gestion-errno", "open-close"]

@@ -1,0 +1,103 @@
+id = "memset"
+title = "memset — remplir de la mémoire, octet par octet"
+category = "libc"
+tags = ["memoire", "octets", "initialisation", "piege"]
+difficulty = 2
+piscine_day = "J05"
+synopsis = "void *memset(void *s, int c, size_t n);"
+description = '''
+## En une phrase
+
+`memset` remplit `n` OCTETS d'une zone mémoire avec la valeur `c` — parfait pour mettre à zéro, trompeur pour presque tout le reste.
+
+## Prototype et retour
+
+- Header : `<string.h>`
+- Prototype : `void *memset(void *s, int c, size_t n);`
+- Retour : `s`.
+
+Deux détails qui changent tout : `c` est un `int` mais seul son octet de poids faible est utilisé (conversion en `unsigned char`), et `n` est un nombre d'OCTETS, pas d'éléments.
+
+Le piège fondateur : `memset(tab, 1, sizeof(tab))` ne met PAS tes `int` à 1. Chaque OCTET vaut 0x01, donc chaque `int` vaut 0x01010101, soit 16843009. Les seules valeurs « sûres » pour des types multi-octets sont `0` (tous les bits à zéro : entiers nuls garantis) et, à la rigueur, `0xFF` (souvent -1 en complément à deux, mais c'est un hack).
+
+## En pratique
+
+Réimplémentation (`my_memset`) : un pointeur d'octets, une boucle, rien de plus :
+
+- `unsigned char *p = s;`
+- `while (i < n) { p[i] = (unsigned char)c; i = i + 1; }`
+- renvoie `s`
+
+L'usage roi en piscine : zéro-initialiser une struct ou un buffer en une ligne, sans boucle champ par champ :
+
+- `memset(&cfg, 0, sizeof(cfg));` — toute la struct à zéro
+- `memset(buf, 0, sizeof(buf));` — chaîne vide garantie
+
+Attention au réflexe inverse : sur un pointeur, `memset(ptr, 0, sizeof(ptr))` ne vide que le POINTEUR (8 octets), pas la zone pointée. Il faut la taille réelle de la zone : `memset(ptr, 0, taille_allouee)`.
+
+Autre inversion classique : l'ordre des arguments est `(zone, valeur, taille)`. Écrire `memset(buf, sizeof(buf), 0)` compile parfaitement... et ne fait strictement rien d'utile, car `n` vaut 0.
+
+## À retenir
+
+- Octets, pas éléments : pour un tableau, `sizeof(tab)` est ton ami, jamais un nombre d'éléments nu.
+- `memset(..., 1, ...)` ne fabrique pas des 1 : tu obtiens 0x01010101, soit 16843009.
+- `0` est la valeur star : entiers à zéro, chaîne vide, struct propre.
+- Ordre des arguments : `(dest, c, n)` — ne permute jamais valeur et taille.
+'''
+example = '''
+#include <stdio.h>
+#include <string.h>
+
+struct s_config {
+    int niveau;
+    int vies;
+    char pseudo[16];
+};
+
+/* Remplit n octets avec la valeur c tronquee en unsigned char. */
+void *my_memset(void *s, int c, size_t n)
+{
+    unsigned char *p;
+    size_t i;
+
+    p = s;
+    i = 0;
+    while (i < n) {
+        p[i] = (unsigned char)c;
+        i = i + 1;
+    }
+    return s;
+}
+
+int main(void)
+{
+    struct s_config cfg;
+    char ligne[11];
+    int tab[4];
+
+    /* Zero-initialisation propre d'une struct : LE bon usage. */
+    my_memset(&cfg, 0, sizeof(cfg));
+    printf("cfg = {%d, %d, \"%s\"}\n", cfg.niveau, cfg.vies, cfg.pseudo);
+    /* Remplir un buffer de caracteres : OK, un char EST un octet. */
+    memset(ligne, '-', 10);
+    ligne[10] = '\0';
+    printf("%s\n", ligne);
+    /* Le piege : memset ecrit des OCTETS, pas des int. */
+    memset(tab, 1, sizeof(tab));
+    printf("tab[0] = %d, pas 1 !\n", tab[0]);
+    return 0;
+}
+'''
+gotchas = [
+  "memset(t, 1, sizeof(t)) ne met PAS des int a 1 : chaque octet vaut 0x01, donc chaque int vaut 0x01010101 = 16843009.",
+  "Passer un nombre d'elements au lieu d'octets : memset(tab, 0, 10) sur un int[10] ne zeroise que 10 octets sur 40.",
+  "memset sur sizeof(ptr) au lieu de la taille allouee : tu ne nettoies que le pointeur, pas la zone pointee.",
+  "Permuter valeur et taille : memset(buf, sizeof(buf), 0) compile et ne remplit rien (n vaut 0).",
+  "Oublier que c est tronque en unsigned char : memset(p, 256 + 65, n) ecrit des 'A', pas 321."
+]
+exercises = [
+  "Ecris my_memset avec un pointeur unsigned char et un while, puis zero-initialise une struct et affiche ses champs pour verifier.",
+  "Remplis un int[4] avec memset(tab, 1, sizeof(tab)), affiche chaque element en decimal et explique le 16843009 obtenu.",
+  "Ecris une fonction buffer_init(char *buf, size_t size) qui vide proprement un buffer, et montre la difference entre sizeof sur tableau et sizeof sur pointeur."
+]
+related = ["memcpy-memmove", "variables-types", "structures", "debordements-entiers", "tableaux"]

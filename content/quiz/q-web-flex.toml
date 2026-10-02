@@ -1,0 +1,15 @@
+id = "q-web-flex"
+category = "web"
+difficulty = 2
+question = "Pour centrer un élément enfant horizontalement ET verticalement dans son conteneur avec Flexbox, que faut-il écrire ?"
+choices = [
+  "Sur le conteneur : display: flex; justify-content: center; align-items: center;",
+  "Sur le conteneur : display: flex; text-align: center; vertical-align: middle;",
+  "Sur l'enfant uniquement : position: center;",
+  "Sur l'enfant : display: flex; margin: auto; float: center;"
+]
+answer = 0
+explanation = '''
+Le centrage flexbox se déclare sur le CONTENEUR : display: flex le transforme en conteneur flexible, justify-content: center centre les enfants sur l'axe principal (horizontal par défaut) et align-items: center sur l'axe transversal (vertical par défaut). Pour que le centrage vertical soit visible, le conteneur doit avoir une hauteur (par exemple height: 100vh). position: center et float: center n'existent pas en CSS : c'est le piège classique des débutants.
+'''
+related = ["css-flexbox", "css-bases"]

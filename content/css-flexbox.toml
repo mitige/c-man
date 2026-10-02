@@ -1,0 +1,116 @@
+id = "css-flexbox"
+title = "Flexbox — aligner et centrer sans douleur"
+category = "web"
+tags = ["css", "flexbox", "layout", "centrage"]
+difficulty = 3
+synopsis = "display: flex; justify-content: center; align-items: center; — le centrage parfait en trois lignes."
+description = '''
+## En une phrase
+
+Flexbox arrange les enfants d'un conteneur le long d'un axe avec `display: flex` : aligner, espacer et centrer devient trivial — exit les hacks à base de `float`.
+
+## En pratique
+
+Le modèle tient en deux rôles : le **conteneur** (celui qui reçoit `display: flex`) et ses **enfants directs**. Presque toutes les propriétés se déclarent sur le conteneur.
+
+```
+        flex-direction: row (defaut)
+        ────────────────────────────→  MAIN AXIS (axe principal)
+        │   ┌───┐  ┌───┐  ┌───┐
+        │   │ A │  │ B │  │ C │     justify-content agit ICI
+        │   └───┘  └───┘  └───┘
+        ↓
+     CROSS AXIS (axe perpendiculaire)
+     align-items agit ICI
+```
+
+Les quatre propriétés qui font 90 % du travail :
+
+- `flex-direction: row | column` : horizontal (défaut) ou vertical — et **les axes pivotent avec**
+- `justify-content` : répartition sur l'axe principal — `flex-start`, `center`, `space-between`, `space-around`
+- `align-items` : alignement sur l'axe perpendiculaire — `stretch` (défaut), `center`, `flex-start`
+- `gap: 16px` : l'espace entre les enfants, fini les marges bricolées
+
+Centrer parfaitement un élément — le boss final du web d'avant 2015 — tient en trois lignes :
+
+```css
+.parent {
+    display: flex;
+    justify-content: center;   /* horizontal en row */
+    align-items: center;       /* vertical */
+}
+```
+
+> Piège de débutant : `justify-content` centre horizontalement **seulement** en `flex-direction: row`. En `column`, les axes s'inversent et c'est `align-items` qui gère l'horizontal. Vérifie ta direction avant de paniquer.
+
+Pour faire rentrer ça en tête : le conteneur flex est une fonction qui prend ses enfants en paramètre et décide de leur placement. Toi tu règles les paramètres, lui calcule les positions.
+
+## À retenir
+
+- `display: flex` sur le parent, les propriétés d'alignement aussi.
+- `justify-content` = axe principal, `align-items` = axe perpendiculaire.
+- `flex-direction: column` inverse les deux axes.
+- `gap` remplace les marges entre enfants ; plus jamais de `float` pour du layout.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Flexbox en action</title>
+    <style>
+        /* Le conteneur : c'est LUI qui recoit display: flex */
+        .conteneur {
+            display: flex;
+            justify-content: space-between;  /* repartit sur l'axe principal */
+            align-items: center;             /* aligne sur l'axe perpendiculaire */
+            gap: 16px;                       /* espace entre les enfants */
+            height: 200px;
+            background: #f0f0f0;
+            padding: 16px;
+        }
+        .boite {
+            background: steelblue;
+            color: white;
+            padding: 20px;
+        }
+        /* Le centrage parfait : la combinaison magique */
+        .zone-centree {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 150px;
+            background: #ffffee;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flexbox</h1>
+
+    <!-- Trois boites reparties avec space-between -->
+    <div class="conteneur">
+        <div class="boite">A</div>
+        <div class="boite">B</div>
+        <div class="boite">C</div>
+    </div>
+
+    <!-- Une boite centree horizontalement ET verticalement -->
+    <div class="zone-centree">
+        <div class="boite">Centrée !</div>
+    </div>
+</body>
+</html>
+'''
+gotchas = [
+  "Mettre justify-content sur un enfant : les propriétés d'alignement vont sur le CONTENEUR, celui qui a display: flex.",
+  "Oublier que flex-direction: column inverse les axes : justify-content devient vertical et align-items horizontal.",
+  "Bricoler des marges entre enfants alors que gap sur le conteneur fait le travail proprement.",
+  "Attendre un effet sur des petits-enfants : flex ne s'applique qu'aux enfants DIRECTS du conteneur."
+]
+exercises = [
+  "Reproduis une barre de navigation : logo à gauche, trois liens à droite, avec un seul conteneur flex et justify-content: space-between.",
+  "Centre un carré de 100px au milieu exact d'une zone de 300px de haut, en trois lignes de CSS.",
+  "Passe ta navbar en flex-direction: column et observe comment justify-content et align-items échangent leurs rôles."
+]
+related = ["css-bases", "css-boxmodel", "html-bases", "js-dom"]

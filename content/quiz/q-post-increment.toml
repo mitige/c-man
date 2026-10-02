@@ -1,0 +1,25 @@
+id = "q-post-increment"
+category = "langage"
+difficulty = 2
+question = '''
+Quelle est la sortie de ce programme ?
+
+```c
+#include <stdio.h>
+
+int main(void)
+{
+    int i = 5;
+    int j = i++;
+
+    printf("%d %d\n", i, j);
+    return 0;
+}
+```
+'''
+choices = ["6 6", "5 5", "6 5", "5 6"]
+answer = 2
+explanation = '''
+i++ est la POST-incrémentation : l'expression vaut l'ANCIENNE valeur de i (5), puis i est incrémenté juste après. Donc j reçoit 5 et i finit à 6 — d'où l'affichage 6 5. Avec ++i (pré-incrémentation), j aurait reçu 6 et l'affichage serait 6 6.
+'''
+related = ["operateurs", "variables-types"]

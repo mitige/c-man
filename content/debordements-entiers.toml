@@ -1,0 +1,88 @@
+id = "debordements-entiers"
+title = "débordements d'entiers — quand le compteur explose"
+category = "memoire"
+tags = ["debordement", "entiers", "limits", "overflow", "size_t"]
+difficulty = 4
+synopsis = "non signé : modulo 2^n (défini) ; signé : comportement indéfini — tester AVANT d'opérer"
+description = '''
+## En une phrase
+
+Un débordement d'entier arrive quand un calcul dépasse la capacité du type : en **non signé** le résultat est un modulo bien défini, en **signé** c'est un comportement indéfini pur.
+
+## En pratique
+
+```
+unsigned int : [0 .. UINT_MAX]      UINT_MAX + 1 == 0     (modulo 2^32, DÉFINI)
+int          : [INT_MIN..INT_MAX]   INT_MAX + 1 == ???    (UB !)
+```
+
+- **Non signé** : arithmétique modulo 2^n garantie par le standard. `UINT_MAX + 1 == 0`. Prévisible — et traître quand tu ne l'attends pas : `0u - 1 == UINT_MAX`.
+- **Signé** : déborder est un **UB**. En pratique, avec `-O2`, gcc peut supposer que `x + 1 > x` pour un int et éliminer ton test `if (x + 1 < 0)`. Ne compte jamais sur le wrap signé.
+
+Les pièges concrets de la piscine :
+
+1. **Les compteurs** : un `int` qui accumule des tailles ou des factorielles — `13!` déborde déjà un int 32 bits (`12!` passe, `13!` = 6 227 020 800 > INT_MAX).
+2. **`atoi` sur de gros nombres** : résultat indéfini hors des bornes d'`int`. Pour du sérieux : `strtol` avec vérification d'`errno` et des bornes.
+3. **Le négatif géant** : convertir `-1` en `size_t` donne `SIZE_MAX` (2^64 - 1 = 16 Eio exactement) :
+
+```c
+int len = -1;
+malloc((size_t)len);   /* demande 16 Eio : échec... ou pire si un calcul a débordé avant */
+```
+
+Un int négatif passé là où un `size_t` est attendu devient **astronomique** en silence : vérifie `len >= 0` **avant** toute conversion.
+4. **Le produit `n * sizeof(*p)`** peut déborder avant même d'entrer dans malloc : `calloc` vérifie cette multiplication, `malloc` ne peut pas (c'est toi qui la calcules).
+
+Comment te défendre :
+
+- Connais tes bornes : `<limits.h>` (`INT_MAX`, `UINT_MAX`...) et `<stdint.h>` pour les tailles exactes (`SIZE_MAX`).
+- Teste **avant** l'opération : `if (a > INT_MAX - b)` plutôt qu'additionner puis constater.
+- En debug, `-fsanitize=signed-integer-overflow` (UBSan) fait exploser l'UB au moment précis.
+
+## À retenir
+
+- Non signé = modulo, défini. Signé = UB : interdit de compter dessus, même « pour voir ».
+- Un négatif converti en `size_t` devient astronomique : valide tes tailles avant conversion.
+- Les bornes de `<limits.h>` sont tes garde-fous : utilise-les, ne les devine pas.
+- On teste le débordement AVANT l'opération, jamais après.
+'''
+example = '''
+#include <stdio.h>
+#include <limits.h>
+
+int main(void)
+{
+    unsigned int u = UINT_MAX;
+    int neg = -1;
+    size_t huge = (size_t)neg;   /* conversion définie : valeur immense */
+    int a = INT_MAX;
+    int b = 1;
+
+    u = u + 1;                   /* non signé : modulo 2^32, DÉFINI -> 0 */
+    printf("UINT_MAX + 1 = %u (défini)\n", u);
+    printf("(size_t)-1 = %zu : malloc demanderait 16 Eio\n", huge);
+    /*
+     * a + b serait un débordement SIGNÉ = UB.
+     * La défense : tester AVANT d'additionner.
+     */
+    if (a > INT_MAX - b)
+        printf("a + b déborderait : refusé proprement\n");
+    else
+        printf("a + b = %d\n", a + b);
+    printf("bornes : INT_MAX = %d, UINT_MAX = %u\n", INT_MAX, UINT_MAX);
+    return 0;
+}
+'''
+gotchas = [
+  "INT_MAX + 1 est un UB signé : ne compte jamais sur un retour à INT_MIN, même si ça y ressemble en -O0.",
+  "Un int négatif converti en size_t devient géant : malloc((size_t)-1) demande exactement 16 Eio.",
+  "atoi sur un nombre hors des bornes d'int : résultat indéfini — utilise strtol avec errno pour du sérieux.",
+  "Le produit n * sizeof(*p) peut déborder AVANT d'atteindre malloc : calloc vérifie, malloc non.",
+  "Comparer signé et non signé (i < len avec len en size_t) : le signé est converti en non signé, et -1 devient immense."
+]
+exercises = [
+  "Affiche INT_MAX, UINT_MAX et SIZE_MAX via <limits.h>/<stdint.h>, puis vérifie par le calcul que UINT_MAX + 1 == 0.",
+  "Écris une addition sûre : if (a > INT_MAX - b) erreur, sinon a + b ; teste-la aux bornes avec INT_MAX et INT_MIN.",
+  "Calcule 13! dans un int, observe le débordement, refais le calcul dans un long long : où se situe la limite de chaque type ?"
+]
+related = ["undefined-behavior", "variables-types", "operateurs", "atoi-strtol", "gcc"]

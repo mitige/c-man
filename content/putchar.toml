@@ -1,0 +1,89 @@
+id = "putchar"
+title = "putchar — un caractère à la fois, la brique de base"
+category = "libc"
+tags = ["io", "stdio", "caractere", "piscine"]
+difficulty = 1
+piscine_day = "J01"
+synopsis = "int putchar(int c);"
+description = '''
+## En une phrase
+
+`putchar` écrit **un seul caractère** sur stdout : la plus petite unité d'affichage, et la brique dont tu construiras `my_putstr`, `my_putnbr` et tout le reste.
+
+## Prototype et retour
+
+```c
+#include <stdio.h>
+int putchar(int c);
+```
+
+- Le paramètre est un **`int`**, pas un `char` : c'est ce qui permet de distinguer n'importe quel caractère de la valeur d'erreur `EOF`.
+- **Retour** : le caractère écrit (converti en `unsigned char`), ou `EOF` en cas d'erreur. En pratique on ne le teste presque jamais, mais sache qu'il existe.
+
+## En pratique
+
+En piscine, tu ne tarderas pas à recoder l'équivalent maison, le légendaire `my_putchar` :
+
+```c
+void my_putchar(char c)
+{
+    write(1, &c, 1);
+}
+```
+
+Une ligne, un appel système, et tu tiens ta première fonction d'affichage. Tout le reste s'empile dessus : `my_putstr` boucle dessus jusqu'au `'\0'`, `my_putnbr` découpe ses chiffres et les pousse un à un.
+
+Différence de comportement à connaître : `putchar` passe par le **buffer de stdio** (le caractère peut attendre un `'\n'` ou la fin du programme avant d'apparaître), tandis que le `my_putchar` à base de `write` part **immédiatement** au noyau. Si ton affichage « n'apparaît pas », c'est presque toujours une histoire de buffer.
+
+## À retenir
+
+- Un caractère, rien de plus : pour une chaîne, boucle ou utilise `puts`/`fputs` (quand ils sont autorisés).
+- `putchar('\\n')` ouvre la porte au flush : sans retour à la ligne ni fin de programme, ton caractère peut rester coincé dans le buffer.
+- Paramètre en `int`, retour en `int` : la signature est faite pour véhiculer `EOF`.
+- En piscine : ta version maison avec `write` est l'exercice fondateur du premier jour.
+'''
+example = '''
+#include <stdio.h>
+#include <unistd.h>
+
+/* Equivalent maison de putchar, a base de write : l'exercice du J01. */
+static void my_putchar(char c)
+{
+    write(1, &c, 1);
+}
+
+/* Affiche une chaine caractere par caractere avec my_putchar. */
+static void my_putstr(char const *str)
+{
+    int i = 0;
+
+    while (str[i] != '\0') {
+        my_putchar(str[i]);
+        i = i + 1;
+    }
+}
+
+int main(void)
+{
+    /* Le vrai putchar, bufferise par stdio. */
+    putchar('O');
+    putchar('K');
+    putchar('\n');
+    /* La version maison, directe au noyau. */
+    my_putstr("OK aussi, sans stdio");
+    my_putchar('\n');
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier que putchar est bufferisé : sans '\\n' ni fin de programme, ton caractère peut ne pas apparaître tout de suite. write, lui, part direct.",
+  "Passer une chaîne à putchar : il prend UN caractère. putchar(\"ab\") est faux, la Norme et gcc te le feront payer.",
+  "Ignorer le retour EOF : rarement grave en piscine, mais putchar peut échouer comme toute écriture.",
+  "Croire que my_putchar est magique : c'est write(1, &c, 1), une ligne. Tout le my_putstr de la piscine n'est qu'une boucle autour."
+]
+exercises = [
+  "Écris my_putchar avec write, puis my_putstr qui boucle dessus, et teste avec une chaîne vide, un caractère, une phrase.",
+  "Affiche l'alphabet en minuscules puis en majuscules avec une seule boucle while et my_putchar (les codes ASCII se suivent).",
+  "Écris my_putnbr au-dessus de my_putchar : récursivité, division par 10, et gestion du signe."
+]
+related = ["write", "printf", "chaines-caracteres", "boucles", "la-norme"]

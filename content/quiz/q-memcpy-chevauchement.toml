@@ -1,0 +1,15 @@
+id = "q-memcpy-chevauchement"
+category = "libc"
+difficulty = 4
+question = "Que se passe-t-il si les zones source et destination de memcpy se chevauchent ?"
+choices = [
+  "memcpy détecte le chevauchement et copie dans le bon ordre",
+  "La copie s'arrête proprement au premier octet commun",
+  "Comportement indéfini : il faut utiliser memmove, qui gère le chevauchement",
+  "Le compilateur refuse systématiquement le code"
+]
+answer = 2
+explanation = '''
+memcpy exige des zones disjointes : en cas de chevauchement, l'ordre des copies n'est pas garanti et le résultat est un comportement indéfini. memmove existe précisément pour ça : elle choisit un sens de copie qui préserve les données. Cas typique en piscine : décaler les éléments d'un tableau d'une case vers la droite pour insérer une valeur — memmove, jamais memcpy.
+'''
+related = ["memcpy-memmove", "undefined-behavior"]

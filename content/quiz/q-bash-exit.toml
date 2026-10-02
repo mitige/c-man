@@ -1,0 +1,24 @@
+id = "q-bash-exit"
+category = "bash"
+difficulty = 2
+question = '''
+En piscine Epitech, ton programme C contient :
+
+int main(void)
+{
+    return (84);
+}
+
+Que signifie ce code de retour 84, et comment le vérifier dans le terminal ?
+'''
+choices = [
+  "C'est la convention Epitech pour signaler une erreur ; on le lit avec echo $? juste après l'exécution",
+  "Cela signifie que le programme a réussi ; on le lit avec echo $!",
+  "Cela signifie que le programme a traité 84 lignes ; on le lit avec echo $0",
+  "Rien de spécial : le système ignore les codes de retour supérieurs à 1"
+]
+answer = 0
+explanation = '''
+Sous Unix, un code de retour de 0 signifie le succès et toute valeur non nulle signale une erreur : la convention Epitech veut qu'un programme renvoie 84 en cas d'erreur. La variable spéciale $? contient le code de retour de la dernière commande exécutée, donc ./a.out suivi de echo $? affiche 84. Les scripts de correction comme la moulinette testent précisément ce code : un programme qui affiche le bon résultat mais renvoie 0 en cas d'erreur sera recalé. Pense donc à propager les erreurs de tes fonctions jusqu'au return du main.
+'''
+related = ["scripts-bash", "bash-bases", "processus"]

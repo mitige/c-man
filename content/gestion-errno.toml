@@ -1,0 +1,75 @@
+id = "gestion-errno"
+title = "errno — savoir POURQUOI l'appel a échoué"
+category = "piscine"
+tags = ["errno", "perror", "erreurs", "syscalls"]
+difficulty = 3
+synopsis = "Tester le retour d'abord, lire errno ensuite — jamais l'inverse."
+description = '''
+## En une phrase
+
+`errno` est la variable globale où les appels système et certaines fonctions de la libc déposent le CODE de leur dernière erreur — exploitable uniquement après un échec constaté.
+
+## En pratique
+
+Déclarée dans `<errno.h>`, `errno` est positionnée par les appels qui échouent : `open`, `read`, `write`... La séquence correcte est TOUJOURS :
+
+1. Appeler la fonction.
+2. Tester sa valeur de retour (`-1`, `NULL`... selon la fonction, lis le man).
+3. SEULEMENT en cas d'échec : lire `errno` pour connaître la cause.
+
+> **Règle absolue** : `errno` n'est significative qu'APRÈS un échec. Une fonction réussie ne la remet PAS à zéro : lire errno après un succès peut te montrer le cadavre d'une erreur vieille de dix lignes.
+
+Deux outils pour l'afficher :
+
+- `perror("contexte")` (dans `<stdio.h>`) : écrit `contexte: message d'erreur` sur stderr. Simple, suffisant dans 95 % des cas en piscine.
+- `strerror(errno)` (dans `<string.h>`) : renvoie le message sous forme de chaîne, à formater toi-même.
+
+Attention : le moindre appel de fonction entre l'échec et ta lecture peut écraser `errno`. Si tu dois l'exploiter plus tard, copie-la immédiatement dans un `int`.
+
+Les codes classiques : `ENOENT` (fichier inexistant), `EACCES` (permission refusée), `EBADF` (descripteur invalide). La section ERRORS du man de chaque fonction liste les siens.
+
+## À retenir
+
+- Teste le retour AVANT de lire errno, jamais l'inverse.
+- Sauvegarde errno dans un int si tu appelles d'autres fonctions avant de l'exploiter.
+- En piscine : `perror` puis `return 84`, et tu passes à la suite.
+'''
+example = '''
+#include <fcntl.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+
+/* Ouvre un fichier et signale precisement l'erreur sur stderr. */
+int main(int argc, char **argv)
+{
+    int fd;
+    int saved_errno;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <fichier>\n", argv[0]);
+        return 84;
+    }
+    fd = open(argv[1], O_RDONLY);
+    if (fd == -1) {
+        saved_errno = errno;    /* sauvegarde avant tout autre appel */
+        fprintf(stderr, "%s: %s\n", argv[1], strerror(saved_errno));
+        return 84;
+    }
+    write(1, "ouvert\n", 7);
+    close(fd);
+    return 0;
+}
+'''
+gotchas = [
+  "Lire errno après un succès : la valeur est indéfinie, seul un échec la rend significative.",
+  "Appeler printf entre l'échec et la lecture d'errno : l'appel peut l'écraser, sauvegarde-la d'abord.",
+  "Afficher l'erreur sur stdout au lieu de stderr : perror et fprintf(stderr, ...) existent pour ça.",
+  "Oublier que certaines fonctions (strtol) demandent de mettre errno à 0 AVANT l'appel pour distinguer l'erreur : lis le man."
+]
+exercises = [
+  "Écris un programme qui ouvre un fichier avec open et affiche le message exact de l'erreur avec strerror, en renvoyant 84.",
+  "Teste-le sur un fichier inexistant, un répertoire et un fichier sans droits : observe les trois messages différents."
+]
+related = ["open-close", "read", "write", "lire-un-man"]

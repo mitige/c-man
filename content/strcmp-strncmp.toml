@@ -1,0 +1,90 @@
+id = "strcmp-strncmp"
+title = "strcmp et strncmp — comparer deux chaînes, le signe compte"
+category = "libc"
+tags = ["string", "comparaison", "tri", "unsigned-char"]
+difficulty = 2
+piscine_day = "J04"
+synopsis = "int strcmp(const char *s1, const char *s2);\nint strncmp(const char *s1, const char *s2, size_t n);"
+description = '''
+## En une phrase
+
+`strcmp` compare deux chaînes octet par octet et renvoie un `int` dont seul le SIGNE compte : négatif, zéro (chaînes égales), ou positif.
+
+## Prototype et retour
+
+- Header : `<string.h>`
+- `int strcmp(const char *s1, const char *s2);`
+- `int strncmp(const char *s1, const char *s2, size_t n);`
+- Retour : `< 0` si `s1` est avant `s2` dans l'ordre lexicographique, `0` si les chaînes sont identiques, `> 0` sinon.
+
+La comparaison se fait octet par octet, en `unsigned char`, jusqu'à la première différence ou jusqu'au `'\0'`.
+
+> JAMAIS de test `== -1` ou `== 1` : la norme ne garantit que le signe. Sur glibc tu obtiens souvent la différence des octets (par exemple `'c' - 'd'`), mais toute valeur négative ou positive est légale. Teste `< 0`, `== 0`, `> 0`, point.
+
+`strncmp` fait la même chose en s'arrêtant après au plus `n` octets comparés. Il s'arrête aussi dès qu'un `'\0'` est rencontré : `strncmp("abc", "abc", 100)` vaut `0`.
+
+## En pratique
+
+Réimplémentation piscine (`my_strcmp`) : avance tant que les octets sont égaux et non nuls, puis renvoie la différence des deux octets qui diffèrent, castés en `unsigned char` :
+
+- `while (s1[i] != '\0' && s1[i] == s2[i]) i = i + 1;`
+- `return ((unsigned char)s1[i] - (unsigned char)s2[i]);`
+
+Pourquoi le cast ? Sur beaucoup de plateformes `char` est SIGNÉ : comparer l'octet 0xE9 à `'z'` donnerait un résultat négatif alors que 233 > 122. La libc compare en `unsigned char` ; la moulinette attend exactement ce comportement, fais pareil.
+
+Piège de lecture : `strcmp("abc", "abcd")` compare `'\0'` et `'d'` au quatrième octet, résultat négatif : la chaîne la plus courte est "plus petite". Et retourne-le bien dans le bon sens : `if (strcmp(a, b))` signifie "si a et b DIFFÈRENT", piège à l'envers pour les débutants.
+
+`my_strncmp` : même boucle avec une condition en plus `i < n`, et renvoie 0 si la borne est atteinte sans différence.
+
+## À retenir
+
+- `0` = chaînes égales. Tout le reste n'est qu'un signe, jamais une valeur garantie.
+- Cast `unsigned char` obligatoire pour un résultat conforme sur les octets > 127.
+- `strncmp` borne le NOMBRE de comparaisons, il ne tronque pas les chaînes.
+- Chaînes de longueurs différentes : la plus courte est inférieure, car `'\0'` < tout caractère.
+'''
+example = '''
+#include <stdio.h>
+#include <string.h>
+
+/* Renvoie la difference des premiers octets qui different (unsigned char). */
+int my_strcmp(const char *s1, const char *s2)
+{
+    size_t i;
+
+    i = 0;
+    while (s1[i] != '\0' && s1[i] == s2[i])
+        i = i + 1;
+    return ((unsigned char)s1[i] - (unsigned char)s2[i]);
+}
+
+int main(void)
+{
+    int cmp;
+
+    cmp = my_strcmp("abc", "abd");
+    if (cmp < 0)
+        printf("abc < abd (cmp = %d)\n", cmp);
+    if (my_strcmp("epitech", "epitech") == 0)
+        printf("chaines egales\n");
+    if (my_strcmp("abc", "abcd") < 0)
+        printf("la plus courte est plus petite\n");
+    /* On teste le SIGNE, jamais une valeur exacte. */
+    if (strncmp("piscine42", "piscine77", 7) == 0)
+        printf("meme prefixe de 7 octets\n");
+    return 0;
+}
+'''
+gotchas = [
+  "Tester == -1 ou == 1 : seul le signe est garanti, la valeur exacte depend de l'implementation.",
+  "Lire if (strcmp(a, b)) comme \"si egales\" : c'est l'inverse, 0 signifie egales et 0 est faux en C.",
+  "Oublier le cast unsigned char : avec un char signe, les octets >= 128 faussent le resultat.",
+  "Croire que strncmp tronque les chaines : il borne le nombre d'octets COMPARES, et s'arrete au premier '\\0'.",
+  "Comparer des chaines non terminees : strcmp lit jusqu'a un '\\0', meme hors de la zone valide."
+]
+exercises = [
+  "Ecris my_strcmp qui renvoie la difference des premiers octets qui different, castes en unsigned char, et teste-le contre le vrai strcmp sur 5 paires de chaines.",
+  "Ecris my_strncmp avec la borne n, et verifie que my_strncmp(\"abc\", \"abd\", 2) vaut 0.",
+  "Ecris un mini-programme qui prend deux mots en arguments et affiche lequel vient en premier dans l'ordre du dictionnaire, en testant uniquement le signe de my_strcmp."
+]
+related = ["strlen", "ctype", "strchr-strstr", "qsort", "chaines-caracteres"]

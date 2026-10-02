@@ -1,0 +1,86 @@
+id = "pointeurs-de-fonctions"
+title = "pointeurs de fonctions — passer un comportement en paramètre"
+category = "langage"
+tags = ["pointeur", "fonction", "callback", "typedef", "qsort"]
+difficulty = 5
+piscine_day = "J11"
+synopsis = "int (*f)(int, int);  /* f pointe vers une fonction (int, int) -> int */"
+description = '''
+## En une phrase
+
+Un pointeur de fonction stocke l'adresse d'une fonction : tu peux passer un **comportement** en paramètre, comme une donnée.
+
+## En pratique
+
+Découpons la syntaxe qui fait peur : `int (*f)(int, int);` déclare `f` comme un **pointeur** (les parenthèses autour de `*f`) vers une fonction prenant deux `int` et renvoyant un `int`. Ces parenthèses sont vitales : `int *f(int, int);` déclare une **fonction** qui renvoie un `int *` — tout autre chose. Lis toujours de l'intérieur vers l'extérieur.
+
+Affectation : `f = &add;` ou simplement `f = add;` — le nom d'une fonction décroit en pointeur vers elle-même, comme le nom d'un tableau, donc le `&` est optionnel. Appel : `f(a, b)` ou `(*f)(a, b)`, les deux sont équivalents.
+
+Dès que la signature dépasse une ligne, `typedef` te sauve la mise : `typedef int (*t_op)(int, int);` et tu écris `t_op op;` lisiblement. C'est exactement le pattern de `qsort`, qui prend TON comparateur en paramètre : la bibliothèque trie, toi tu fournis le critère. Les exos du J11 (`my_sort_word_array` et consorts) vivent là-dessus.
+
+Le cas d'école : une fonction `apply(tab, size, op)` qui applique `op` à chaque élément — un `map` minimal. Même code appelant, comportement interchangeable : toute la puissance du truc est là.
+
+## À retenir
+
+- `(*f)` avec parenthèses = pointeur de fonction ; sans, c'est une déclaration de fonction.
+- Le nom d'une fonction seul vaut déjà son adresse : `&` est optionnel à l'affectation.
+- typedef systématique dès que la signature se complique : ton toi de 21h te dira merci.
+'''
+example = '''
+#include <stdio.h>
+
+/* Le typedef qui rend la syntaxe supportable. */
+typedef int (*t_op)(int, int);
+
+static int add(int a, int b)
+{
+    return a + b;
+}
+
+static int sub(int a, int b)
+{
+    return a - b;
+}
+
+/* Applique op(tab[i], operand) à chaque case du tableau. */
+static void apply(int tab[], int size, t_op op, int operand)
+{
+    int i;
+
+    i = 0;
+    while (i < size) {
+        tab[i] = op(tab[i], operand);
+        i++;
+    }
+}
+
+int main(void)
+{
+    int tab[4] = {1, 2, 3, 4};
+    t_op op;
+    int i;
+
+    op = &add;
+    apply(tab, 4, op, 10);
+    op = sub;   /* & est optionnel : le nom décroit en pointeur */
+    apply(tab, 4, op, 1);
+    i = 0;
+    while (i < 4) {
+        printf("%d ", tab[i]);
+        i++;
+    }
+    printf("\n");
+    return 0;
+}
+'''
+gotchas = [
+  "int *f(int, int) au lieu de int (*f)(int, int) : sans parenthèses, tu déclares une fonction qui renvoie un pointeur.",
+  "Signature inexacte : le type de la fonction pointée doit matcher EXACTEMENT celui du pointeur, sinon warning incompatible — et -Werror ne pardonne pas.",
+  "Appeler un pointeur de fonction non initialisé ou NULL : segfault immédiat, teste avant d'appeler.",
+  "Oublier que le tableau de fonctions se déclare pareil : int (*ops[4])(int, int), pas int *ops[4](int, int)."
+]
+exercises = [
+  "Écris apply(int *tab, int size, t_op op, int operand) qui applique op à chaque case, et teste-le avec add, sub et une fonction mul que tu ajoutes.",
+  "Écris un comparateur my_cmp(int a, int b) et lis le man de qsort pour comprendre la signature attendue de son callback."
+]
+related = ["typedef", "qsort", "fonctions", "pointeurs", "recursivite"]

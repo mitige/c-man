@@ -1,0 +1,15 @@
+id = "q-moulinette-role"
+category = "piscine"
+difficulty = 1
+question = "Qu'est-ce que la moulinette ?"
+choices = [
+  "Un robot qui corrige automatiquement ton code à ta place",
+  "L'outil qui vérifie uniquement les fautes de Norme",
+  "Le correcteur automatique : il clone ton dépôt, compile et lance des batteries de tests, cas limites inclus",
+  "Un examen blanc organisé en fin de piscine"
+]
+answer = 2
+explanation = '''
+La moulinette est le correcteur automatique d'Epitech : après ton push, elle clone ton dépôt, compile dans SON environnement et exécute des dizaines de tests — entrées vides, tailles énormes, arguments tordus que le sujet n'explicite pas. Elle ne lit pas ton code avec bienveillance : un pourcentage de réussite, point final. Morale : teste toi-même les cas limites avant de push, ne code jamais juste pour que ça marche sur l'exemple du sujet.
+'''
+related = ["moulinette", "conseils-piscine"]

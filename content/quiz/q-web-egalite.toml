@@ -1,0 +1,22 @@
+id = "q-web-egalite"
+category = "web"
+difficulty = 2
+question = '''
+Qu'affiche ce code dans la console ?
+
+```js
+console.log(5 == "5");
+console.log(5 === "5");
+```
+'''
+choices = [
+  "true puis false",
+  "true puis true",
+  "false puis false",
+  "false puis true"
+]
+answer = 0
+explanation = '''
+== compare après conversion de type : la chaîne "5" est convertie en nombre, donc 5 == "5" vaut true. === compare le type ET la valeur sans aucune conversion : un number n'est jamais égal à une string, donc 5 === "5" vaut false. Les conversions implicites de == sont source de bugs tordus (0 == "" vaut true !), donc utilise === par défaut et ne garde == que si tu sais exactement pourquoi.
+'''
+related = ["js-bases"]

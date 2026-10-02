@@ -1,0 +1,25 @@
+id = "q-web-fetch"
+category = "web"
+difficulty = 3
+question = '''
+Chasse au bug. Ce code affiche undefined dans la console :
+
+async function load() {
+  const r = await fetch('https://api.example.com/user');
+  const data = r.json();
+  console.log(data.name);
+}
+
+Pourquoi data.name vaut-il undefined ?
+'''
+choices = [
+  "r.json() retourne lui aussi une Promise : il manque un await devant",
+  "fetch refuse de fonctionner dans une fonction async, il faut utiliser .then",
+  "Il faut écrire r.text() à la place de r.json() pour lire du JSON",
+  "data.name n'existe pas car fetch renvoie toujours une chaîne de caractères"
+]
+answer = 0
+explanation = '''
+Il y a deux étapes asynchrones avec fetch : l'appel réseau, puis la lecture du corps de la réponse. r.json() ne renvoie pas directement l'objet parsé mais une Promise, donc sans await (ou .then) data EST une promesse, et data.name vaut undefined. La version correcte : const data = await r.json();. Retiens aussi que fetch ne rejette pas sur une erreur HTTP comme 404 : il faut tester r.ok soi-même.
+'''
+related = ["js-async", "js-fonctions", "web-devtools"]

@@ -1,0 +1,82 @@
+id = "conditions"
+title = "conditions — if, else et la vérité selon C"
+category = "langage"
+tags = ["conditions", "if", "switch", "bases"]
+difficulty = 1
+piscine_day = "J01"
+synopsis = "if (x != 0) { /* en C, tout sauf 0 est vrai */ }"
+description = '''
+## En une phrase
+
+`if` exécute un bloc seulement si sa condition est non nulle — en C, il n'y a pas de booléen : 0 est faux, TOUT le reste est vrai.
+
+## En pratique
+
+La structure complète :
+
+- `if (cond)` seul, ou suivi d'un `else`
+- `else if (autre)` pour enchaîner les cas : le premier vrai gagne, les autres sont ignorés
+- accolades systématiques : dès que ça dépasse une ligne, et même là, mets-les. Futur toi dira merci.
+
+Valeurs de vérité : `0` est faux. `-1`, `42`, `'0'` (le caractère zéro, qui vaut 48 !) sont vrais. Donc `if (x)` signifie "x est non nul" et `if (!x)` signifie "x est nul". C'est l'idiome C de base, tu le liras partout.
+
+Le piège classique : `if (x = 5)`. Ce n'est pas une comparaison, c'est une affectation : x reçoit 5, 5 est vrai, le bloc s'exécute TOUJOURS. gcc -Wall le signale (-Wparentheses), mais le vrai correctif est le réflexe `==`.
+
+`switch (expr) { case 1: ...; break; default: ...; }` sélectionne selon la valeur entière de l'expression. Sans `break`, l'exécution TOMBE dans le case suivant (fallthrough) : parfois voulu, souvent un bug. Attention piscine : le `switch` est fréquemment interdit par les sujets, vérifie avant de l'écrire. Même remarque pour le ternaire `cond ? a : b`, souvent banni par la Norme.
+
+## À retenir
+
+- `if (x == 0)` et `if (!x)` sont équivalents : choisis le plus lisible selon le contexte.
+- Un `else` se rattache toujours au `if` le plus proche : sans accolades, l'indentation ment.
+- L'ordre des `else if` compte : teste du plus spécifique vers le plus général.
+'''
+example = '''
+#include <stdio.h>
+
+/* Renvoie -1, 0 ou 1 selon le signe de n. */
+static int sign_of(int n)
+{
+    if (n < 0)
+        return -1;
+    if (n > 0)
+        return 1;
+    return 0;
+}
+
+/* Affiche la parite et le signe de quelques valeurs. */
+int main(void)
+{
+    int values[3] = {-42, 0, 17};
+    int i = 0;
+    int n;
+
+    while (i < 3) {
+        n = values[i];
+        if (n % 2 == 0)
+            printf("%d est pair", n);
+        else
+            printf("%d est impair", n);
+        if (sign_of(n) > 0)
+            printf(" et positif\n");
+        else if (sign_of(n) < 0)
+            printf(" et negatif\n");
+        else
+            printf(" et nul\n");
+        i++;
+    }
+    return 0;
+}
+'''
+gotchas = [
+  "if (x = 5) affecte au lieu de comparer : toujours vrai, bug muet. gcc -Wall previent, lis tes warnings.",
+  "'0' est le caractere zero et vaut 48, pas 0 : if (c) est vrai meme quand c contient le chiffre zero.",
+  "Sans accolades, seule la premiere instruction appartient au if : la deuxieme s'execute toujours, quelle que soit l'indentation.",
+  "switch sans break : l'execution tombe dans le case suivant. Mets un break a chaque case, sauf fallthrough voulu et commente.",
+  "Comparer des floats avec == : 0.1 + 0.2 != 0.3 en binaire flottant. Compare avec une marge d'erreur."
+]
+exercises = [
+  "Ecris my_abs qui renvoie la valeur absolue d'un int, sans la libc, en un seul if.",
+  "Ecris FizzBuzz : de 1 a 30, affiche Fizz si divisible par 3, Buzz par 5, FizzBuzz par les deux, sinon le nombre. Attention a l'ordre des tests.",
+  "Ecris une fonction qui renvoie 1 si une annee est bissextile (divisible par 4, sauf par 100, sauf si par 400)."
+]
+related = ["operateurs", "boucles", "variables-types", "erreurs-frequentes"]

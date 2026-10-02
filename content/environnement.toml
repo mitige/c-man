@@ -1,0 +1,91 @@
+id = "environnement"
+title = "environnement — getenv et envp, les variables du shell"
+category = "libc"
+tags = ["environnement", "getenv", "envp", "shell"]
+difficulty = 2
+synopsis = "char *getenv(const char *name);  /* + int main(int argc, char **argv, char **envp) */"
+description = '''
+## En une phrase
+
+L'environnement est le tableau de chaînes `CLE=valeur` que le shell transmet à ton programme au démarrage ; `getenv` le consulte par nom, `envp` te le donne en entier.
+
+## En pratique
+
+Deux portes d'entrée :
+
+- `char *getenv(const char *name);` dans `<stdlib.h>` : renvoie un pointeur vers la valeur, ou NULL si la variable n'existe pas. C'est du C standard, portable partout.
+- Le troisième paramètre de main, grand classique Epitech : `int main(int argc, char **argv, char **envp)`. `envp` est un tableau de chaînes `CLE=valeur` terminé par NULL. Il n'est pas dans la norme C (c'est Unix/POSIX), mais tous les systèmes de la piscine l'acceptent, et les sujets l'utilisent.
+
+La chaîne renvoyée par `getenv` pointe DANS l'environnement du processus : tu la lis, tu ne la modifies pas, tu ne la free pas. Pour modifier l'environnement, il existe `setenv` et `unsetenv` (POSIX, `<stdlib.h>`) : tu les utiliseras sérieusement au moment du minishell, où la gestion de l'env est le cœur du projet.
+
+À quoi ça sert dès maintenant : `PATH` liste les répertoires où chercher les commandes, `HOME` donne le répertoire de l'utilisateur, plus `USER`, `LANG`, `PWD`... Un programme bien élevé lit sa configuration là-dedans au lieu de la coder en dur.
+
+> L'environnement se transmet du parent vers l'enfant au moment de l'exec. Ton programme peut modifier SON environnement et celui de ses futurs enfants, jamais celui du shell qui l'a lancé.
+
+## À retenir
+
+- `getenv` peut renvoyer NULL : teste avant d'utiliser, un `printf("%s", NULL)` segfaulte.
+- `envp[i]` se parcourt jusqu'à `envp[i] == NULL`, comme `argv`, mais sans argc dédié.
+- Ne free jamais ce que `getenv` renvoie : ce n'est pas ton `malloc`.
+- `envp` est figé au lancement ; `getenv` lit l'environnement courant via la globale `environ`.
+- Pour le minishell : commence par copier `envp` dans TA structure, tu pourras alors la modifier librement.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Affiche la valeur d'une variable, ou un message si elle est absente.
+   getenv renvoie NULL quand la variable n'existe pas : toujours tester. */
+static void print_var(char const *name)
+{
+    char *value;
+
+    value = getenv(name);
+    if (value == NULL)
+        printf("%s : (non definie)\n", name);
+    else
+        printf("%s=%s\n", name, value);
+}
+
+/* Parcourt envp : tableau de chaines "CLE=valeur" termine par NULL. */
+static void print_env(char **envp)
+{
+    int i;
+
+    i = 0;
+    while (envp[i] != NULL) {
+        printf("%s\n", envp[i]);
+        i = i + 1;
+    }
+    printf("(%d variables)\n", i);
+}
+
+/* Sans argument : HOME et PATH. Avec -a : tout l'environnement.
+   Sinon : la variable passee en argument. */
+int main(int argc, char **argv, char **envp)
+{
+    if (argc == 1) {
+        print_var("HOME");
+        print_var("PATH");
+        return 0;
+    }
+    if (argv[1][0] == '-' && argv[1][1] == 'a') {
+        print_env(envp);
+        return 0;
+    }
+    print_var(argv[1]);
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier de tester le retour de getenv : NULL si la variable n'existe pas (essayez env -i), et printf(\"%s\", NULL) ou strcmp sur NULL segfaulte.",
+  "Modifier ou free la chaine renvoyee par getenv : elle vit dans l'environnement du processus, tu corromps ton propre env.",
+  "Boucler sur envp avec une borne fixe : seul le NULL final compte, le nombre de variables change d'une machine a l'autre.",
+  "Confondre argv et envp : deux tableaux de chaines termines par NULL, mais envp arrive en TROISIEME parametre de main, pas en deuxieme.",
+  "Croire que setenv changera le shell parent : impossible, l'environnement se transmet du parent vers l'enfant, jamais dans l'autre sens."
+]
+exercises = [
+  "Ecris my_env qui affiche tout envp, une variable par ligne, et compare avec la commande env.",
+  "Ecris my_getenv : re-implemente getenv en parcourant envp et en comparant le debut de chaque entree (attention au = qui suit le nom)."
+]
+related = ["main-argc-argv", "chaines-caracteres", "atoi-strtol"]

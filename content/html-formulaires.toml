@@ -1,0 +1,85 @@
+id = "html-formulaires"
+title = "Formulaires HTML — récupérer la saisie utilisateur"
+category = "web"
+tags = ["html", "formulaire", "input", "http"]
+difficulty = 2
+synopsis = "<form method=\"post\"> : chaque champ avec un name devient une paire name=valeur envoyée."
+description = '''
+## En une phrase
+
+Un `<form>` regroupe des champs de saisie et les envoie — à un serveur ou à ton JavaScript — quand l'utilisateur soumet le formulaire.
+
+## En pratique
+
+Le conteneur : `<form action="/login" method="post">`. L'attribut `action` dit **où** vont les données, `method` dit **comment** : **GET** colle les données dans l'URL (`/search?q=toto`), parfait pour une recherche qu'on peut mettre en favori ; **POST** les place dans le corps de la requête, obligatoire pour les mots de passe et les données sensibles.
+
+Les champs essentiels :
+
+- `<input>` : le couteau suisse, son `type` change tout — `text`, `password` (masqué), `email`, `number`, `checkbox`, `radio`, `submit`
+- `<label for="email">` : l'étiquette du champ ; son `for` pointe vers l'`id` de l'input, donc cliquer sur le texte place le curseur dans le champ
+- `<textarea>` : texte multiligne
+- `<select>` avec des `<option>` : liste déroulante
+- `<button type="submit">` : soumet le formulaire
+
+**name vs id**, le piège classique : `name` est la clé sous laquelle la valeur part — chaque champ nommé devient une paire `name=valeur`, comme les arguments d'`argv`. `id` ne sert que côté page (label, CSS, JS). Un input sans `name` est **invisible** pour le serveur.
+
+Les attributs confort : `placeholder` (exemple grisé), `required` (bloque la soumission si vide), `value` (valeur initiale).
+
+> La validation HTML (`required`, `type="email"`) est un confort utilisateur, jamais une sécurité : elle se contourne en dix secondes dans les DevTools. Le serveur revalide toujours.
+
+## À retenir
+
+- Pas de `name`, pas de donnée envoyée.
+- Chaque champ a son `<label>` relié par `for` et `id`.
+- GET pour lire et rechercher, POST pour envoyer et modifier.
+- Un `<button>` sans `type` dans un form vaut `submit` par défaut.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire d'inscription</title>
+</head>
+<body>
+    <h1>Inscription à la piscine web</h1>
+
+    <!-- action : ou vont les donnees, method : comment (POST ici) -->
+    <form action="/inscription" method="post">
+
+        <!-- Le label est relie au champ par for/id : cliquable et accessible -->
+        <label for="email">Email :</label>
+        <input type="email" id="email" name="email"
+               placeholder="prenom.nom@epitech.eu" required>
+
+        <label for="pass">Mot de passe :</label>
+        <input type="password" id="pass" name="password"
+               minlength="8" required>
+
+        <label for="promo">Promotion :</label>
+        <select id="promo" name="promotion">
+            <option value="2028">2028</option>
+            <option value="2029" selected>2029</option>
+        </select>
+
+        <label for="bio">Présente-toi :</label>
+        <textarea id="bio" name="bio" rows="4"
+                  placeholder="Je viens de finir la piscine C..."></textarea>
+
+        <button type="submit">S'inscrire</button>
+    </form>
+</body>
+</html>
+'''
+gotchas = [
+  "Oublier l'attribut name : le champ n'est jamais envoyé au serveur, bug totalement silencieux.",
+  "Envoyer un mot de passe en GET : il atterrit dans l'URL, l'historique du navigateur et les logs du serveur.",
+  "Un <button> sans type dans un form vaut submit : ton bouton Annuler peut soumettre tout le formulaire.",
+  "Croire que required sécurise : la validation côté client se désactive via les DevTools, le serveur doit toujours revalider.",
+  "Un label sans for (et non imbriqué) : cliquer sur le texte ne place pas le curseur dans le champ."
+]
+exercises = [
+  "Code un formulaire de connexion (email, password, bouton), soumets-le en GET et observe les paires name=valeur dans la barre d'adresse.",
+  "Ajoute un select promotion avec trois options, un required sur l'email et un placeholder, puis teste la soumission avec un champ vide."
+]
+related = ["html-bases", "js-evenements", "js-async", "main-argc-argv"]

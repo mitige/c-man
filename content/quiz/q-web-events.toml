@@ -1,0 +1,26 @@
+id = "q-web-events"
+category = "web"
+difficulty = 2
+question = '''
+Soit ce code :
+
+<form id="f"><button>Envoyer</button></form>
+<script>
+document.getElementById('f').addEventListener('submit', function (e) {
+  console.log('envoi');
+});
+</script>
+
+Quand l'utilisateur clique sur Envoyer, que se passe-t-il ?
+'''
+choices = [
+  "envoi s'affiche dans la console, puis la page se recharge car le formulaire est soumis",
+  "envoi s'affiche dans la console et rien d'autre ne se passe",
+  "Rien : addEventListener ne fonctionne pas sur les éléments form",
+  "Une erreur est levée car le paramètre e n'est pas défini"
+]
+answer = 0
+explanation = '''
+Un formulaire soumis déclenche par défaut une navigation : le navigateur envoie une requête et recharge la page, ce qui efface l'état courant de ton JavaScript. Pour garder la main et gérer l'envoi en JavaScript, il faut appeler e.preventDefault() dans le gestionnaire. preventDefault annule le comportement par défaut de l'événement sans empêcher le reste du code du gestionnaire de s'exécuter. C'est le réflexe de base dès qu'on intercepte submit ou le clic sur un lien.
+'''
+related = ["js-evenements", "js-dom", "html-formulaires"]

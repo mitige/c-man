@@ -1,0 +1,15 @@
+id = "q-flag-wall"
+category = "outils"
+difficulty = 1
+question = "Que fait l'option -Wall de gcc ?"
+choices = [
+  "Elle transforme tous les avertissements en erreurs",
+  "Elle active vraiment TOUS les avertissements existants",
+  "Elle active un ensemble d'avertissements utiles, mais pas tous malgré son nom",
+  "Elle optimise le code au niveau maximal"
+]
+answer = 2
+explanation = '''
+Malgré son nom, -Wall n'active qu'un sous-ensemble d'avertissements jugés pertinents : c'est pour cela que -Wextra existe, pour en ajouter d'autres. Transformer les warnings en erreurs, c'est le rôle de -Werror, pas de -Wall. Le trio -Wall -Wextra -Werror imposé en piscine t'oblige à un code sans aucun avertissement — une excellente habitude à garder toute ta vie.
+'''
+related = ["flags-compilation", "gcc"]

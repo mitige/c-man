@@ -1,0 +1,23 @@
+id = "q-strcpy-overflow"
+category = "libc"
+difficulty = 3
+question = '''
+Quel est le problème de ce code ?
+
+```c
+char dest[5];
+
+strcpy(dest, "piscine");
+```
+'''
+choices = [
+  "dest devrait être déclaré en char *",
+  "strcpy refuse de copier une chaîne littérale",
+  "Débordement de tampon : piscine + '\\0' font 8 octets écrits dans un tableau de 5",
+  "Il manque un #include pour utiliser strcpy"
+]
+answer = 2
+explanation = '''
+strcpy copie jusqu'au '\0' INCLUS : 7 lettres + 1 terminateur = 8 octets écrits dans 5 octets réservés — les 3 octets de trop écrasent les données voisines, c'est un comportement indéfini. gcc -Wall peut le détecter quand les tailles sont constantes (-Wstringop-overflow), donc -Werror bloque ici. Et strncpy n'est pas magique : si la source est trop longue, il ne termine PAS par '\0' — borne toujours toi-même.
+'''
+related = ["strcpy-strncpy", "segfault", "chaines-caracteres"]

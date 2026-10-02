@@ -1,0 +1,29 @@
+id = "q-sizeof-tableau-fonction"
+category = "langage"
+difficulty = 4
+question = '''
+Sur une machine 64 bits (int = 4 octets, pointeur = 8 octets), quelle est la sortie de ce programme ?
+
+```c
+#include <stdio.h>
+
+size_t taille(int *tab)
+{
+    return sizeof(tab);
+}
+
+int main(void)
+{
+    int tab[10];
+
+    printf("%zu %zu\n", sizeof(tab), taille(tab));
+    return 0;
+}
+```
+'''
+choices = ["40 40", "40 8", "8 8", "10 8"]
+answer = 1
+explanation = '''
+Dans main, tab est un vrai tableau : sizeof donne 10 x 4 = 40 octets. Mais passé en paramètre, un tableau DÉGÉNÈRE en pointeur vers son premier élément : dans taille, sizeof(tab) vaut la taille d'un pointeur, soit 8 octets sur 64 bits. Conséquence pratique majeure : une fonction ne peut PAS retrouver la taille d'un tableau reçu en paramètre — passe toujours la longueur dans un second paramètre.
+'''
+related = ["tableaux", "pointeurs-vs-tableaux", "fonctions"]

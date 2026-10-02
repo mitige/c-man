@@ -1,0 +1,100 @@
+id = "read"
+title = "read — lire des octets bruts depuis un descripteur"
+category = "libc"
+tags = ["io", "syscall", "fichier", "buffer"]
+difficulty = 2
+piscine_day = "J10"
+synopsis = "ssize_t read(int fd, void *buf, size_t count);"
+description = '''
+## En une phrase
+
+`read` lit **au plus** `count` octets depuis le descripteur `fd` et les dépose dans `buf`, sans aucun traitement : ce que tu récupères est brut, non terminé, tel quel.
+
+## Prototype et retour
+
+```c
+#include <unistd.h>
+ssize_t read(int fd, void *buf, size_t count);
+```
+
+- `fd` : le descripteur (0 = stdin, ou le retour d'un `open`).
+- `buf` : ton buffer, qui doit faire **au moins** `count` octets.
+- `count` : le maximum à lire.
+
+**Retour** : un `ssize_t` avec trois cas à connaître par cœur :
+
+- `> 0` : nombre d'octets réellement lus (peut être **moins** que `count` : pipe, terminal, fin proche).
+- `0` : fin de fichier. Plus rien à lire, c'est la condition d'arrêt de ta boucle.
+- `-1` : erreur, `errno` est positionné.
+
+## En pratique
+
+Le piège numéro un, celui qui fait segfalter toute la promo : **`read` ne termine JAMAIS le buffer par `'\0'`**. Si tu veux traiter le résultat comme une chaîne, pose le terminateur toi-même :
+
+```c
+char buf[256];
+ssize_t ret = read(0, buf, sizeof(buf) - 1);
+
+if (ret == -1)
+    return 84;
+buf[ret] = '\0';
+```
+
+Note le `sizeof(buf) - 1` : tu réserves la place du `'\0'` dès le départ. Et tu vérifies `ret` **avant** d'indexer : si `ret` vaut `-1`, `buf[-1] = '\0'` est un undefined behavior immédiat.
+
+Deuxième réflexe : pour lire **tout** un flux, un seul `read` ne suffit pas. Boucle jusqu'au `0` :
+
+```c
+while ((ret = read(fd, buf, sizeof(buf))) > 0) {
+    /* exploite buf sur ret octets, pas plus */
+}
+```
+
+## À retenir
+
+- Trois retours possibles : `> 0` octets lus, `0` fin de fichier, `-1` erreur.
+- Jamais de `'\0'` automatique : `buf[ret] = '\0'`, après avoir vérifié `ret`.
+- `read` peut rendre moins que demandé : exploite exactement `ret` octets, pas `count`.
+- `sizeof(buf)` est ton ami pour `count` : un dépassement de buffer, c'est l'undefined behavior direct.
+'''
+example = '''
+#include <unistd.h>
+
+/* Recopie stdin sur stdout, bloc par bloc : un cat minimal. */
+int main(void)
+{
+    char buf[4096];
+    ssize_t ret;
+    ssize_t written;
+    ssize_t w;
+
+    ret = read(0, buf, sizeof(buf));
+    while (ret > 0) {
+        /* write peut ecrire moins que demande : on boucle aussi. */
+        written = 0;
+        while (written < ret) {
+            w = write(1, buf + written, (size_t)(ret - written));
+            if (w == -1)
+                return 84;
+            written = written + w;
+        }
+        ret = read(0, buf, sizeof(buf));
+    }
+    if (ret == -1)
+        return 84;
+    return 0;
+}
+'''
+gotchas = [
+  "Croire que read termine le buffer par '\\0' : JAMAIS. Pose-le toi-même avec buf[ret] = '\\0' après avoir vérifié que ret vaut au moins 0.",
+  "Boucler avec while (read(...) >= 0) : le 0 de fin de fichier relance un tour infini. La condition d'arrêt, c'est ret <= 0.",
+  "Exploiter count octets au lieu de ret : read peut rendre moins que demandé, le reste du buffer contient des données périmées.",
+  "Passer un count supérieur à la taille réelle du buffer : dépassement, undefined behavior. sizeof(buf) est ton ami.",
+  "Ignorer le retour -1 : un fd invalide ou fermé et ton programme traite un buffer vide comme si tout allait bien."
+]
+exercises = [
+  "Écris un programme qui lit stdin par blocs de 512 octets et affiche le nombre total d'octets lus. Teste avec un pipe : cat fichier | ./a.out",
+  "Écris une fonction get_line qui lit stdin caractère par caractère jusqu'à '\\n' et renvoie la ligne terminée par '\\0'.",
+  "Modifie le cat minimal de l'exemple pour qu'il affiche en plus sur stderr le nombre de blocs lus."
+]
+related = ["write", "open-close", "gestion-errno", "chaines-caracteres", "tableaux"]

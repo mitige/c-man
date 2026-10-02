@@ -1,0 +1,104 @@
+id = "stack-vs-heap"
+title = "stack vs heap — deux mondes, deux durées de vie"
+category = "memoire"
+tags = ["stack", "heap", "duree-de-vie", "memoire", "malloc"]
+difficulty = 3
+piscine_day = "J07"
+synopsis = "stack : automatique et éphémère ; heap : malloc/free, survit aux retours de fonction"
+description = '''
+## En une phrase
+
+La **stack** héberge automatiquement tes variables locales (rapide, petite, détruite au retour de la fonction) ; le **heap** est un vaste réservoir que tu alloues et libères **à la main** avec `malloc`/`free` — et qui survit aux retours de fonction.
+
+## En pratique
+
+```
+mémoire du processus (adresses hautes en haut)
++---------------------------+
+|  stack                    |  variables locales, contextes d'appel
+|  (grandit vers le bas)    |  ~8 Mo par défaut, gérée tout seule
++---------------------------+
+|           ...             |
++---------------------------+
+|  heap                     |  malloc / calloc / realloc
+|  (grandit vers le haut)   |  des Go possibles, gérée par TOI
++---------------------------+
+|  données / code           |  globales, littéraux, instructions
++---------------------------+
+```
+
+La stack est fulgurante : « allouer » une variable locale revient à déplacer un registre. Mais elle est **petite** (un `int tab[1000000]` local = stack overflow) et **éphémère** : au `return`, la zone est recyclée par l'appel suivant.
+
+Le heap te donne le contrôle total : taille décidée à l'exécution, durée de vie à la demande. Le prix : chaque bloc doit être **libéré** (`free`), sinon fuite.
+
+Le bug mortel du débutant — retourner l'adresse d'une locale :
+
+```c
+int *bad(void)
+{
+    int x = 42;
+    return &x;   /* la case de x sera réutilisée dès le prochain appel */
+}
+```
+
+Le pointeur reçu est un *dangling pointer* : tantôt ça marche, tantôt ça affiche n'importe quoi. Heureusement gcc le détecte (-Wreturn-local-addr) — avec `-Werror`, tu ne peux pas te tromper. Les deux issues propres : allouer sur le heap (le bloc survit, l'appelant le libère), ou laisser l'appelant fournir le buffer à remplir.
+
+## À retenir
+
+- Local et petit → stack. Gros, ou doit survivre au `return` → heap (`malloc`).
+- Jamais `return &variable_locale;` — jamais.
+- Stack : libération automatique. Heap : chaque `malloc` exige son `free`.
+- Stack overflow = récursion infinie ou tableau local gigantesque.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Sur le heap, le bloc survit au retour de la fonction. */
+static int *create_on_heap(int value)
+{
+    int *p = malloc(sizeof(*p));
+
+    if (p == NULL)
+        return NULL;
+    *p = value;
+    return p;   /* correct : l'appelant devra appeler free() */
+}
+
+/*
+ * A NE JAMAIS FAIRE (gcc prévient avec -Wreturn-local-addr) :
+ *
+ * static int *create_on_stack(int value)
+ * {
+ *     int local = value;
+ *
+ *     return &local;    la case est recyclée dès le retour !
+ * }
+ */
+
+int main(void)
+{
+    int local = 7;                   /* stack : détruite à la fin de main */
+    int *heap = create_on_heap(42);  /* heap : vit jusqu'au free */
+
+    printf("local (stack) @ %p = %d\n", (void *)&local, local);
+    if (heap == NULL)
+        return 84;
+    printf("heap          @ %p = %d\n", (void *)heap, *heap);
+    free(heap);
+    return 0;
+}
+'''
+gotchas = [
+  "Retourner &variable_locale : le pointeur survit, pas la variable — dangling pointer garanti.",
+  "Déclarer un énorme tableau local (int t[1000000]) : stack overflow, crash à l'entrée de la fonction.",
+  "Allouer sur le heap ce qui pourrait vivre sur la stack : malloc a un coût, la stack est quasi gratuite.",
+  "Oublier que le heap ne se nettoie jamais tout seul : chaque bloc survit jusqu'à free() ou exit().",
+  "Récursion infinie : chaque appel empile un contexte et la stack déborde avant que tu ne voies l'erreur."
+]
+exercises = [
+  "Écris une fonction qui retourne l'adresse d'une variable locale : lis le warning -Wreturn-local-addr de gcc, puis corrige avec malloc.",
+  "Écris make_array(int n) qui alloue et remplit un tableau de n int sur le heap, et libère-le proprement dans main.",
+  "Provoque volontairement un stack overflow par récursion infinie, observe le crash, et explique en deux phrases ce qui s'est passé."
+]
+related = ["malloc", "free", "pointeurs", "portee-variables", "recursivite"]

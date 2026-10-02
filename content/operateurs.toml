@@ -1,0 +1,83 @@
+id = "operateurs"
+title = "operateurs — calculer, comparer, combiner"
+category = "langage"
+tags = ["operateurs", "calcul", "priorite", "bases"]
+difficulty = 1
+piscine_day = "J01"
+synopsis = "result = (a + b) * 2; /* priorite, court-circuit, division entiere */"
+description = '''
+## En une phrase
+
+Les opérateurs sont les verbes du C : ils calculent, comparent et combinent, et chacun a une priorité à connaître.
+
+## En pratique
+
+Arithmétiques : `+ - * / %`. Piège numéro un : `/` entre deux entiers est une DIVISION ENTIÈRE : `7 / 2` vaut 3, pas 3.5. Pour du décimal, cast d'abord : `(double)7 / 2`. `%` donne le reste ; en C99, `-7 % 2` vaut -1 (le signe suit le numérateur).
+
+Comparaison : `== != < > <= >=`, résultat 1 (vrai) ou 0 (faux). Grave `==` dans ta tête : `=` affecte, `==` compare.
+
+Logiques : `&& || !`. Ils court-circuitent : `&&` s'arrête dès que c'est faux, `||` dès que c'est vrai. Dans `if (p != NULL && *p == 3)`, le déréférencement n'a JAMAIS lieu si p est NULL. C'est un outil de sécurité, pas un détail.
+
+Affectation composée : `x += 3` équivaut à `x = x + 3`. Existe aussi avec `-= *= /= %= &= |= ^= <<= >>=`.
+
+Incrémentation : `++i` (pré) incrémente PUIS renvoie la valeur ; `i++` (post) renvoie PUIS incrémente. Seul dans son instruction, aucune différence ; dans une expression, tout change.
+
+Priorités, du plus prioritaire au moins (version piscine) :
+
+1. `()` `[]` `.` `->` et `++ --` postfixés
+2. `! ~`, `++ --` préfixés, `+ -` unaires, `*` (déréférencement), `&` (adresse), `sizeof`, cast
+3. `* / %`
+4. `+ -`
+5. `<< >>`
+6. `< <= > >=`
+7. `== !=`
+8. `&` puis `^` puis `|` (bitwise)
+9. `&&`
+10. `||`
+11. `= += -= ...` (tout en bas !)
+
+## À retenir
+
+- Quand tu hésites sur une priorité, PARENTHÈSE. Ça ne coûte rien à l'exécution et ça sauve des heures de debug.
+- `=` est tout en bas de la table : `if (x = 5)` compile et est toujours vrai. gcc -Wall prévient, ta fatigue de 21h beaucoup moins.
+- Ne combine jamais plusieurs `++` sur la même variable dans une même expression (`i++ + ++i`) : comportement indéfini.
+'''
+example = '''
+#include <stdio.h>
+
+/* Demontre division entiere, modulo, pre/post-increment et court-circuit. */
+int main(void)
+{
+    int a = 7;
+    int b = 2;
+    int i = 5;
+    int pre;
+    int post;
+
+    printf("a / b = %d (division entiere)\n", a / b);
+    printf("a %% b = %d\n", a % b);
+    printf("a / (double)b = %.2f\n", a / (double)b);
+    pre = ++i;
+    printf("pre = ++i  -> pre = %d, i = %d\n", pre, i);
+    post = i++;
+    printf("post = i++ -> post = %d, i = %d\n", post, i);
+    if (b != 0 && a / b > 2)
+        printf("court-circuit : la division est protegee par b != 0\n");
+    a += 3;
+    printf("a += 3     -> %d\n", a);
+    return 0;
+}
+'''
+gotchas = [
+  "if (x = 5) compile : c'est une affectation, sa valeur est 5, donc toujours vraie. Ecris if (x == 5).",
+  "7 / 2 == 3 : la division entre int jette la partie decimale. Cast AVANT de diviser, pas apres.",
+  "Avec des operandes negatifs, le resultat de % prend le signe du numerateur : -7 % 2 == -1 en C99.",
+  "Dans une expression, i++ renvoie l'ancienne valeur et ++i la nouvelle : lis le code a voix haute pour verifier.",
+  "Les priorites peuvent trahir : !x == 0 se lit (!x) == 0, pas !(x == 0). Parenthese des le moindre doute."
+]
+exercises = [
+  "Ecris un programme qui affiche somme, difference, produit, quotient entier, quotient decimal et reste de 17 et 5.",
+  "Predis sur papier puis verifie au compilateur : 5 + 3 * 2, (5 + 3) * 2, 10 % 3, -10 % 3, 1 || 0 && 0.",
+  "Ecris une condition avec && qui divise a par b sans jamais risquer la division par zero."
+]
+related = ["variables-types", "conditions", "boucles", "operateurs-bitwise"]

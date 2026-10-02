@@ -1,0 +1,25 @@
+id = "q-double-free"
+category = "memoire"
+difficulty = 2
+question = '''
+Quel est le problème de ce code ?
+
+```c
+int *p = malloc(sizeof(int));
+
+*p = 42;
+free(p);
+free(p);
+```
+'''
+choices = [
+  "Une fuite mémoire : un malloc sans free",
+  "Un double free : libérer deux fois le même bloc est un comportement indéfini",
+  "Aucun : le second free est ignoré par la libc",
+  "malloc est trop petit pour contenir un int"
+]
+answer = 1
+explanation = '''
+Libérer deux fois le même bloc corrompt les structures internes de l'allocateur : comportement indéfini, souvent sanctionné par un plantage du type double free or corruption. gcc -Wall arrive même à le détecter statiquement dans ce cas simple (-Wuse-after-free), donc -Werror bloque la compilation. La parade classique : p = NULL; juste après free(p), car free(NULL) est sans effet.
+'''
+related = ["free", "undefined-behavior", "erreurs-frequentes"]

@@ -1,0 +1,112 @@
+id = "fuites-memoire"
+title = "fuites mémoire — les octets que tu as oubliés"
+category = "memoire"
+tags = ["fuite", "valgrind", "heap", "hygiene", "destructeur"]
+difficulty = 3
+piscine_day = "J08"
+synopsis = "une fuite = un bloc malloc'd dont le dernier pointeur est perdu : inatteignable et jamais libéré"
+description = '''
+## En une phrase
+
+Une fuite mémoire, c'est un bloc alloué dont tu as **perdu le dernier pointeur** : impossible à libérer, il s'accumule jusqu'à la fin du programme — ou jusqu'à épuisement de la RAM.
+
+## En pratique
+
+```c
+int *p = malloc(1000 * sizeof(*p));
+p = NULL;            /* le bloc devient inatteignable : FUITE */
+p = malloc(...);     /* pareil : l'ancienne adresse est écrasée */
+```
+
+Contrairement au segfault, la fuite ne crie pas : ton programme « marche ». Mais :
+
+- Un programme long (serveur, shell — ton futur minishell !) qui fuit à chaque commande finit par s'effondrer.
+- En piscine, la **moulinette** et valgrind vérifient chaque octet : `definitely lost: 1,024 bytes` et ton correcteur le voit.
+
+L'hygiène anti-fuite en trois règles :
+
+1. **Qui alloue libère.** Chaque `malloc` a son `free` planifié dès sa naissance, dans la même fonction si possible.
+2. **Destructeur dédié** pour les structures composées : une liste chaînée a sa `free_list`, un arbre son `free_tree`. Une seule fonction sait libérer, tout le monde l'appelle.
+3. **Libérer sur TOUS les chemins de sortie**, y compris les erreurs : si le 3e malloc d'une fonction échoue, les 2 premiers doivent être libérés avant le `return 84`. C'est LE oubli le plus courant.
+
+Le vocabulaire valgrind à connaître :
+
+- `definitely lost` : plus aucun pointeur nulle part → fuite certaine, à corriger en priorité.
+- `indirectly lost` : perdu par ricochet (le premier nœud d'une liste a fui, emportant ses enfants).
+- `still reachable` : un pointeur global existe encore à la sortie — bénin, mais à soigner quand la consigne exige zéro octet restant.
+
+Et si une fonction renvoie un bloc alloué (`strdup` et consœurs), le contrat doit être explicite : **l'appelant** libère.
+
+## À retenir
+
+- Fuite = adresse perdue = mémoire zombie jusqu'à `exit`.
+- Le crash est un problème visible ; la fuite est un problème **mesuré** : valgrind, toujours.
+- Structure allouée → destructeur écrit en même temps que le constructeur.
+- Relis chaque `return` d'erreur : c'est là que fuient 90 % des blocs.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+struct node {
+    int value;
+    struct node *next;
+};
+
+/* Destructeur dédié : une seule fonction sait libérer la structure. */
+static void free_list(struct node *head)
+{
+    struct node *tmp;
+
+    while (head != NULL) {
+        tmp = head->next;
+        free(head);
+        head = tmp;
+    }
+}
+
+static struct node *new_node(int value)
+{
+    struct node *n = malloc(sizeof(*n));
+
+    if (n == NULL)
+        return NULL;
+    n->value = value;
+    n->next = NULL;
+    return n;
+}
+
+int main(void)
+{
+    struct node *head = new_node(1);
+
+    if (head == NULL)
+        return 84;
+    head->next = new_node(2);
+    if (head->next == NULL) {
+        free_list(head);   /* libérer AUSSI sur les chemins d'erreur */
+        return 84;
+    }
+    printf("%d -> %d\n", head->value, head->next->value);
+    free_list(head);
+    /*
+     * Sans ce free_list, valgrind dirait :
+     *   definitely lost: 16 bytes in 1 blocks
+     *   indirectly lost: 16 bytes in 1 blocks
+     */
+    return 0;
+}
+'''
+gotchas = [
+  "Écraser le seul pointeur sur un bloc (p = malloc(...); p = NULL;) : fuite instantanée et irrécupérable.",
+  "Oublier le free sur les chemins d'erreur : le return 84 au milieu d'une fonction est le nid à fuites.",
+  "Libérer la structure mais pas ses champs alloués (liste chaînée sans free_list) : fuites indirectes en cascade.",
+  "Ignorer les 'still reachable' quand la consigne ou la moulinette exige zéro octet restant à la sortie.",
+  "Retourner un bloc malloc'd sans documenter qui libère : le contrat d'ownership doit être explicite."
+]
+exercises = [
+  "Écris une liste chaînée de 3 nœuds puis sa free_list ; vérifie 'definitely lost: 0 bytes' sous valgrind --leak-check=full.",
+  "Introduis volontairement une fuite (oublie un free), retrouve-la avec valgrind, puis corrige et revérifie.",
+  "Relis ton dernier exercice de piscine : liste chaque malloc et associe-lui son free sur CHAQUE chemin de sortie, erreurs comprises."
+]
+related = ["malloc", "free", "calloc-realloc", "valgrind", "strdup"]

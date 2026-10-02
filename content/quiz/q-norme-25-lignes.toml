@@ -1,0 +1,15 @@
+id = "q-norme-25-lignes"
+category = "piscine"
+difficulty = 1
+question = "Quelle est la taille maximale d'une fonction selon la Norme Epitech ?"
+choices = [
+  "50 lignes",
+  "80 lignes",
+  "25 lignes",
+  "Il n'y a pas de limite si le code est clair"
+]
+answer = 2
+explanation = '''
+La Norme limite les fonctions à 25 lignes — une contrainte qui te force à découper le problème en petites unités lisibles. Elle impose aussi 80 colonnes maximum par ligne et 5 fonctions maximum par fichier .c. norminette vérifie tout ça : lance-la AVANT chaque push, et vérifie le PDF officiel de ta promo, car les règles évoluent.
+'''
+related = ["la-norme", "fonctions"]

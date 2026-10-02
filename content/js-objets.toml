@@ -1,0 +1,121 @@
+id = "js-objets"
+title = "Objets — les structs du C, en version libre"
+category = "web"
+tags = ["javascript", "objets", "destructuring", "spread", "json"]
+difficulty = 3
+synopsis = "const etudiant = { prenom: \"Ada\", promo: 2029 }; // des donnees nommees, comme une struct qui decide a l'execution"
+description = '''
+## En une phrase
+
+Un objet JS regroupe des données nommées (les **propriétés**) et des fonctions (les **méthodes**) dans une seule valeur — l'équivalent d'une `struct` C, sauf qu'on peut ajouter ou modifier des champs à la volée, sans déclaration de type préalable.
+
+## En pratique
+
+Création littérale et accès :
+
+```js
+const etudiant = {
+    prenom: "Ada",
+    promo: 2029,
+    saluer() { return `Salut, je suis ${this.prenom}`; }
+};
+etudiant.prenom;          // le point : cas standard
+etudiant["promo"];        // crochets : clé dynamique ou exotique
+etudiant.ville = "Lyon";  // ajout à la volée, impossible avec une struct
+```
+
+Contrairement à une `struct`, aucun type ne verrouille les champs : l'objet est **mutable à l'exécution**. Et `this` dans une méthode désigne l'objet sur lequel la méthode est **appelée** — retiens cette phrase prudente pour l'instant, les subtilités viendront plus tard.
+
+Le **destructuring** extrait sans répéter le nom de l'objet :
+
+```js
+const { prenom, promo, stage = null } = etudiant; // valeur par défaut possible
+```
+
+Le **spread** `{...obj}` copie et fusionne (copie superficielle, premier niveau seulement) :
+
+```js
+const diplome = { ...etudiant, promo: 2030 }; // copie + écrasement de promo
+```
+
+Trois utilitaires pour itérer sur les champs **dynamiquement** (là où le C exige de connaître la struct à la compilation) :
+
+- `Object.keys(obj)` → tableau des clés
+- `Object.values(obj)` → tableau des valeurs
+- `Object.entries(obj)` → paires `[clé, valeur]`, parfait avec `for...of`
+
+Enfin, `JSON.stringify` transforme un objet en **texte** (stockage, réseau) et `JSON.parse` fait l'inverse :
+
+```js
+const texte = JSON.stringify(etudiant); // '{"prenom":"Ada",...}'
+const clone = JSON.parse(texte);        // objet neuf, sans les méthodes
+```
+
+## À retenir
+
+- Objet littéral = paires clé/valeur modifiables à la volée : une struct libérée de son type.
+- Destructuring pour extraire, spread pour copier/fusionner — au premier niveau seulement.
+- `Object.keys` / `values` / `entries` pour boucler sur les champs dynamiquement.
+- `JSON.stringify` sérialise : les méthodes et `undefined` disparaissent au passage.
+- `this` = l'objet qui porte l'appel de la méthode, pas forcément celui où elle est écrite.
+'''
+example = '''
+// js-objets : objets litteraux, destructuring, spread et JSON
+// Un objet : l'equivalent d'une struct C, mais modifiable a l'execution
+const etudiant = {
+    prenom: "Ada",
+    promo: 2029,
+    notes: [14, 17, 11],
+    // une methode : une fonction rangee dans l'objet
+    saluer() {
+        return `Salut, je suis ${this.prenom} (promo ${this.promo})`;
+    }
+};
+
+// Acces : le point pour le cas courant, les crochets pour une cle dynamique
+console.log(etudiant.prenom);         // "Ada"
+const champ = "promo";
+console.log(etudiant[champ]);         // 2029
+
+// Modification et ajout a la volee (impossible avec une struct !)
+etudiant.promo = 2030;
+etudiant.ville = "Lyon";
+
+// Appel de methode : this vaut l'objet qui porte l'appel
+console.log(etudiant.saluer());       // "Salut, je suis Ada (promo 2030)"
+
+// Destructuring : extraire des proprietes en une ligne, avec defaut
+const { prenom, notes, stage = null } = etudiant;
+console.log(prenom, notes[0], stage); // "Ada" 14 null
+
+// Spread : copier en ecrasant certaines proprietes
+const diplome = { ...etudiant, diplome: true };
+console.log(diplome.prenom);          // "Ada" (copie)
+console.log(etudiant.diplome);        // undefined (l'original est intact)
+
+// Object.keys / values / entries : iterer sur les champs dynamiquement
+console.log(Object.keys(etudiant));   // ["prenom", "promo", "notes", "saluer", "ville"]
+for (const [cle, valeur] of Object.entries(etudiant)) {
+    if (typeof valeur !== "function")
+        console.log(`${cle} = ${valeur}`);
+}
+
+// JSON : objet -> texte (stockage, reseau) -> objet
+const texte = JSON.stringify(etudiant);
+console.log(texte);                   // {"prenom":"Ada",...} (methodes disparues)
+const revenu = JSON.parse(texte);
+console.log(revenu.prenom);           // "Ada"
+'''
+gotchas = [
+  "Affecter un objet à une autre variable ne le copie pas : const b = a partage la même référence, comme deux pointeurs sur la même struct — utilise { ...a } pour une vraie copie superficielle.",
+  "Le spread { ...obj } ne copie que le premier niveau : les objets et tableaux imbriqués restent partagés entre l'original et la copie.",
+  "Comparer deux objets avec === compare leurs adresses : {a: 1} === {a: 1} vaut false — compare leurs propriétés ou leur forme JSON.",
+  "JSON.stringify ignore silencieusement les méthodes, undefined et les fonctions : ne compte pas dessus pour cloner un objet avec méthodes.",
+  "Oublier les crochets pour une clé stockée dans une variable : obj.cle cherche littéralement la propriété \"cle\", il faut obj[cle]."
+]
+exercises = [
+  "Crée un objet livre (titre, auteur, pages) avec une méthode resume() qui renvoie une phrase, puis affiche chaque paire clé/valeur avec Object.entries et for...of.",
+  "Depuis un tableau d'objets { nom, note }, produis avec map et spread une copie où chaque note est plafonnée à 20, sans toucher à l'original.",
+  "Sérialise un objet avec JSON.stringify, reconstitue-le avec JSON.parse, et vérifie quelles propriétés ont survécu (y compris une méthode)."
+]
+related = ["js-arrays", "js-fonctions", "js-bases", "js-localstorage"]

@@ -1,0 +1,62 @@
+id = "main-argc-argv"
+title = "main, argc, argv — la porte d'entrée du programme"
+category = "langage"
+tags = ["main", "argv", "arguments", "programme"]
+difficulty = 2
+piscine_day = "J02"
+synopsis = "int main(int argc, char **argv); /* argv[argc] vaut toujours NULL */"
+description = '''
+## En une phrase
+
+`main` reçoit les arguments de la ligne de commande via argc et argv, et sa valeur de retour parle au shell.
+
+## En pratique
+
+Lance `./a.out salut 42` : `argc` vaut 3, car LE NOM DU PROGRAMME COMPTE. `argv[0]` vaut "./a.out", `argv[1]` vaut "salut", `argv[2]` vaut "42". Bonus garanti par la norme C : `argv[argc]` vaut toujours NULL, ce qui permet de boucler sur argv sans même connaître argc.
+
+Règle de survie absolue : VÉRIFIER argc AVANT de toucher argv[1]. Si le programme est lancé sans argument, argv[1] n'existe pas : segfault direct. La moulinette adore tester ce cas — sois plus rapide qu'elle.
+
+Le retour de main est le code de sortie, lisible dans le shell avec `echo $?`. Convention universelle : 0 = succès, tout le reste = erreur. Convention Epitech : 84 pour toute erreur (mauvais nombre d'arguments, malloc échoué, fichier introuvable...). Oublier le `return 84` et laisser le 0 implicite, c'est dire au correcteur "tout va bien" alors que tout va mal.
+
+Parser simplement : une boucle while de 1 à argc, ou `while (argv[i] != NULL)`. Les arguments sont des CHAÎNES : "42" n'est pas le nombre 42, il faut convertir (fiche atoi-strtol). Et `argv[i][j]` accède au j-ième caractère du i-ième argument.
+
+## À retenir
+
+- argc == 1 signifie "aucun argument utilisateur".
+- Les chaînes de argv sont techniquement modifiables, mais copie-les si tu dois les garder ou les altérer.
+- `argv[0]` peut contenir n'importe quoi (le binaire peut être renommé) : utilise-le pour les messages d'usage, jamais pour ta logique.
+'''
+example = '''
+#include <stdio.h>
+
+/* Affiche chaque argument avec son index, 84 si aucun. */
+int main(int argc, char **argv)
+{
+    int i;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <mot> [autres mots...]\n", argv[0]);
+        return 84;
+    }
+    i = 1;
+    while (i < argc) {
+        printf("argv[%d] = %s\n", i, argv[i]);
+        i++;
+    }
+    printf("%d argument(s) recu(s) hors nom du programme\n", argc - 1);
+    return 0;
+}
+'''
+gotchas = [
+  "Toucher argv[1] sans verifier argc : lance le programme sans argument et c'est le segfault immediat.",
+  "argc compte le nom du programme : ./a.out salut donne argc == 2, pas 1.",
+  "Traiter argv[1] comme un nombre : c'est une chaine, \"42\" n'est pas 42. Convertis avec atoi ou strtol.",
+  "Oublier return 84 sur erreur : le shell voit 0, la moulinette croit que tout s'est bien passe et te sanctionne.",
+  "Se baser sur argv[0] pour la logique : l'utilisateur peut renommer ou lier ton binaire, argv[0] n'est pas un contrat."
+]
+exercises = [
+  "Ecris un programme qui affiche ses arguments a l'envers, du dernier au premier, et renvoie 84 s'il n'y en a aucun.",
+  "Ecris un programme qui prend deux nombres en arguments, les additionne avec atoi et affiche le resultat ; 84 si argc != 3.",
+  "Boucle avec while (argv[i] != NULL) au lieu de argc : verifie que les deux formes affichent la meme chose."
+]
+related = ["chaines-caracteres", "atoi-strtol", "exit", "fonctions"]

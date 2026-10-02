@@ -1,0 +1,25 @@
+id = "q-sizeof-vs-strlen"
+category = "libc"
+difficulty = 3
+question = '''
+Quelle est la sortie de ce programme ?
+
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main(void)
+{
+    char str[] = "abc";
+
+    printf("%zu %zu\n", sizeof(str), strlen(str));
+    return 0;
+}
+```
+'''
+choices = ["3 3", "8 3", "4 4", "4 3"]
+answer = 3
+explanation = '''
+sizeof est évalué à la compilation et donne la taille totale du tableau : 'a', 'b', 'c' ET le '\0' final, soit 4 octets. strlen parcourt la chaîne à l'exécution et s'arrête avant le '\0' : 3 caractères. Retiens le duo : sizeof mesure la place occupée en mémoire, strlen compte les caractères utiles.
+'''
+related = ["strlen", "chaines-caracteres", "tableaux"]

@@ -1,0 +1,85 @@
+id = "const"
+title = "const — verrouiller ce qui ne doit pas bouger"
+category = "langage"
+tags = ["const", "pointeurs", "securite", "signature"]
+difficulty = 2
+piscine_day = "J03"
+synopsis = "void print_str(const char *s); /* je promets de ne pas modifier s */"
+description = '''
+## En une phrase
+
+`const` est un verrou posé à la compilation : il déclare "cette donnée ne sera pas modifiée par ce nom", et le compilateur fait respecter la promesse.
+
+## En pratique
+
+Sur une variable : `const int max = 100;` — obligatoirement initialisée à la déclaration, toute écriture ensuite est une erreur de compilation. Utilise-le pour tes constantes plutôt que des nombres magiques.
+
+Avec les pointeurs, lis la déclaration DE DROITE À GAUCHE :
+
+- `const char *s` : pointeur vers char constant. La DONNÉE est verrouillée : `s[0] = 'x'` est refusé, mais `s` peut pointer ailleurs. C'est le cas le plus courant : une fonction qui lit une chaîne sans la toucher.
+- `char * const s` : pointeur constant vers char. Le POINTEUR est verrouillé : `s++` est refusé, mais `s[0] = 'x'` passe.
+- `const char * const s` : les deux verrous en même temps.
+
+Pourquoi s'en soucier ? D'abord, le compilateur devient ton garde du corps : toute modification accidentelle est attrapée AVANT l'exécution, gratuitement. Ensuite, tes prototypes deviennent de la documentation : `void print(const char *s)` promet à l'appelant que sa chaîne survivra intacte à l'appel.
+
+Le cas qui tue : les littéraux de chaîne. `"bonjour"` vit dans une zone mémoire en lecture seule (section .rodata). Le ranger dans un `char *` et y écrire : segfault ou comportement indéfini. Règle de vie : un littéral se reçoit dans un `const char *`, ou se copie dans un tableau `char s[] = "bonjour";` si tu dois le modifier.
+
+## À retenir
+
+- const ne protège pas la mémoire, il protège le NOM : un cast `(char *)s` enlève le verrou, et si la donnée est vraiment en lecture seule, c'est l'UB assuré.
+- Passer un `const char *` à une fonction qui attend `char *` : warning "discards qualifiers", erreur avec -Werror. Mets const dans TES prototypes : tu accepteras les deux mondes.
+- Réflexe automatique : tout paramètre pointeur en lecture seule prend `const`. Sans exception.
+'''
+example = '''
+#include <stdio.h>
+
+/* const char * : on lit la chaine, on promet de ne pas la modifier. */
+static void shout(const char *msg)
+{
+    size_t i = 0;
+
+    while (msg[i] != '\0') {
+        putchar(msg[i]);
+        i++;
+    }
+    putchar('\n');
+}
+
+/* char * const : le pointeur est fixe, le contenu est modifiable. */
+static void uppercase(char * const s)
+{
+    size_t i = 0;
+
+    while (s[i] != '\0') {
+        if (s[i] >= 'a' && s[i] <= 'z')
+            s[i] = s[i] - ('a' - 'A');
+        i++;
+    }
+}
+
+/* Un litteral se recoit dans un const char *, jamais dans un char *. */
+int main(void)
+{
+    const char *fixed = "je ne bouge pas";
+    char buffer[] = "modifie moi";
+
+    shout(fixed);
+    uppercase(buffer);
+    printf("%s\n", buffer);
+    /* fixed[0] = 'J'; -> erreur de compilation : const protege */
+    return 0;
+}
+'''
+gotchas = [
+  "Confondre const char * et char * const : lis de droite a gauche, le const colle a ce qui est a sa gauche.",
+  "Modifier un litteral \"abc\" via un char * : la chaine vit en lecture seule (.rodata), segfault quasi garanti.",
+  "Passer un const char * a une fonction qui prend char * : discards qualifiers, erreur avec -Werror.",
+  "Oublier l'initialisation : const int x; puis x = 5; est refuse, un const se remplit a la declaration.",
+  "Caster pour enlever le const ((char *)s) : si la donnee est vraiment en lecture seule, comportement indefini."
+]
+exercises = [
+  "Ecris int my_strlen(const char *s), puis tente s[0] = 'x' dans le corps et constate l'erreur de compilation.",
+  "Declare un char * const p sur un tableau : montre que p[0] = 'x' compile mais que p++ est refuse (commente la ligne fautive).",
+  "Reprends un de tes vieux exercices et ajoute const a tous les parametres pointeurs en lecture seule."
+]
+related = ["pointeurs", "chaines-caracteres", "variables-types", "segfault"]

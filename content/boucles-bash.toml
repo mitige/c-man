@@ -1,0 +1,96 @@
+id = "boucles-bash"
+title = "boucles-bash — for, while et until au service des fichiers"
+category = "bash"
+tags = ["boucle", "for", "while", "read"]
+difficulty = 2
+synopsis = "for f in *.c; do gcc -c \"$f\"; done ; while IFS= read -r l; do ...; done < f"
+description = '''
+## En une phrase
+
+Bonne nouvelle : en shell, le `for` existe bel et bien, et il est le meilleur ami du piscinier pour répéter une action sur des fichiers.
+
+## En pratique
+
+Le `for` bash parcourt une **liste de mots** — le plus souvent un glob :
+
+```bash
+for f in *.c; do
+    echo "=== $f ==="
+    gcc -Wall -Wextra -c "$f"
+done
+```
+
+À chaque tour, la variable (`$f`) prend le mot suivant. La liste peut être explicite (`for day in j01 j02 j03`) ou venir d'une commande (`for f in $(cat liste.txt)`, à manier avec prudence à cause du découpage sur les espaces).
+
+Le `while` tourne tant que sa condition réussit, et son duo avec `read` est le pattern classique pour lire un fichier ligne par ligne :
+
+```bash
+while IFS= read -r ligne; do
+    echo "lu : $ligne"
+done < logins.txt
+```
+
+`until` est le miroir de `while` : il tourne tant que la condition **échoue**. Et comme en C, `break` sort de la boucle, `continue` passe au tour suivant.
+
+> Compiler tous les `.c` un par un pour voir exactement lequel échoue : c'est le réflexe qui sauve quand `gcc *.c` noie l'erreur fatale dans un flot de messages.
+
+## À retenir
+
+- La syntaxe est rigide : un `;` puis `do` sur la première ligne, `done` pour fermer.
+- Sur un dossier sans `.c`, le glob `*.c` reste littéral : la boucle reçoit la chaîne « *.c » — teste `[ -e "$f" ]` si ça compte.
+- `IFS= read -r` préserve les espaces en tête de ligne et les backslashes : prends cette forme par défaut.
+- Une boucle infinie `while true` se stoppe avec Ctrl+C — en script, ajoute un compteur de sécurité.
+'''
+example = '''
+#!/bin/bash
+# compile_all.sh — compile chaque .c séparément pour isoler les erreurs
+# Option : -v pour rejouer les échecs en mode verbeux
+set -u
+
+FAILED=0
+COUNT=0
+
+for SRC in *.c; do
+    if [ ! -e "$SRC" ]; then
+        echo "Aucun fichier .c dans ce dossier." >&2
+        exit 84
+    fi
+    COUNT=$((COUNT + 1))
+    if gcc -Wall -Wextra -c "$SRC" -o "${SRC%.c}.o" 2> /dev/null; then
+        echo "OK   $SRC"
+    else
+        echo "FAIL $SRC"
+        FAILED=$((FAILED + 1))
+    fi
+done
+
+echo "-----"
+echo "$COUNT fichier(s) traité(s), $FAILED échec(s)."
+
+# Rejouer verbeusement les échecs si -v est passé en argument
+if [ "${1:-}" = "-v" ] && [ $FAILED -gt 0 ]; then
+    for SRC in *.c; do
+        gcc -Wall -Wextra -c "$SRC" -o /dev/null || true
+    done
+fi
+
+# Code de retour : 0 si tout est passé, 84 sinon
+if [ $FAILED -eq 0 ]; then
+    exit 0
+else
+    exit 84
+fi
+'''
+gotchas = [
+  "Glob non matché : *.c reste la chaîne littérale *.c si le dossier est vide, et la boucle tourne une fois sur du vide.",
+  "Oublier do ou done : syntax error near unexpected token, avec un message pas toujours limpide.",
+  "while read ligne sans IFS= : les espaces en début et fin de ligne disparaissent silencieusement.",
+  "Modifier la liste pendant la boucle (supprimer les fichiers qu'on parcourt) : comportement imprévisible.",
+  "for f in $(cat file) découpe sur tous les espaces : un nom de fichier avec espace devient deux itérations."
+]
+exercises = [
+  "Écris une boucle for sur *.c qui affiche le nombre de lignes de chaque fichier avec wc -l.",
+  "Lis un fichier de logins avec while IFS= read -r et affiche login N : X avec un compteur qui démarre à 1.",
+  "Ajoute à ta boucle de compilation un break qui arrête tout au premier échec, puis une variante avec continue qui ignore les fichiers vides."
+]
+related = ["scripts-bash", "conditions-bash", "commandes-texte", "boucles"]

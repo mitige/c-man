@@ -1,0 +1,10 @@
+id = "q-malloc-null"
+category = "memoire"
+difficulty = 1
+question = "Que renvoie malloc en cas d'échec ?"
+choices = ["0", "NULL", "-1", "Une exception est levée"]
+answer = 1
+explanation = '''
+malloc renvoie NULL quand l'allocation échoue (mémoire épuisée, taille absurde). Déréférencer ce pointeur sans vérification provoque un segfault : teste systématiquement le retour avec if (ptr == NULL). Il n'y a pas d'exceptions en C — la gestion d'erreur passe par les valeurs de retour.
+'''
+related = ["malloc"]

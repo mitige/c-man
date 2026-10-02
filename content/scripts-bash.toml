@@ -1,0 +1,69 @@
+id = "scripts-bash"
+title = "scripts-bash — automatiser sans se tromper"
+category = "bash"
+tags = ["script", "shebang", "automatisation", "chmod"]
+difficulty = 2
+synopsis = "#!/bin/bash en première ligne, chmod +x script.sh, ./script.sh arg1"
+description = '''
+## En une phrase
+
+Un script bash est un fichier texte de commandes que le shell exécute à ta place : tout ce que tu tapes trois fois mérite d'être scripté.
+
+## En pratique
+
+Trois ingrédients obligatoires :
+
+1. Le **shebang** en toute première ligne : `#!/bin/bash` — il dit au système quel interpréteur utiliser.
+2. Le droit d'exécution : `chmod +x mon_script.sh` (une seule fois suffit).
+3. Le lancement avec chemin : `./mon_script.sh` — le `./` est vital, le dossier courant n'est pas dans le PATH.
+
+Dedans, tu retrouves tout ce que tu connais déjà, plus les **arguments** : `$1`, `$2`... sont les paramètres passés au script, `$0` son nom, `$#` leur nombre, `$@` la liste complète.
+
+Deux réflexes de fiabilisation :
+
+- `set -e` en haut du script : stoppe tout dès qu'une commande échoue, au lieu de continuer sur des erreurs en cascade.
+- Les **codes de retour** : `exit 0` = succès, toute autre valeur = échec. Convention Epitech : **84** pour signaler une erreur. Celui qui lance ton script peut tester `$?` juste après.
+
+> Un script qui compile ton projet te fait gagner des minutes chaque jour et supprime les fautes de frappe : c'est souvent le premier script vraiment utile d'un piscinier. Versionne-le avec ton code.
+
+## À retenir
+
+- Sans shebang, ton script tourne avec le shell courant : comportement surprise garanti.
+- `Permission denied` au lancement ? `chmod +x` oublié. `command not found` ? Le `./` oublié.
+- Teste toujours `$#` avant d'utiliser `$1` : un argument vide fait des dégâts silencieux.
+- Un script se débogue avec `bash -x script.sh` : chaque ligne est affichée avant d'être exécutée.
+'''
+example = '''
+#!/bin/bash
+# build.sh — compile tous les .c du dossier courant en un binaire
+# Usage : ./build.sh nom_du_binaire
+set -e    # stoppe le script à la première commande qui échoue
+
+# Vérification des arguments : exactement un attendu
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <nom_du_binaire>" >&2
+    exit 84
+fi
+
+BINARY="$1"
+
+echo "Compilation de tous les .c vers $BINARY..."
+gcc -Wall -Wextra -Werror *.c -o "$BINARY"
+
+# Si set -e n'a pas arrêté le script, la compilation a réussi
+echo "Build OK : ./$BINARY est prêt."
+exit 0
+'''
+gotchas = [
+  "Oublier le shebang : le script peut être interprété par sh au lieu de bash, et la syntaxe moderne casse sans prévenir.",
+  "Lancer script.sh sans ./ : le shell ne cherche pas dans le dossier courant, commande introuvable.",
+  "Un fichier édité sous Windows garde des fins de ligne CRLF qui font échouer même le shebang.",
+  "set -e ne déclenche pas sur toutes les erreurs : un échec masqué dans un pipe ou dans un if peut passer inaperçu.",
+  "Ne pas vérifier $# avant d'utiliser $1 : le script continue avec une valeur vide et fait n'importe quoi."
+]
+exercises = [
+  "Écris clean.sh qui supprime tous les .o et a.out du dossier courant, avec un message récapitulatif.",
+  "Améliore build.sh : sans argument, utilise my_prog par défaut au lieu de quitter en erreur.",
+  "Ajoute à build.sh un compte des fichiers compilés et fais échouer le script avec exit 84 si aucun .c n'est présent."
+]
+related = ["variables-shell", "conditions-bash", "boucles-bash", "permissions", "gcc"]

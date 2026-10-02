@@ -1,0 +1,113 @@
+id = "js-async"
+title = "Asynchrone — fetch, promesses et async/await"
+category = "web"
+tags = ["javascript", "async", "fetch", "promesse", "json"]
+difficulty = 4
+synopsis = "const reponse = await fetch(url); const data = await reponse.json();"
+description = '''
+## En une phrase
+
+JavaScript ne bloque jamais : toute opération lente (réseau, timer) est **asynchrone** — elle part en arrière-plan et prévient quand elle a fini, pour ne jamais geler la page.
+
+## En pratique
+
+En C, `read()` bloque jusqu'à recevoir des données. En JS, il n'y a qu'**un seul thread** pour ta page : si le code bloquait trois secondes sur une requête réseau, boutons, animations et scroll gèleraient trois secondes. D'où l'asynchrone : tu lances l'opération, tu continues, tu récupères le résultat plus tard.
+
+`fetch(url)` lance une requête HTTP et renvoie **immédiatement** une Promise — un ticket de caisse : pas encore le résultat, mais la promesse de l'avoir. Deux façons de l'encaisser :
+
+```js
+// Style 1 : .then() enchaîné
+fetch("https://api.example.com/user")
+    .then(response => response.json())   // le corps, parsé en objet JS
+    .then(data => console.log(data))
+    .catch(err => console.error(err));   // toute erreur atterrit ici
+```
+
+```js
+// Style 2 : async/await — la même chose, lisible comme du synchrone
+async function chargerUser() {
+    try {
+        const response = await fetch("https://api.example.com/user");
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+        console.log(data);
+    } catch (err) {
+        console.error("Échec :", err);
+    }
+}
+```
+
+`await` met **la fonction** en pause — jamais la page — et n'existe que dans une fonction marquée `async`. C'est du sucre sur les promesses : même moteur, meilleure lisibilité. Prends ce style, c'est le standard.
+
+Côté données, le serveur parle **JSON**, du texte. `response.json()` (ou `JSON.parse(texte)`) convertit texte → objet ; `JSON.stringify(objet)` fait l'inverse. Le `sscanf`/`sprintf` des structs, en moins fragile.
+
+> Piège mortel : `fetch` **ne rejette pas** sur un 404 ou un 500 — seulement si le réseau tombe. Teste toujours `response.ok` avant de parser, sinon tu traites une page d'erreur comme des données valides.
+
+## À retenir
+
+- Une Promise = un résultat futur ; `async`/`await` la consomme proprement.
+- `await` uniquement dans une fonction `async`.
+- Vérifie `response.ok` : fetch n'échoue que sur erreur réseau.
+- Toujours un `try/catch` (ou `.catch()`) autour du réseau.
+- JSON : `JSON.parse` texte→objet, `JSON.stringify` objet→texte.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fetch async</title>
+</head>
+<body>
+    <h1>Profil GitHub</h1>
+    <button id="charger">Charger le profil</button>
+    <pre id="resultat">Clique sur le bouton...</pre>
+
+    <script>
+        const pre = document.querySelector("#resultat");
+        const btn = document.querySelector("#charger");
+
+        // async : autorise await dans la fonction
+        async function chargerProfil() {
+            pre.textContent = "Chargement...";
+            try {
+                // await : met LA FONCTION en pause, jamais la page
+                const reponse = await fetch("https://api.github.com/users/torvalds");
+
+                // fetch ne rejette PAS sur un 404/500 : verifier a la main
+                if (!reponse.ok) {
+                    throw new Error(`HTTP ${reponse.status}`);
+                }
+
+                // .json() est AUSSI asynchrone : second await obligatoire
+                const data = await reponse.json();
+
+                pre.textContent = `Nom : ${data.name}\nRepos publics : ${data.public_repos}`;
+            } catch (err) {
+                // Erreur reseau OU throw ci-dessus : tout atterrit ici
+                pre.textContent = `Échec : ${err.message}`;
+            }
+        }
+
+        btn.addEventListener("click", chargerProfil);
+
+        // Bonus : l'aller-retour JSON
+        const objet = { login: "kevin", promo: 2029 };
+        const texte = JSON.stringify(objet);         // objet -> texte JSON
+        console.log(JSON.parse(texte).login);        // texte JSON -> objet
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "Croire que fetch rejette sur un 404 ou un 500 : non, il ne rejette que sur erreur réseau — teste response.ok avant de parser.",
+  "Utiliser await hors d'une fonction async : SyntaxError immédiat.",
+  "Oublier que response.json() est aussi asynchrone : il faut un second await, sinon tu manipules une Promise.",
+  "Lire la valeur de fetch comme si c'était la donnée : c'est une Promise, pas le résultat.",
+  "Laisser une promesse rejetée sans catch : elle échoue en silence avec juste un warning en console."
+]
+exercises = [
+  "Fetch https://api.github.com/users/<ton-pseudo> en async/await, affiche le login et le nombre de repos publics dans un <pre>, avec gestion d'erreur complète.",
+  "Provoque volontairement un 404 (pseudo inexistant), observe que le catch ne se déclenche pas, puis corrige avec un test de response.ok."
+]
+related = ["js-fonctions", "js-evenements", "js-dom", "js-bases", "read"]

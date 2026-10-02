@@ -1,0 +1,23 @@
+id = "q-malloc-sans-test"
+category = "memoire"
+difficulty = 3
+question = '''
+Quelle règle essentielle ce code oublie-t-il ?
+
+```c
+int *tab = malloc(100 * sizeof(int));
+
+tab[0] = 42;
+```
+'''
+choices = [
+  "Il manque le cast (int *) devant malloc",
+  "Il faut obligatoirement calloc pour un tableau",
+  "Tester que malloc n'a pas renvoyé NULL avant d'utiliser tab",
+  "Il faut écrire tab[0] avant de pouvoir tester tab"
+]
+answer = 2
+explanation = '''
+malloc peut échouer et renvoyer NULL : écrire tab[0] sans vérifier, c'est risquer un déréférencement de NULL et un segfault. Le réflexe piscine : if (tab == NULL) return (NULL); immédiatement après l'allocation. Et au passage, il ne faut PAS caster le retour de malloc en C : le void * se convertit tout seul, et le cast peut masquer un #include <stdlib.h> oublié.
+'''
+related = ["malloc", "segfault", "conseils-piscine"]

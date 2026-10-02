@@ -1,0 +1,15 @@
+id = "q-bash-chmod"
+category = "bash"
+difficulty = 1
+question = "Tu viens d'écrire my_script.sh et bash répond « Permission denied » quand tu tapes ./my_script.sh. Quelle commande règle le problème ?"
+choices = [
+  "chmod +x my_script.sh",
+  "chmod 000 my_script.sh",
+  "chown +x my_script.sh",
+  "sudo ./my_script.sh"
+]
+answer = 0
+explanation = '''
+Un fichier doit avoir le droit d'exécution (x) pour être lancé directement avec ./ : chmod +x my_script.sh ajoute ce droit au propriétaire, au groupe et aux autres. chmod 000 ferait l'inverse en retirant tous les droits, et chown sert à changer le propriétaire, pas les permissions. Astuce : bash my_script.sh fonctionne même sans +x, car c'est bash qui lit le fichier, mais la pratique propre reste un script exécutable avec un shebang #!/bin/bash en première ligne.
+'''
+related = ["permissions", "scripts-bash"]

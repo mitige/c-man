@@ -1,0 +1,89 @@
+id = "segfault"
+title = "segfault — l'OS te met dehors"
+category = "memoire"
+tags = ["segfault", "sigsegv", "crash", "debug", "gdb"]
+difficulty = 3
+piscine_day = "J08"
+synopsis = "SIGSEGV : accès à une zone mémoire non autorisée -> le noyau tue le processus (core dumped)"
+description = '''
+## En une phrase
+
+Un segfault, c'est l'OS qui tue ton programme parce qu'il a touché une zone mémoire qui ne lui appartient pas : signal `SIGSEGV`, message `Segmentation fault (core dumped)`.
+
+## En pratique
+
+Le mécanisme : la mémoire de ton processus est découpée en **pages** gardées par le matériel (MMU) et le noyau. Lire ou écrire hors des pages qui te sont mappées déclenche une faute matérielle ; le noyau envoie `SIGSEGV` ; le handler par défaut termine le processus en déposant un **core dump**, une photo de la mémoire au moment du crash.
+
+Les six causes qui couvrent 99 % des segfaults de piscine :
+
+1. Déréférencer `NULL` : `int *p = NULL; *p = 42;`
+2. Pointeur **non initialisé** : adresse poubelle, destination loterie.
+3. **Use-after-free** : écrire dans un bloc déjà rendu au heap.
+4. **Dépassement de tableau** : `tab[i]` avec i hors limites — classique dans les boucles de parsing.
+5. **Stack overflow** : récursion infinie (ou tableau local géant) qui épuise les ~8 Mo de pile.
+6. Écrire dans un **littéral de chaîne** : `char *s = "abc"; s[0] = 'A';` — le littéral vit en zone **lecture seule**.
+
+Plan d'action quand ça segfaulte (et ça va segfaulter) :
+
+```bash
+gcc -g ...       # garder les symboles de debug
+gdb ./a.out      # run, puis bt au crash : la ligne coupable s'affiche
+```
+
+Ou plus rustique : des `write(2, "ici\n", 4);` de jalonnement pour encadrer la ligne fatale. valgrind fonctionne aussi très bien : `Invalid read of size 4` te donne le fichier et la ligne exacts, souvent **avant** le crash.
+
+## À retenir
+
+- Segfault = ton programme a franchi la barrière ; ce n'est jamais « aléatoire », c'est toujours une ligne précise.
+- 90 % du temps : NULL, non initialisé, ou indice hors limites. Cherche dans cet ordre.
+- `-g` + `gdb` + `bt` : la méthode qui trouve en 30 secondes ce que 2 heures de printf ratent.
+- Un littéral `"..."` se lit, ne s'écrit pas. Tu veux modifier ? `char s[] = "abc";`
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+/*
+ * Décommente UNE de ces lignes pour provoquer un SIGSEGV,
+ * puis observe-la : gcc -g ... && gdb ./a.out, run, bt.
+ */
+static void crash_demo(void)
+{
+    int *p = NULL;
+
+    /* *p = 42;                          1. déréférencement de NULL    */
+    /* { int *q; *q = 1; }               2. pointeur non initialisé    */
+    /* { char *s = "abc"; s[0] = 65; }   3. écriture dans un littéral  */
+    printf("tant que p (%p) n'est pas déréférencé, tout va bien\n",
+           (void *)p);
+}
+
+int main(void)
+{
+    int *tab = malloc(sizeof(*tab) * 4);
+
+    if (tab == NULL)
+        return 84;
+    tab[3] = 0;
+    /* tab[4] = 0;     4. dépassement : indices valides 0..3 seulement */
+    crash_demo();
+    free(tab);
+    /* tab[0] = 1;     5. use-after-free                              */
+    /* 6e cause : récursion infinie -> stack overflow (essaie !)      */
+    printf("aucun crash : tous les accès étaient légitimes\n");
+    return 0;
+}
+'''
+gotchas = [
+  "Déréférencer NULL reste la cause n°1 : teste chaque malloc et chaque fonction qui peut renvoyer NULL.",
+  "char *s = \"abc\"; s[0] = 'A'; : écriture en zone lecture seule, segfault net — prends char s[] pour modifier.",
+  "Un crash loin de la faute signe une corruption de heap ou de pile : valgrind remonte à la vraie cause.",
+  "Compiler sans -g : sans symboles, gdb ne peut pas te donner la ligne coupable.",
+  "Ignorer le core dump : gdb ./a.out core donne l'autopsie complète (bt, info locals)."
+]
+exercises = [
+  "Écris volontairement les six segfaults classiques, un par un, et identifie chacun sous gdb avec bt.",
+  "Corrige un de tes programmes qui segfaulte : ajoute les tests NULL et borne chaque boucle while, puis revérifie.",
+  "Lance valgrind sur un programme qui segfaulte : compare le message Invalid read/write avec le backtrace de gdb."
+]
+related = ["undefined-behavior", "gdb", "valgrind", "pointeurs", "free"]

@@ -1,0 +1,5 @@
+/target
+package/*.tar.gz
+package/*.pkg.tar.*
+package/pkg/
+package/src/

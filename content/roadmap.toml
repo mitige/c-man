@@ -1,0 +1,86 @@
+id = "roadmap"
+title = "Roadmap — ton plan de bataille pour les 4 semaines"
+category = "demarrer"
+tags = ["parcours", "planning", "piscine", "revision"]
+difficulty = 1
+synopsis = "Quatre semaines, un plan : quelles fiches lire, et quand."
+description = '''
+## En une phrase
+
+Un mois de piscine, quatre semaines, un ordre de lecture : voici le plan pour transformer la panique en routine.
+
+## Semaine 1 (J01-J05) : les fondations
+
+Tu découvres le langage et l'environnement. Lis dans cet ordre :
+
+- J01 : bienvenue, lire-un-man, la-norme, variables-types, operateurs
+- J02 : conditions, boucles, write, putchar
+- J03 : fonctions, portee-variables, main-argc-argv
+- J04 : tableaux, chaines-caracteres
+- J05 : pointeurs, arithmetique-pointeurs, recursivite
+
+Objectif de fin de semaine : écrire des fonctions propres qui affichent, sans segfault.
+
+## Semaine 2 (J06-J12) : mémoire et chaînes
+
+Le cœur de la piscine : malloc et les structures.
+
+- J06 : pointeurs-vs-tableaux, stack-vs-heap
+- J07 : malloc, free, fuites-memoire
+- J08 : strlen, strcpy-strncpy, strcmp-strncmp
+- J09 : strcat-strncat, strchr-strstr, strdup
+- J10 : structures, typedef, enum, union, const
+- J11 : open-close, read, write, gestion-errno
+- J12 : relire malloc et pointeurs, puis methodologie-debug
+
+Objectif : allouer, remplir, libérer sans fuite. Les listes chaînées tombent ensuite toutes seules.
+
+## Semaine 3 : les projets
+
+Les sujets deviennent gros, l'outillage devient critique :
+
+- Compilation sérieuse : gcc, flags-compilation, makefile, linking, headers-include-guards
+- Débug : gdb, valgrind, segfault, undefined-behavior
+- Langage avancé : preprocesseur, pointeurs-de-fonctions, qsort, memcpy-memmove, memset
+
+## Semaine 4 : rushs et révisions
+
+- Revois erreurs-frequentes, conseils-piscine, debordements-entiers
+- Ouvre printf, scanf, exit, atoi-strtol, ctype selon les sujets du moment
+- La veille de chaque rendu : relis moulinette
+
+## Après la piscine C : bash puis web
+
+La piscine continue côté shell puis web. Deux blocs à lire quand ils arrivent :
+
+- **Bash** (scripts et terminal) : bash-bases, pipes-redirections, variables-shell, scripts-bash, conditions-bash, boucles-bash, commandes-texte, permissions, processus, git-bases
+- **Web** (HTML/CSS/JS) : html-bases, css-bases, js-bases, js-dom, css-boxmodel, css-flexbox, html-formulaires, js-fonctions, js-evenements, js-async
+
+Le réflexe multi-angle : `c-man apprendre <sujet>` te donne le plan lis → teste → pratique → explique pour n'importe quelle fiche.
+
+## À retenir
+
+- Ne saute pas d'étape : malloc sans pointeurs solides, c'est la douleur garantie.
+- Le soir, relis les fiches du jour plutôt que d'avancer sur le lendemain.
+- Adapte ce plan à TON planning officiel : c'est une boussole, pas un contrat.
+'''
+example = '''
+# Rituel du matin : ouvrir la fiche du jour avant de coder
+$ c-man roadmap            # ou suis-je dans le plan ?
+$ c-man malloc             # fiche du jour : lire, compiler l'exemple
+$ c-man fuites-memoire     # fiche liee, lue dans la foulee
+
+# Le soir, revision eclair des fiches de la journee
+$ c-man -l | head -20      # reperer ce qui est lu / pas lu
+$ c-man --random           # une fiche au hasard avant de dormir
+'''
+gotchas = [
+  "Lire la fiche malloc par curiosité avant de maîtriser les pointeurs : tu vas t'embrouiller, respecte l'ordre.",
+  "Négliger les fiches outils (gdb, valgrind) jusqu'au premier gros projet : tu perdras des jours à débugger à l'aveugle.",
+  "Confondre lecture et maîtrise : une fiche n'est acquise que quand son exercice est fait."
+]
+exercises = [
+  "Liste les fiches de la semaine 1 et coche celles dont tu saurais refaire l'exemple les yeux fermés.",
+  "Installe le rituel : 20 minutes de relecture des fiches du jour, chaque soir pendant une semaine."
+]
+related = ["bienvenue", "la-norme", "moulinette", "conseils-piscine"]

@@ -1,0 +1,10 @@
+id = "q-gdb-backtrace"
+category = "outils"
+difficulty = 3
+question = "Ton programme segfaulte. Dans gdb, après la commande run, le crash se produit. Quelle commande affiche la pile d'appels pour localiser la ligne fautive ?"
+choices = ["bt (backtrace)", "run", "continue", "print argv"]
+answer = 0
+explanation = '''
+bt (ou backtrace) affiche la call stack au moment du crash : la fonction fautive en haut, ses appelants en dessous, avec fichiers et numéros de ligne si tu as compilé avec -g. Utilise ensuite frame N pour descendre dans un niveau d'appel et print pour inspecter les variables locales. C'est LE premier réflexe face à un segfault, bien avant de relire tout le code au hasard.
+'''
+related = ["gdb", "segfault", "methodologie-debug"]

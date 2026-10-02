@@ -1,0 +1,90 @@
+id = "strlen"
+title = "strlen — compter les octets d'une chaîne"
+category = "libc"
+tags = ["string", "boucles", "bases", "size_t"]
+difficulty = 1
+piscine_day = "J04"
+synopsis = "size_t strlen(const char *s);"
+description = '''
+## En une phrase
+
+`strlen` compte le nombre d'octets d'une chaîne AVANT le `'\0'` final, qui n'est jamais compté.
+
+## Prototype et retour
+
+- Header : `<string.h>`
+- Prototype : `size_t strlen(const char *s);`
+- Retour : un `size_t` (entier NON SIGNÉ, souvent 64 bits) égal au nombre d'octets avant le terminateur. `"piscine"` donne 7, `""` donne 0.
+
+Attention : ce n'est PAS un `int`. Piège classique : `strlen(a) - strlen(b)` peut passer sous zéro et produire un nombre gigantesque, car le calcul se fait en non signé.
+
+> Si la chaîne n'est pas terminée par `'\0'`, `strlen` lit au-delà de la zone valide : comportement indéfini, segfault possible.
+
+## En pratique
+
+Réimplémentation type piscine (`my_strlen`, exercice du J04) : un compteur et un `while`, rien de plus :
+
+- initialise `i = 0`
+- tant que `str[i] != '\0'`, incrémente `i`
+- renvoie `i`
+
+Variantes à connaître : la version pointeur (`while (*str != '\0') str = str + 1;`) et la version récursive pour t'entraîner. La moulinette vérifie que tu respectes le `const` : tu ne modifies jamais `str`.
+
+Le piège de performance numéro un : appeler `strlen` dans la condition d'une boucle. Écrire `while (i < strlen(s))` relance un parcours complet de la chaîne à CHAQUE tour : ta boucle passe de O(n) à O(n²). Sur 10 000 caractères, c'est 50 millions de lectures au lieu de 10 000. Le bon réflexe : calcule la longueur UNE fois avant la boucle, stocke-la dans un `size_t len`.
+
+Autre confusion fréquente : `sizeof` n'est pas `strlen`. `sizeof` donne la taille du tableau à la compilation, `strlen` mesure la longueur logique à l'exécution. `char buf[100] = "ok";` : `sizeof(buf)` vaut 100, `strlen(buf)` vaut 2.
+
+## À retenir
+
+- Le `'\0'` n'est jamais compté : une chaîne de `len` caractères occupe `len + 1` octets en mémoire.
+- Le retour est un `size_t` non signé : gare aux soustractions et aux comparaisons avec des `int`.
+- Jamais `strlen` dans une condition de boucle : stocke le résultat avant.
+- Chaîne non terminée = lecture hors limites : garantis toujours ton `'\0'`.
+'''
+example = '''
+#include <stdio.h>
+#include <string.h>
+
+/* Reimplementation de strlen : la version que la moulinette attend. */
+size_t my_strlen(const char *s)
+{
+    size_t i;
+
+    i = 0;
+    while (s[i] != '\0')
+        i = i + 1;
+    return i;
+}
+
+int main(void)
+{
+    const char *mot = "piscine";
+    size_t len;
+    size_t i;
+
+    len = my_strlen(mot);
+    printf("my_strlen(\"%s\") = %zu\n", mot, len);
+    printf("strlen(\"%s\") = %zu\n", mot, strlen(mot));
+    /* Bon reflexe : la longueur est calculee UNE fois, avant la boucle. */
+    i = 0;
+    while (i < len) {
+        putchar(mot[i]);
+        i = i + 1;
+    }
+    putchar('\n');
+    return 0;
+}
+'''
+gotchas = [
+  "Appeler strlen dans la condition d'une boucle : chaque tour reparcourt toute la chaine, O(n) devient O(n^2).",
+  "Oublier que le retour est un size_t non signe : strlen(\"a\") - strlen(\"ab\") produit un nombre enorme, pas -1.",
+  "Compter le '\\0' : strlen(\"abc\") vaut 3, pas 4. Mais il faut bien 4 octets pour stocker la chaine.",
+  "Appeler strlen sur une chaine non terminee par '\\0' : lecture hors limites, comportement indefini.",
+  "Confondre sizeof et strlen sur un tableau : l'un est la capacite, l'autre la longueur logique."
+]
+exercises = [
+  "Ecris my_strlen avec un while et un compteur, sans modifier la chaine, puis compare ton resultat avec le vrai strlen sur plusieurs chaines.",
+  "Recris my_strlen en version pointeurs (sans aucun crochet []) puis en version recursive.",
+  "Prends une boucle qui appelle strlen dans sa condition, corrige-la en stockant la longueur avant, et chronometre la difference sur une chaine de 100000 caracteres."
+]
+related = ["chaines-caracteres", "boucles", "pointeurs", "strcpy-strncpy", "strcmp-strncmp"]

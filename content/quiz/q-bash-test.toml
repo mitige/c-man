@@ -1,0 +1,23 @@
+id = "q-bash-test"
+category = "bash"
+difficulty = 2
+question = '''
+Dans un script bash, que vérifie exactement cette condition ?
+
+if [ -f mon_fichier ]; then
+    echo oui
+else
+    echo non
+fi
+'''
+choices = [
+  "Que mon_fichier existe ET que c'est un fichier régulier (pas un dossier, pas un lien vers un dossier)",
+  "Que mon_fichier existe, quel que soit son type (fichier, dossier, lien...)",
+  "Que mon_fichier existe et est exécutable par l'utilisateur courant",
+  "Que mon_fichier existe et n'est pas vide"
+]
+answer = 0
+explanation = '''
+L'option -f de la commande test (les crochets) est vraie seulement si le chemin existe et désigne un fichier régulier : un dossier nommé mon_fichier ferait afficher non. Pour tester la simple existence, quel que soit le type, utilise -e ; pour un dossier, -d ; pour un fichier exécutable, -x ; et pour un fichier non vide, -s. Attention aux espaces : [ -f x ] est correct, [-f x] est une erreur de syntaxe car [ est une vraie commande qui exige ses arguments séparés.
+'''
+related = ["conditions-bash", "scripts-bash", "bash-bases"]

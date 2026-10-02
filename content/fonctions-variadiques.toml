@@ -1,0 +1,135 @@
+id = "fonctions-variadiques"
+title = "fonctions variadiques — va_list, le secret de printf"
+category = "langage"
+tags = ["stdarg", "variadique", "printf", "va-list"]
+difficulty = 4
+piscine_day = "J12"
+synopsis = "int sum(int n, ...);  /* va_list, va_start, va_arg, va_end — <stdarg.h> */"
+description = '''
+## En une phrase
+
+Une fonction variadique accepte un nombre variable d'arguments grâce aux `...` et au trio `va_start` / `va_arg` / `va_end` de `<stdarg.h>` : c'est le mécanisme exact derrière `printf`, donc derrière ton futur my_printf.
+
+## En pratique
+
+La déclaration impose AU MOINS un paramètre nommé avant les points de suspension : `int sum(int n, ...);`. Ensuite, la chorégraphie est toujours la même :
+
+- `va_list ap;` déclare le curseur qui va parcourir les arguments.
+- `va_start(ap, n);` positionne `ap` juste après le DERNIER paramètre nommé (ici `n`).
+- `va_arg(ap, int)` lit l'argument suivant en le typant toi-même, puis avance d'un cran.
+- `va_end(ap);` nettoie : obligatoire avant chaque `return`.
+
+Le compilateur ne sait NI combien d'arguments tu as reçus, NI leurs types : les `...` désactivent tout contrôle. Il te faut donc une convention d'arrêt : un compte (`sum(3, 10, 20, 12)`), une valeur sentinelle (dernier argument NULL), ou un format (`printf` compte ses `%`). Toute la sécurité repose sur cette convention : si tu lis plus d'arguments qu'il n'en a été passé, tu lis la stack au hasard.
+
+Autre piège majeur, les promotions par défaut : dans les `...`, un `float` devient `double`, un `char` ou un `short` devient `int`. Conséquence directe : `va_arg(ap, double)` pour récupérer un float, `va_arg(ap, int)` pour un char, puis cast si besoin. Écrire `va_arg(ap, float)` ou `va_arg(ap, char)` est un undefined behavior garanti.
+
+> Type lu différent du type passé = undefined behavior immédiat. `printf("%d", "texte")` compile sans warning et crashe joyeusement à l'exécution : c'est exactement le même mécanisme.
+
+## À retenir
+
+- Pas de paramètre nommé, pas de `va_start` : le point d'ancrage est obligatoire.
+- `va_arg` consomme : impossible de relire en arrière, prévois `va_copy` si tu dois faire deux passes.
+- `va_end` sur TOUS les chemins de sortie de la fonction.
+- float→double, char/short→int : type ton `va_arg` selon le type PROMU, pas le type écrit à l'appel.
+- %d attend un `int`, %s un `char *`, %f un `double` : ton format est ton contrat.
+'''
+example = '''
+#include <stdarg.h>
+#include <unistd.h>
+
+static void my_putchar(char c)
+{
+    write(1, &c, 1);
+}
+
+static void my_putstr(char const *str)
+{
+    int i;
+
+    i = 0;
+    while (str[i] != '\0') {
+        my_putchar(str[i]);
+        i = i + 1;
+    }
+}
+
+static void my_put_nbr(int nbr)
+{
+    long n;
+
+    n = nbr;
+    if (n < 0) {
+        my_putchar('-');
+        n = -n;
+    }
+    if (n >= 10)
+        my_put_nbr((int)(n / 10));
+    my_putchar((char)('0' + n % 10));
+}
+
+/* Somme de n entiers : le compte sert de convention d'arret. */
+static int sum(int n, ...)
+{
+    va_list ap;
+    int total;
+    int i;
+
+    va_start(ap, n);
+    total = 0;
+    i = 0;
+    while (i < n) {
+        total = total + va_arg(ap, int);
+        i = i + 1;
+    }
+    va_end(ap);
+    return total;
+}
+
+/* Mini printf : gere %d, %s, %c et %%. Le format sert de convention. */
+static void mini_printf(char const *format, ...)
+{
+    va_list ap;
+    int i;
+
+    va_start(ap, format);
+    i = 0;
+    while (format[i] != '\0') {
+        if (format[i] == '%' && format[i + 1] != '\0') {
+            i = i + 1;
+            if (format[i] == 'd')
+                my_put_nbr(va_arg(ap, int));
+            else if (format[i] == 's')
+                my_putstr(va_arg(ap, char const *));
+            else if (format[i] == 'c')
+                my_putchar((char)va_arg(ap, int));
+            else
+                my_putchar(format[i]);
+        } else {
+            my_putchar(format[i]);
+        }
+        i = i + 1;
+    }
+    va_end(ap);
+}
+
+int main(void)
+{
+    mini_printf("sum(3, 10, 20, 12) = %d\n", sum(3, 10, 20, 12));
+    mini_printf("%s %s : %d/%c\n", "piscine", "C", 42, 'A');
+    mini_printf("100%% variadique\n");
+    return 0;
+}
+'''
+gotchas = [
+  "Lire un float avec va_arg(ap, float) : les float sont promus en double dans les ..., c'est va_arg(ap, double) ou undefined behavior.",
+  "Oublier va_end, ou return avant de l'appeler : comportement indefini sur certaines architectures, et Valgrind rale.",
+  "Lire plus d'arguments qu'il n'en a ete passe : personne ne te previent, tu lis la stack au hasard, crash ou fuite de donnees.",
+  "Croire que le compilateur verifie : avec ..., plus de controle ni de compte ni de types, ta convention est le seul garde-fou.",
+  "Bidouiller va_list a la main : selon l'ABI ce peut etre un tableau, passe TOUJOURS par les macros va_start, va_arg, va_end."
+]
+exercises = [
+  "Ecris int my_max(int n, ...) qui renvoie le plus grand de n entiers (tu peux supposer n >= 1).",
+  "Ecris void my_put_all(char const *str, ...) qui affiche des chaines separees par un espace, jusqu'a la sentinelle NULL.",
+  "Commence ton my_printf : gere %d, %s, %c et %% en reutilisant les fonctions de ta libmy."
+]
+related = ["printf", "fonctions", "undefined-behavior"]

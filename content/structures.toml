@@ -1,0 +1,86 @@
+id = "structures"
+title = "structures — regrouper des données sous un seul nom"
+category = "langage"
+tags = ["struct", "padding", "copie", "pointeur", "liste-chainee"]
+difficulty = 3
+piscine_day = "J09"
+synopsis = "struct point { int x; int y; };  /* accès p.x sur une valeur, ptr->x sur un pointeur */"
+description = '''
+## En une phrase
+
+Une `struct` regroupe plusieurs variables de types différents sous un seul nom : c'est ton premier outil pour modéliser des données réelles.
+
+## En pratique
+
+`struct point { int x; int y; };` définit un nouveau type. Tu déclares ensuite `struct point p;` et tu accèdes aux membres avec `.` : `p.x = 3;`. Avec un **pointeur** sur struct, utilise `->` : `ptr->x` est le raccourci de `(*ptr).x` (les parenthèses seraient obligatoires à cause de la priorité de `.`). N'oublie jamais le point-virgule après l'accolade fermante de la déclaration.
+
+L'initialisation se fait dans l'ordre de déclaration : `struct point p = {3, 4};`. Les structs imbriquées s'initialisent avec des accolades imbriquées : `struct rect r = {{0, 0}, 10, 5};`.
+
+Attention au **passage par valeur** : passer une struct à une fonction la copie entièrement. La fonction modifie sa copie, pas ton original. Pour modifier l'original (ou éviter une copie coûteuse sur une grosse struct), passe un pointeur : `void move(struct point *p)`.
+
+Surprise classique : `sizeof` d'une struct n'est pas la somme de ses membres. Le compilateur insère du **padding** pour aligner chaque membre en mémoire : `struct { char c; int n; }` occupe typiquement 8 octets, pas 5. Ne sérialise donc jamais une struct brute avec `write` si le format doit être portable.
+
+Enfin, une struct peut contenir un pointeur **vers son propre type** (`struct s_node *next;`) : c'est la base des listes chaînées que tu construiras avec `malloc` à partir du J08.
+
+## À retenir
+
+- `.` sur une valeur, `->` sur un pointeur. Si tu te trompes, le compilateur râle : lis l'erreur.
+- Passage par valeur = copie complète ; pour modifier l'original, passe son adresse.
+- Un membre `struct s_node *next` = auto-référence, la porte d'entrée des listes chaînées.
+'''
+example = '''
+#include <stdio.h>
+
+struct point {
+    int x;
+    int y;
+};
+
+struct rect {
+    struct point origin;
+    int width;
+    int height;
+};
+
+/* Le padding en action : 1 octet de char + 3 de padding + 4 de int. */
+struct mixed {
+    char c;
+    int n;
+};
+
+/* Déplace un point : pointeur obligatoire pour modifier l'original. */
+static void move_point(struct point *p, int dx, int dy)
+{
+    p->x += dx;
+    p->y += dy;
+}
+
+/* Aire d'un rectangle : passage par valeur, on travaille sur une copie. */
+static int rect_area(struct rect r)
+{
+    return r.width * r.height;
+}
+
+int main(void)
+{
+    struct point p = {3, 4};
+    struct rect r = {{0, 0}, 10, 5};
+
+    move_point(&p, 1, -2);
+    printf("p = (%d, %d)\n", p.x, p.y);
+    printf("aire = %d\n", rect_area(r));
+    printf("sizeof(struct mixed) = %zu\n", sizeof(struct mixed));
+    return 0;
+}
+'''
+gotchas = [
+  "Passer une struct par valeur puis s'étonner que l'original n'ait pas changé : la fonction a travaillé sur une copie.",
+  "Écrire ptr.x au lieu de ptr->x sur un pointeur : erreur de compilation immédiate, apprends à la lire.",
+  "Faire confiance à sizeof : le padding d'alignement gonfle la taille au-delà de la somme des membres.",
+  "Oublier le point-virgule après l'accolade fermante de la déclaration de struct : erreurs en cascade dans tout le fichier."
+]
+exercises = [
+  "Définis struct point et struct rect, écris rect_area (passage par valeur) et move_point (passage par pointeur), et prouve par un affichage que seul le second modifie l'original.",
+  "Ajoute un membre char au milieu d'une struct et affiche sizeof avant/après pour observer l'effet du padding."
+]
+related = ["typedef", "malloc", "recursivite", "pointeurs", "enum"]

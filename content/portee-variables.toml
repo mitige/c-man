@@ -1,0 +1,82 @@
+id = "portee-variables"
+title = "portee-variables — qui voit quoi, et pour combien de temps"
+category = "langage"
+tags = ["portee", "variables", "static", "globales"]
+difficulty = 2
+piscine_day = "J02"
+synopsis = "int x; /* locale au bloc, morte a l'accolade fermante */"
+description = '''
+## En une phrase
+
+La portée d'une variable est la zone du code où son nom existe ; sa durée de vie est le temps pendant lequel sa valeur survit — et les deux se règlent avec des accolades.
+
+## En pratique
+
+Une variable déclarée dans un bloc `{ ... }` est LOCALE : elle naît à sa ligne de déclaration et meurt à l'accolade fermante. Corps de fonction, corps de if, corps de while : chaque bloc crée une portée. Après le bloc, le nom n'existe plus : le compilateur te le rappelle avec un "undeclared identifier".
+
+Deux variables de même nom dans des blocs imbriqués : c'est le SHADOWING. L'interne cache l'externe dans son bloc. Légal, mais source de bugs tordus — et gcc ne prévient pas sans `-Wshadow`, absent de -Wall -Wextra. Évite : renomme.
+
+`static` devant une variable locale change sa DURÉE DE VIE : initialisée une seule fois au premier passage, elle survit entre les appels et garde sa valeur. Séduisant pour un compteur... et c'est exactement pour ça qu'elle est souvent interdite en piscine : état caché, fonction impossible à appeler deux fois "à froid", non réentrante. Connais-la, ne l'utilise que si le sujet l'autorise.
+
+Les variables GLOBALES (déclarées hors de toute fonction) : visibles partout, modifiables par tous, donc impossibles à tracer. À la piscine, la Norme les INTERDIT et la moulinette sanctionne. Toute donnée doit circuler par les paramètres et les valeurs de retour : c'est ce qui rend tes fonctions testables et réutilisables.
+
+## À retenir
+
+- Règle d'or : déclare chaque variable dans le bloc le PLUS PETIT possible.
+- Une locale non initialisée contient une valeur indéterminée : la lire est un comportement indéfini, pas "un chiffre au hasard".
+- Portée (question de compilation) et durée de vie (question d'exécution) sont deux questions différentes : garde-les séparées dans ta tête.
+'''
+example = '''
+#include <stdio.h>
+
+/* Locale ordinaire : chaque appel repart de zero. */
+static void counter_plain(void)
+{
+    int n = 0;
+
+    n++;
+    printf("plain  : n = %d\n", n);
+}
+
+/* static local : initialisee une seule fois, survit entre les appels.
+   A connaitre, mais souvent interdit en piscine : etat cache. */
+static void counter_static(void)
+{
+    static int n = 0;
+
+    n++;
+    printf("static : n = %d\n", n);
+}
+
+/* Chaque bloc cree une portee : y n'existe que dans le if. */
+int main(void)
+{
+    int x = 1;
+
+    counter_plain();
+    counter_plain();
+    counter_static();
+    counter_static();
+    if (x == 1) {
+        int y = 2;
+
+        printf("dans le bloc : x = %d, y = %d\n", x, y);
+    }
+    /* y est mort ici : hors de portee */
+    printf("x apres le bloc = %d\n", x);
+    return 0;
+}
+'''
+gotchas = [
+  "Lire une variable apres son bloc : erreur 'undeclared'. La portee te protege, ecoute-la au lieu de sortir la variable du bloc.",
+  "Shadowing : un int x interne cache le x externe, et gcc ne previent pas par defaut (-Wshadow hors de -Wall -Wextra). Renomme.",
+  "static local + plusieurs appels = etat qui survit en cachette : en piscine c'est souvent interdit, et ca rend tes fonctions impossibles a tester.",
+  "Variables globales : interdites par la Norme piscine. Fais circuler les donnees par les parametres et les retours.",
+  "Lire une locale non initialisee : comportement indefini. int x = 0; coute un caractere de plus que le bug."
+]
+exercises = [
+  "Predis l'affichage complet du programme exemple sur papier, compile, et compare ligne par ligne.",
+  "Ecris deux fonctions qui utilisent chacune une locale nommee result sans jamais interferer, et prouve-le en les appelant en alternance.",
+  "Ecris une fonction avec une static int de comptage, appelle-la trois fois, puis reecris-la SANS static en rendant le compteur par retour."
+]
+related = ["fonctions", "variables-types", "la-norme", "stack-vs-heap"]

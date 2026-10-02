@@ -1,0 +1,10 @@
+id = "q-norme-for"
+category = "piscine"
+difficulty = 2
+question = "Vrai ou faux : en piscine, la règle historique de la Norme impose d'écrire les boucles avec while et interdit le for."
+choices = ["Vrai", "Faux"]
+answer = 0
+explanation = '''
+Historiquement, le for est interdit en piscine : initialisation, condition et incrément doivent rester visibles séparément, en while. Cette contrainte t'oblige à maîtriser la mécanique des boucles au lieu de la cacher dans une syntaxe compacte. Comme toujours, le sujet du jour et le PDF de Norme de ta promo font foi.
+'''
+related = ["la-norme", "boucles"]

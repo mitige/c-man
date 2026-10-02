@@ -1,0 +1,94 @@
+id = "open-close"
+title = "open / close — ouvrir et fermer un descripteur de fichier"
+category = "libc"
+tags = ["io", "fichier", "syscall", "descripteur"]
+difficulty = 3
+piscine_day = "J10"
+synopsis = "int open(const char *pathname, int flags, ...); int close(int fd);"
+description = '''
+## En une phrase
+
+`open` ouvre un fichier et renvoie un **descripteur** (un petit entier) que tu donnes ensuite à `read`/`write` ; `close` le rend au système quand tu as fini.
+
+## Prototype et retour
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+int open(const char *pathname, int flags, ...);
+int close(int fd);
+```
+
+Les flags à connaître, à combiner avec `|` :
+
+- `O_RDONLY`, `O_WRONLY`, `O_RDWR` : mode d'accès, **un seul** des trois, obligatoire.
+- `O_CREAT` : crée le fichier s'il n'existe pas. **Exige le 3e argument** `mode`, les permissions en octal : `open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)`.
+- `O_TRUNC` : vide le fichier à l'ouverture.
+- `O_APPEND` : chaque écriture se fait à la fin.
+
+**Retour de `open`** : un fd `>= 0` en succès, `-1` en échec (`errno` positionné : fichier absent, droits insuffisants...). **Retour de `close`** : `0` ou `-1`.
+
+## En pratique
+
+Le descripteur est un index dans la table des fichiers ouverts de ton processus. 0, 1 et 2 sont déjà pris (stdin, stdout, stderr) : ton premier `open` renverra presque toujours 3.
+
+La règle d'or, la même que pour malloc : **chaque `open` réussi a son `close`**, sur tous les chemins, y compris les chemins d'erreur. Un processus a une limite de descripteurs (souvent 1024) : si tu fuis, tes `open` finissent par échouer avec `EMFILE`.
+
+Et comme toujours avec les appels système : **teste chaque retour**. Un `open` qui échoue renvoie `-1`, et enchaîner sur `read(-1, ...)` ne fait que déplacer l'erreur en cascade. Combine avec `errno` ou `perror` pour savoir ce qui s'est passé.
+
+## À retenir
+
+- `open` renvoie le plus petit fd libre ; `-1` = échec, teste systématiquement.
+- `O_CREAT` sans le mode en 3e argument = permissions aléatoires prises sur la pile. Toujours les trois arguments.
+- `O_TRUNC` rase, `O_APPEND` prolonge : relis le sujet avant de choisir.
+- Un `close` par `open`, sur tous les chemins du programme.
+'''
+example = '''
+#include <fcntl.h>
+#include <unistd.h>
+
+/* Affiche un fichier sur stdout, facon cat. Renvoie 84 sur erreur. */
+static int cat_file(char const *path)
+{
+    char buf[4096];
+    ssize_t ret;
+    int fd;
+
+    fd = open(path, O_RDONLY);
+    if (fd == -1)
+        return 84;
+    ret = read(fd, buf, sizeof(buf));
+    while (ret > 0) {
+        if (write(1, buf, (size_t)ret) == -1) {
+            close(fd);
+            return 84;
+        }
+        ret = read(fd, buf, sizeof(buf));
+    }
+    if (close(fd) == -1 || ret == -1)
+        return 84;
+    return 0;
+}
+
+int main(int argc, char **argv)
+{
+    if (argc != 2) {
+        write(2, "Usage: my_cat <fichier>\n", 24);
+        return 84;
+    }
+    return cat_file(argv[1]);
+}
+'''
+gotchas = [
+  "Oublier le 3e argument mode avec O_CREAT : le fichier récupère des permissions aléatoires. Toujours open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644).",
+  "Ne pas tester le retour : un open échoué donne -1, et read(-1, ...) échoue en cascade avec une erreur incompréhensible.",
+  "Oublier close sur un chemin d'erreur : fuite de descripteur. Au bout d'environ 1024 fuites, open échoue avec EMFILE.",
+  "Confondre O_TRUNC et O_APPEND : l'un rase le fichier, l'autre écrit à la fin. Le mauvais choix détruit des données.",
+  "Écrire les flags en dur (0, 1, 2) au lieu des macros O_RDONLY et compagnie : illisible, non portable, et la moulinette déteste."
+]
+exercises = [
+  "Écris my_cat complet : open en lecture, boucle read/write, close systématique sur tous les chemins, retour 84 sur toute erreur. Compare avec le vrai cat.",
+  "Écris un mini-journal : un programme qui ouvre un fichier en O_WRONLY | O_CREAT | O_APPEND avec le mode 0644 et y ajoute la ligne passée en argument.",
+  "Ouvre le même fichier deux fois en O_WRONLY sans O_APPEND, écris alternativement avec les deux descripteurs, et observe le résultat. Explique ce que tu vois."
+]
+related = ["read", "write", "gestion-errno", "exit", "malloc"]

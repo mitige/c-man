@@ -1,0 +1,83 @@
+id = "typedef"
+title = "typedef — un nouveau nom pour un type"
+category = "langage"
+tags = ["typedef", "alias", "norme", "lisibilite", "struct"]
+difficulty = 2
+piscine_day = "J09"
+synopsis = "typedef struct s_list { void *data; struct s_list *next; } t_list;"
+description = '''
+## En une phrase
+
+`typedef` donne un nouveau nom à un type existant : ni plus, ni moins — mais bien utilisé, il rend ton code dix fois plus lisible.
+
+## En pratique
+
+`typedef unsigned int uint;` te permet d'écrire `uint score;` partout. Là où `typedef` devient indispensable, c'est avec les structs : sans lui, tu écrirais `struct s_node *next` à chaque déclaration. La convention Epitech impose ce motif :
+
+    typedef struct s_list {
+        void *data;
+        struct s_list *next;
+    } t_list;
+
+Le tag `s_list` (préfixe `s_`) sert **à l'intérieur** de la struct pour les auto-références : au moment où le compilateur lit le corps, l'alias `t_list` n'existe pas encore, seul le tag est disponible. L'alias `t_list` (préfixe `t_`) sert partout ailleurs : `t_list *head;`.
+
+Ça marche aussi avec les pointeurs de fonctions, dont la syntaxe brute est illisible : `typedef int (*t_cmp)(int, int);` transforme un cauchemar en nom parlant, et c'est exactement ce que tu feras pour `qsort`.
+
+Mais retiens la nature exacte de la bête : `typedef` ne crée **pas** un nouveau type, juste un alias strictement interchangeable. `uint` et `unsigned int` sont le même type pour le compilateur : aucune protection supplémentaire, c'est à toi de rester cohérent.
+
+## À retenir
+
+- Convention Epitech : `s_nom` pour le tag de struct, `t_nom` pour le typedef. La Norme l'exige.
+- Lis un typedef comme une déclaration : le nom déclaré devient le nom du type.
+- Un alias ne protège de rien : deux typedefs sur `int` restent compatibles entre eux.
+'''
+example = '''
+#include <stdio.h>
+
+typedef unsigned int uint;
+
+typedef struct s_point {
+    int x;
+    int y;
+} t_point;
+
+/* Le motif listes chaînées : s_node à l'intérieur, t_node ailleurs. */
+typedef struct s_node {
+    int value;
+    struct s_node *next;
+} t_node;
+
+/* Distance de Manhattan entre deux points. */
+static uint manhattan(t_point a, t_point b)
+{
+    uint dx;
+    uint dy;
+
+    dx = (a.x > b.x) ? (uint)(a.x - b.x) : (uint)(b.x - a.x);
+    dy = (a.y > b.y) ? (uint)(a.y - b.y) : (uint)(b.y - a.y);
+    return dx + dy;
+}
+
+int main(void)
+{
+    t_point a = {0, 0};
+    t_point b = {3, -4};
+    t_node second = {84, NULL};
+    t_node head = {42, &second};
+
+    printf("distance = %u\n", manhattan(a, b));
+    printf("second via head = %d\n", head.next->value);
+    return 0;
+}
+'''
+gotchas = [
+  "Croire que typedef crée un type distinct : un alias reste strictement interchangeable avec le type d'origine.",
+  "Utiliser t_list à l'intérieur de sa propre struct : l'alias n'existe pas encore, il faut le tag struct s_list.",
+  "typedef char *string; puis string a, b; : b est un char, pas un char*. Méfie-toi des alias de pointeurs.",
+  "Oublier le point-virgule final du typedef struct : erreurs de compilation absconses sur les lignes suivantes."
+]
+exercises = [
+  "Crée un t_list avec la convention s_/t_, instancie deux maillons chaînés sur la stack et affiche la donnée du second via le premier.",
+  "Écris le typedef t_cmp pour un pointeur de fonction (int, int) -> int et déclare une variable de ce type."
+]
+related = ["structures", "pointeurs-de-fonctions", "union", "enum", "la-norme"]

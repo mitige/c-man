@@ -1,0 +1,127 @@
+id = "http-bases"
+title = "HTTP — la conversation entre ton navigateur et le serveur"
+category = "web"
+tags = ["http", "requêtes", "statut", "fetch", "api"]
+difficulty = 3
+synopsis = "Le client envoie une requête (méthode + URL + en-têtes + corps), le serveur répond (statut + en-têtes + corps)."
+description = '''
+## En une phrase
+
+HTTP est le protocole de dialogue du web : le client envoie une **requête** (méthode, URL, en-têtes, corps optionnel), le serveur renvoie une **réponse** (code de statut, en-têtes, corps).
+
+## En pratique
+
+Une requête, en texte brut, ressemble à ça :
+
+```http
+GET /api/promos HTTP/1.1
+Host: api.example.fr
+Accept: application/json
+```
+
+Première ligne : **méthode** + chemin + version. Ensuite les **en-têtes** (paires clé: valeur), puis une ligne vide et, éventuellement, un **corps**.
+
+Les méthodes à connaître :
+
+- `GET` : lire une ressource — pas de corps
+- `POST` : créer, envoyer des données — le corps voyage ici
+- `PUT` : remplacer une ressource entière
+- `DELETE` : supprimer
+
+La réponse commence par un **code de statut** :
+
+- `200 OK` : succès
+- `301 Moved Permanently` : redirection définitive, le navigateur suit tout seul
+- `400 Bad Request` : ta requête est mal formée
+- `404 Not Found` : la ressource n'existe pas
+- `500 Internal Server Error` : le serveur a planté
+
+Retiens les familles : **2xx** succès, **3xx** redirection, **4xx** erreur du client (toi), **5xx** erreur du serveur (eux).
+
+Le lien avec `fetch` est direct : chaque concept HTTP s'y retrouve.
+
+```js
+const reponse = await fetch("/api/promos", {
+    method: "POST",                                   // la méthode
+    headers: { "Content-Type": "application/json" },  // les en-têtes
+    body: JSON.stringify({ nom: "Web 2027" })         // le corps
+});
+console.log(reponse.status);        // 201, 400, 404... : le code de statut
+const data = await reponse.json();  // le corps de la réponse, décodé
+```
+
+Et l'onglet **Réseau** des DevTools (F12) te montre tout ça en vrai : recharge une page, clique une requête, tu lis la méthode, les en-têtes envoyés, le statut reçu et le corps de la réponse. C'est le même protocole, affiché joliment.
+
+> Piège classique : `fetch` ne rejette sa promesse que si la requête n'a pas pu partir du tout. Un 404 ou un 500 est une réponse **réussie** pour fetch — teste toujours `reponse.ok` ou `reponse.status` avant de lire le corps.
+
+## À retenir
+
+- Requête = méthode + URL + en-têtes (+ corps) ; réponse = statut + en-têtes + corps.
+- GET lit, POST crée, PUT remplace, DELETE supprime.
+- 2xx succès, 3xx redirection, 4xx ton erreur, 5xx erreur du serveur.
+- L'onglet réseau des DevTools affiche chaque requête/réponse en clair.
+- `fetch` ne throw pas sur un 404 : vérifie `reponse.ok` toi-même.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>HTTP en action</title>
+</head>
+<body>
+    <h1>Requête HTTP avec fetch</h1>
+    <pre id="sortie">Chargement...</pre>
+
+    <script>
+        // Ce que le navigateur envoie (visible dans F12 -> Reseau) :
+        //
+        //     GET /todos/1 HTTP/1.1
+        //     Host: jsonplaceholder.typicode.com
+        //     Accept: application/json
+        //
+        // Ce que le serveur repond :
+        //
+        //     HTTP/1.1 200 OK
+        //     Content-Type: application/json
+        //
+        //     { "userId": 1, "id": 1, "title": "delectus aut autem", ... }
+
+        const sortie = document.querySelector("#sortie");
+
+        async function chargerTodo() {
+            const reponse = await fetch("https://jsonplaceholder.typicode.com/todos/1");
+
+            // fetch ne rejette PAS sur un 404/500 : on teste le statut soi-meme
+            if (!reponse.ok) {
+                console.error(`Erreur HTTP ${reponse.status}`);
+                sortie.textContent = `Erreur ${reponse.status}`;
+                return;
+            }
+            const todo = await reponse.json();   // corps de la reponse decode
+            console.log("Statut :", reponse.status);                       // 200
+            console.log("Content-Type :", reponse.headers.get("content-type"));
+            sortie.textContent = JSON.stringify(todo, null, 2);
+        }
+
+        chargerTodo().catch(function(err) {
+            // Ici : la requete n'est JAMAIS partie (hors ligne, DNS, CORS...)
+            console.error("Requête impossible :", err);
+            sortie.textContent = "Réseau indisponible";
+        });
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "Croire que fetch rejette sur un 404 : il ne rejette que si la requête ne part pas du tout — teste reponse.ok avant de lire le corps.",
+  "Envoyer du JSON sans l'en-tête Content-Type: application/json : le serveur ne sait pas comment lire le corps.",
+  "Mettre un body dans un GET : le corps n'existe que pour POST, PUT, PATCH — un GET transporte ses données dans l'URL (query string).",
+  "Paniquer devant un 301/302 : le navigateur suit les redirections tout seul, c'est un comportement normal du web."
+]
+exercises = [
+  "Ouvre l'onglet réseau, recharge n'importe quel site, et relève pour trois requêtes : méthode, statut, type de contenu.",
+  "Avec fetch, récupère un post de jsonplaceholder.typicode.com et affiche son titre ; teste ensuite un id inexistant (9999) et gère le 404 proprement.",
+  "Envoie un POST avec un corps JSON vers jsonplaceholder.typicode.com/posts et affiche l'id renvoyé par le serveur."
+]
+related = ["web-devtools", "js-async", "js-formulaires", "js-dom"]

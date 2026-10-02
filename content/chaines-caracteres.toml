@@ -1,0 +1,80 @@
+id = "chaines-caracteres"
+title = "chaînes de caractères — un tableau de char et un '\\0'"
+category = "langage"
+tags = ["chaine", "string", "litteral", "nul-terminateur", "parcours"]
+difficulty = 2
+piscine_day = "J04"
+synopsis = "char s[] = \"abc\"; /* modifiable */   char const *s = \"abc\"; /* littéral read-only */"
+description = '''
+## En une phrase
+
+En C, une chaîne n'existe pas comme type : c'est un tableau de `char` dont la convention impose qu'il se termine par le caractère nul `'\0'`.
+
+## En pratique
+
+Deux façons de créer une chaîne, et la différence est vitale :
+
+- `char s[] = "abc";` copie les 4 caractères (`a`, `b`, `c`, `'\0'`) dans un tableau **modifiable** sur la stack. `s[0] = 'A';` fonctionne.
+- `char *s = "abc";` fait pointer `s` vers un **littéral** stocké en mémoire en lecture seule. `s[0] = 'A';` = comportement indéfini, segfault quasi garanti sous Linux. Écris `char const *s` pour que le compilateur te protège à la compilation.
+
+Toute la famille `str*` (`strlen`, `strcpy`, `strcmp`...) repose sur le `'\0'` : ces fonctions parcourent jusqu'à le rencontrer. Oublie-le, et elles lisent au-delà de ton tableau jusqu'à tomber par hasard sur un octet nul : résultats faux, ou segfault. `sizeof("abc")` vaut 4 : le littéral inclut son terminateur.
+
+Parcourir une chaîne, c'est donc toujours le même motif : `while (str[i] != '\0')`. Note que `'\0'` vaut 0, donc `if (str[i])` est un test équivalent — mais reste explicite, c'est plus lisible.
+
+## À retenir
+
+- Une chaîne sans `'\0'` n'est pas une chaîne : `char s[3] = "abc";` compile et explose plus tard.
+- Littéral = lecture seule. Tableau initialisé = modifiable. Choisis selon le besoin.
+- Réserve toujours **une case de plus** que le texte pour le terminateur : `strlen(s) + 1` octets.
+'''
+example = '''
+#include <stdio.h>
+#include <string.h>
+
+/* Renvoie la longueur d'une chaîne, façon my_strlen du J04. */
+static size_t my_strlen(char const *str)
+{
+    size_t len;
+
+    len = 0;
+    while (str[len] != '\0')
+        len++;
+    return len;
+}
+
+/* Passe chaque lettre minuscule en majuscule (version naïve). */
+static void my_strupcase(char *str)
+{
+    int i;
+
+    i = 0;
+    while (str[i] != '\0') {
+        if (str[i] >= 'a' && str[i] <= 'z')
+            str[i] = str[i] - ('a' - 'A');
+        i++;
+    }
+}
+
+int main(void)
+{
+    char modifiable[] = "piscine";
+    char const *lecture_seule = "epitech";
+
+    printf("len: %zu\n", my_strlen(modifiable));
+    my_strupcase(modifiable);
+    printf("%s\n", modifiable);
+    printf("len: %zu\n", strlen(lecture_seule));
+    return 0;
+}
+'''
+gotchas = [
+  "Modifier un littéral (char *s = \"abc\" puis s[0] = 'z') : mémoire en lecture seule, segfault ou comportement indéfini.",
+  "char s[3] = \"abc\" compile sans warning : le '\\0' ne rentre pas, et strlen déborde ensuite.",
+  "Oublier la case du '\\0' dans un malloc : il faut strlen(s) + 1 octets, pas strlen(s).",
+  "Confondre '\\0' (valeur 0), '0' (code ASCII 48) et NULL (pointeur nul) : trois choses différentes."
+]
+exercises = [
+  "Réécris my_strlen avec un while qui s'arrête au '\\0', puis vérifie ton résultat contre strlen sur trois chaînes différentes.",
+  "Écris my_strcpy(char *dest, char const *src) qui copie la chaîne ET son '\\0', puis teste-la sous valgrind."
+]
+related = ["tableaux", "strlen", "strcpy-strncpy", "pointeurs", "undefined-behavior"]

@@ -1,0 +1,22 @@
+id = "q-bash-retour"
+category = "bash"
+difficulty = 2
+question = '''
+Qu'affiche ce script ?
+
+```bash
+ls /chemin/inexistant 2>/dev/null
+echo $?
+```
+'''
+choices = [
+  "0",
+  "Un nombre différent de 0 (2 avec GNU ls)",
+  "Le message d'erreur de ls",
+  "Rien du tout"
+]
+answer = 1
+explanation = '''
+$? contient le code de retour de la dernière commande exécutée : 0 signifie succès, toute valeur non nulle signale une erreur. Ici ls échoue car le chemin n'existe pas, donc $? vaut un code non nul (2 avec GNU ls). Le message d'erreur, lui, part sur stderr et est jeté par 2>/dev/null, donc il n'apparaît pas. C'est ce mécanisme qui permet à if commande; then de fonctionner : if teste en réalité le code de retour.
+'''
+related = ["variables-shell", "bash-bases", "conditions-bash"]

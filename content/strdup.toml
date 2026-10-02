@@ -1,0 +1,104 @@
+id = "strdup"
+title = "strdup — dupliquer une chaîne (et penser au free)"
+category = "libc"
+tags = ["string", "malloc", "copie", "memoire"]
+difficulty = 2
+piscine_day = "J07"
+synopsis = "char *strdup(const char *s);"
+description = '''
+## En une phrase
+
+`strdup` alloue avec `malloc` une copie fraîche de la chaîne et te la rend : à toi de la `free`.
+
+## Prototype et retour
+
+- Header : `<string.h>`
+- Prototype : `char *strdup(const char *s);`
+- Retour : un pointeur vers une NOUVELLE zone de `strlen(s) + 1` octets contenant la copie, ou `NULL` si l'allocation a échoué.
+
+Deux obligations non négociables : tester le retour contre `NULL`, et appeler `free` dessus quand tu n'en as plus besoin. L'oubli du `free` est LA fuite mémoire classique que `valgrind` te crachera à la figure.
+
+> `strdup` est POSIX, pas C99 strict : avec `-std=c99`, il faut définir `_POSIX_C_SOURCE >= 200809L` avant les includes pour avoir le prototype. En piscine il est de toute façon souvent interdit : tu le recodes, c'est l'exercice.
+
+## En pratique
+
+C'est l'exercice de synthèse parfait du J07 : `strlen` + `malloc` + copie. Si tu sais écrire `my_strdup`, tu maîtrises le trio gagnant de la gestion mémoire de base.
+
+La recette, dans l'ordre :
+
+- mesure `src` avec ta boucle `while (src[len] != '\0')`
+- alloue `malloc(sizeof(char) * (len + 1))` — le `+ 1` pour le `'\0'`, OBLIGATOIRE
+- teste `if (dest == NULL) return (NULL);` AVANT de copier quoi que ce soit
+- copie avec `while (i <= len)` : le `<=` embarque le terminateur dans la copie
+- renvoie `dest`
+
+Version courte si tu as déjà tes fonctions : alloue `my_strlen(src) + 1` octets, puis `my_strcpy(dest, src)`. Deux appels, zéro bug.
+
+Cas d'usage réel : sauvegarder un argument de `argv` avant de le modifier, remplir un tableau de chaînes (un `my_str_to_word_array` est essentiellement une collection de `strdup`), ou rendre une chaîne modifiable à partir d'un littéral.
+
+## À retenir
+
+- Qui `strdup`, qui `free` : chaque copie allouée doit être libérée, sinon fuite garantie.
+- Toujours tester le retour `NULL` avant d'écrire dedans.
+- `strdup(NULL)` : comportement indéfini, segfault probable. Protège tes entrées.
+- Ne confonds jamais les mondes : `free("litteral")` est interdit, `free(strdup("litteral"))` est obligatoire.
+'''
+example = '''
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/* strdup a la main : mesurer, allouer, copier. */
+char *my_strdup(const char *src)
+{
+    char *dest;
+    size_t len;
+    size_t i;
+
+    len = 0;
+    while (src[len] != '\0')
+        len = len + 1;
+    dest = malloc(sizeof(char) * (len + 1));
+    if (dest == NULL)
+        return NULL;
+    i = 0;
+    while (i <= len) {
+        dest[i] = src[i];
+        i = i + 1;
+    }
+    return dest;
+}
+
+int main(void)
+{
+    char *copie;
+    char *officielle;
+
+    copie = my_strdup("piscine");
+    officielle = strdup("piscine");
+    if (copie == NULL || officielle == NULL) {
+        free(copie);
+        free(officielle);
+        return 84;
+    }
+    copie[0] = 'P';
+    printf("my_strdup : %s | strdup : %s\n", copie, officielle);
+    free(copie);
+    free(officielle);
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier le free : chaque strdup reussi sans free est une fuite, valgrind la verra.",
+  "Oublier le + 1 dans le malloc : un octet de moins et le '\\0' deborde de la zone allouee.",
+  "Ecrire dans la copie sans tester NULL : malloc a echoue, segfault immediat.",
+  "strdup est POSIX, pas C99 strict : sans _POSIX_C_SOURCE ni prototype, gcc -std=c99 -Werror refuse de compiler.",
+  "Appeler strdup sur un pointeur NULL : comportement indefini, protege ton appel."
+]
+exercises = [
+  "Ecris my_strdup avec my_strlen, malloc et une boucle de copie qui embarque le '\\0', puis verifie avec valgrind que ton programme de test n'a aucune fuite.",
+  "Ecris my_strndup (au plus n caracteres copies, '\\0' final garanti) en t'inspirant de my_strdup.",
+  "Ecris un programme qui duplique argv[1], met la copie en majuscules, l'affiche, puis libere TOUTE la memoire avant de quitter."
+]
+related = ["malloc", "free", "fuites-memoire", "valgrind", "strcpy-strncpy"]

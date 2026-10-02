@@ -1,0 +1,15 @@
+id = "q-moulinette-echec"
+category = "piscine"
+difficulty = 3
+question = "La moulinette te donne 40 % alors que tout marche sur ta machine. Quelle est la bonne réaction ?"
+choices = [
+  "Repush le même code : la moulinette a ses humeurs",
+  "Conclure que la moulinette est cassée et passer à l'exercice suivant",
+  "Attendre sagement une correction humaine",
+  "Reproduire localement avec des cas limites (entrée vide, taille 0, gros volumes) et déboguer avec gdb et valgrind"
+]
+answer = 3
+explanation = '''
+La moulinette teste précisément les cas que tu n'as pas essayés : chaînes vides, tailles nulles ou énormes, fuites mémoire. Son environnement peut aussi différer du tien. La méthode : écris tes propres tests limites, lance valgrind --leak-check=full, et laisse gdb localiser le segfault avec bt. Ça marche chez moi n'a jamais convaincu personne.
+'''
+related = ["methodologie-debug", "moulinette", "valgrind"]

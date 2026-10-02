@@ -1,0 +1,97 @@
+id = "js-dom"
+title = "DOM — piloter la page en JavaScript"
+category = "web"
+tags = ["javascript", "dom", "manipulation", "selecteurs"]
+difficulty = 3
+synopsis = "document.querySelector('#id').textContent = '...' : attraper, modifier, la page suit."
+description = '''
+## En une phrase
+
+Le DOM (Document Object Model) est la représentation de ta page HTML en **arbre d'objets** que JavaScript peut lire et modifier en direct : la page change sans jamais recharger.
+
+## En pratique
+
+Quand le navigateur charge ton HTML, il le parse en arbre : `<html>` à la racine, chaque balise un nœud, le texte en feuilles. Même logique qu'un arbre binaire en C, sauf que la mémoire est gérée pour toi et que **modifier un nœud met à jour l'affichage instantanément**. Chaque nœud que tu récupères est une référence vers l'objet vivant — un pointeur, sans l'arithmétique.
+
+Attraper des éléments :
+
+- `document.getElementById("menu")` : un élément par son id
+- `document.querySelector(".card")` : le **premier** élément qui matche un sélecteur CSS
+- `document.querySelectorAll("li")` : **tous** ceux qui matchent, dans une NodeList que tu parcours avec `forEach`
+
+Si tu connais les sélecteurs CSS, tu connais déjà `querySelector` : c'est le même langage.
+
+Modifier :
+
+- `element.textContent = "..."` : remplace le **texte**, sûr et rapide
+- `element.innerHTML = "<b>...</b>"` : interprète du HTML — pratique mais **dangereux** avec des données utilisateur (injection de script, le buffer overflow du web)
+- `element.classList.add("active")`, `.remove()`, `.toggle()` : piloter les classes CSS, la bonne façon de changer un style
+
+Créer et insérer :
+
+```js
+const li = document.createElement("li");
+li.textContent = "Nouvel item";
+document.querySelector("ul").appendChild(li);
+```
+
+> Un `querySelector` qui ne trouve rien renvoie `null`, sans erreur. Le `.textContent` sur `null` plante une ligne plus loin — vérifie l'existence avant de modifier, comme un `malloc` testé avant usage.
+
+## À retenir
+
+- Le DOM = un arbre d'objets vivant ; JS le modifie, la page suit.
+- `querySelector` et `querySelectorAll` avec la syntaxe CSS que tu connais déjà.
+- `textContent` par défaut, `innerHTML` seulement sur du contenu que tu maîtrises.
+- `classList` pour changer les styles, jamais du `style` en dur si tu peux l'éviter.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>DOM</title>
+    <style>
+        .fait { text-decoration: line-through; color: grey; }
+    </style>
+</head>
+<body>
+    <h1>Ma todo list</h1>
+    <ul id="liste">
+        <li>Finir la piscine C</li>
+    </ul>
+    <button id="ajouter">Ajouter une tâche</button>
+
+    <script>
+        // querySelector : la syntaxe CSS pour attraper un element
+        const liste = document.querySelector("#liste");
+        const bouton = document.getElementById("ajouter");
+
+        bouton.addEventListener("click", function() {
+            // Creer un noeud puis l'accrocher a l'arbre : la page se met a jour
+            const li = document.createElement("li");
+            li.textContent = "Nouvelle tâche";   // texte pur, echappe, sur
+            liste.appendChild(li);
+        });
+
+        // classList : piloter les classes CSS depuis le JS
+        liste.addEventListener("click", function(event) {
+            if (event.target.tagName === "LI") {
+                event.target.classList.toggle("fait");
+            }
+        });
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "Un querySelector qui ne matche rien renvoie null sans erreur : le .textContent dessus plante une ligne plus loin.",
+  "Injecter des données utilisateur avec innerHTML : injection de script (XSS), le buffer overflow du web — préfère textContent.",
+  "Un script exécuté avant le HTML trouve un DOM vide : tous tes sélecteurs renvoient null.",
+  "Confondre querySelector (le premier match) et querySelectorAll (tous les matches, à parcourir avec forEach).",
+  "Modifier le style propriété par propriété en JS au lieu de basculer une classe avec classList : ingérable dès que ça grandit."
+]
+exercises = [
+  "Fais un compteur : un bouton + et un bouton - qui modifient le textContent d'un span, sans jamais recharger la page.",
+  "Construis une mini todo : un bouton qui crée un li par clic (createElement + appendChild), et un clic sur un li qui lui toggle une classe de barré."
+]
+related = ["js-bases", "js-evenements", "css-bases", "html-bases", "pointeurs"]

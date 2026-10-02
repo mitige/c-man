@@ -1,0 +1,99 @@
+id = "web-devtools"
+title = "DevTools — F12 avant de paniquer"
+category = "web"
+tags = ["devtools", "console", "debug", "navigateur"]
+difficulty = 2
+synopsis = "F12 ouvre les DevTools : console, inspecteur, réseau, debugger — ton kit de survie en piscine web."
+description = '''
+## En une phrase
+
+Les DevTools du navigateur (F12) sont ton microscope : console pour dialoguer avec ton JS, inspecteur pour voir et modifier le HTML/CSS en direct, onglet réseau pour espionner les requêtes, debugger pour figer le temps.
+
+## En pratique
+
+**La console** d'abord. `console.log` affiche une valeur, `console.error` la met en rouge (visible entre mille logs), `console.table` rend un tableau d'objets lisible en colonnes :
+
+```js
+console.log("promos reçues :", promos.length);
+console.error("échec du chargement", err);
+console.table(promos);   // colonnes triables, parfait pour les objets
+```
+
+Bonus : la console est aussi un REPL. Tu peux y taper du JS dans le contexte de la page — tester `document.querySelector("#titre")` sans toucher ton code.
+
+**L'inspecteur d'éléments** (clic droit → Inspecter) montre le DOM réel, pas ton fichier HTML : c'est ce que le navigateur a construit, modifications JS incluses. Double-clique pour éditer le HTML, coche/décoche des règles CSS dans le panneau Styles, et regarde quelle règle en écrase une autre — la règle **barrée** a perdu. C'est LA réponse à « pourquoi mon margin ne marche pas ».
+
+**L'onglet réseau** liste chaque requête : URL, méthode, code de statut, taille, durée. Clique une requête pour voir en-têtes et réponse. Un `fetch` qui « ne marche pas » se diagnostique ici en dix secondes : 404 ? mauvaise URL. 500 ? le serveur a planté. Rien du tout ? la requête n'est jamais partie, le bug est dans ton JS.
+
+**Le debugger** (onglet Sources) pose des breakpoints : clic sur le numéro de ligne, l'exécution s'arrête là, tu inspectes toutes les variables, tu avances pas à pas (F10 = ligne suivante, F11 = entrer dans la fonction). Un breakpoint bien placé vaut dix `console.log`.
+
+> Réflexe conditionné : un truc bizarre arrive → F12 d'abord, panique ensuite (généralement plus du tout). Un `console.log` au bon endroit répond à « mon code passe-t-il ici ? » en cinq secondes.
+
+## À retenir
+
+- F12 ouvre les DevTools ; la console est un REPL dans le contexte de la page.
+- `console.table` pour les tableaux d'objets, `console.error` pour ce qui doit se voir.
+- L'inspecteur montre le DOM vivant et la cascade CSS : la règle barrée a perdu.
+- L'onglet réseau dit si la requête part, ce qu'elle envoie, ce que le serveur répond.
+- Un breakpoint dans Sources fige l'exécution et expose toutes les variables.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Atelier DevTools</title>
+</head>
+<body>
+    <h1 id="titre">Piscine Web</h1>
+    <button id="charger">Charger les promos</button>
+    <ul id="liste"></ul>
+
+    <script>
+        const promos = [
+            { nom: "Web 2025", effectif: 42 },
+            { nom: "Web 2026", effectif: 37 }
+        ];
+
+        // --- Scenario commente : session de debug avec les DevTools ---
+        // 1. F12 -> Console : ce log confirme que le script s'execute bien.
+        console.log("script chargé", new Date().toLocaleTimeString());
+
+        // 2. Clic droit sur le h1 -> Inspecter : le panneau Styles montre
+        //    les regles CSS appliquees ; decoche-en une pour tester en direct.
+
+        document.querySelector("#charger").addEventListener("click", function() {
+            // 3. Sources -> clic sur le numero de cette ligne : breakpoint.
+            //    Au clic, l'execution s'arrete ici et tu inspectes `promos`.
+            console.table(promos);   // tableau d'objets -> colonnes lisibles
+
+            const liste = document.querySelector("#liste");
+            liste.innerHTML = "";
+            for (const p of promos) {
+                const li = document.createElement("li");
+                li.textContent = `${p.nom} : ${p.effectif} étudiants`;
+                liste.appendChild(li);
+            }
+
+            // 4. Onglet Reseau : recharge la page et observe la requete du
+            //    document HTML (statut 200), puis chaque fichier JS/CSS.
+            if (promos.length === 0) {
+                console.error("aucune promo reçue");   // rouge et visible
+            }
+        });
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "Chercher ton HTML tel que tu l'as écrit dans l'inspecteur : il montre le DOM vivant, modifié par le JS, pas ton fichier source.",
+  "Laisser traîner des console.log partout en rendant ton projet : ça pollue la console et peut fuiter des données — nettoie avant de push.",
+  "Tester le réseau avec le cache activé : une ressource en cache ne déclenche aucune requête — coche « Disable cache » dans l'onglet Network.",
+  "Oublier que la console vit avec la page : après un rechargement, tes variables et fonctions définies à la main disparaissent."
+]
+exercises = [
+  "Ouvre une de tes pages, trouve via l'inspecteur quelle règle CSS écrase ton style, et corrige-la en direct avant de reporter le fix dans ton fichier.",
+  "Pose un breakpoint dans un de tes handlers de clic, avance pas à pas avec F10 et note la valeur de chaque variable à chaque ligne.",
+  "Dans l'onglet réseau, recharge ta page et liste chaque requête : URL, méthode, statut, taille."
+]
+related = ["http-bases", "js-dom", "js-async", "js-bases"]

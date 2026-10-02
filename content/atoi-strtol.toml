@@ -1,0 +1,100 @@
+id = "atoi-strtol"
+title = "atoi & strtol — du texte vers les nombres"
+category = "libc"
+tags = ["parsing", "conversion", "stdlib", "errno"]
+difficulty = 2
+piscine_day = "J03"
+synopsis = "int atoi(const char *nptr);\nlong strtol(const char *nptr, char **endptr, int base);"
+description = '''
+## En une phrase
+
+`atoi` convertit une chaîne en `int` en mode cowboy (zéro détection d'erreur) ; `strtol` est sa version sérieuse qui te dit précisément ce qui a été lu et ce qui a échoué.
+
+## Prototype et retour
+
+```c
+#include <stdlib.h>
+int atoi(const char *nptr);
+long strtol(const char *nptr, char **endptr, int base);
+```
+
+`atoi` saute les espaces initiaux (au sens `isspace` : espace, `\t`, `\n`...), accepte UN signe `+` ou `-`, lit les chiffres, puis s'arrête au premier non-chiffre. S'il n'y a rien à convertir, il renvoie 0 — indistinguable d'un vrai `"0"`. Et si la valeur déborde d'un `int` : **comportement indéfini**.
+
+`strtol` fait le même travail en `long`, mais te rend le contrôle total :
+
+- `endptr` : s'il est non NULL, `*endptr` pointe le premier caractère NON converti. Si `*endptr == nptr`, rien n'a été lu.
+- `errno` : mis à `ERANGE` en cas de débordement (la fonction renvoie alors `LONG_MAX` ou `LONG_MIN`).
+- `base` : 10 en général, 16 pour de l'hexadécimal, 0 pour l'auto-détection (préfixe `0x`, `0`...).
+
+## En pratique
+
+En piscine, `my_atoi` est LE grand classique : la moulinette adore les cas tordus — espaces multiples, `"--+42"`, `"42abc"`, débordements... Comprends l'algorithme d'`atoi` avant de le réécrire : un index qui avance, un accumulateur de signe, une boucle qui empile les chiffres (`result = result * 10 + digit`).
+
+> Pour du code robuste (projets, jamais la piscine), utilise `strtol` avec vérification complète : `errno` remis à 0 avant l'appel, `end != nptr`, `*end == '\0'`, et borne le résultat dans `[INT_MIN, INT_MAX]` avant de caster en `int`.
+
+## À retenir
+
+- `atoi` ne peut PAS signaler d'erreur : `"abc"` et `"0"` donnent le même résultat.
+- Débordement dans `atoi` = UB, pas une simple valeur fausse garantie.
+- `strtol` est la seule façon propre de parser un nombre depuis une chaîne en C.
+- `"  -42"` donne -42 ; `"42abc"` donne 42 ; `"- 42"` donne 0 (le signe doit coller aux chiffres).
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <limits.h>
+
+/* Parse un int de facon robuste avec strtol.
+   Retourne 0 et remplit *out en cas de succes, 1 sinon. */
+static int parse_int(const char *str, int *out)
+{
+    char *end;
+    long value;
+
+    errno = 0;
+    value = strtol(str, &end, 10);
+    if (end == str) {
+        fprintf(stderr, "Aucun chiffre a convertir : %s\n", str);
+        return 1;
+    }
+    if (errno == ERANGE || value > INT_MAX || value < INT_MIN) {
+        fprintf(stderr, "Debordement hors int : %s\n", str);
+        return 1;
+    }
+    if (*end != '\0') {
+        fprintf(stderr, "Caracteres en trop apres le nombre : %s\n", end);
+        return 1;
+    }
+    *out = (int)value;
+    return 0;
+}
+
+int main(int argc, char **argv)
+{
+    int value;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <entier>\n", argv[0]);
+        return 84;
+    }
+    if (parse_int(argv[1], &value) != 0)
+        return 84;
+    printf("atoi   (cowboy)  : %d\n", atoi(argv[1]));
+    printf("strtol (verifie) : %d\n", value);
+    return 0;
+}
+'''
+gotchas = [
+  "atoi(\"abc\") renvoie 0 : impossible de distinguer une erreur d'une vraie valeur nulle.",
+  "Debordement = comportement indefini dans atoi (ex: atoi(\"99999999999999999\")). Jamais sur une entree non maitrisee.",
+  "Oublier errno = 0 avant strtol : personne ne remet errno a zero a ta place, tu peux relire un vieux ERANGE.",
+  "Tester endptr == NULL au lieu de *endptr == '\\0' : strtol ecrit dans *endptr, le pointeur lui-meme ne change pas.",
+  "Croire que atoi gere plusieurs signes : \"--42\" renvoie 0 (le deuxieme signe n'est pas un chiffre)."
+]
+exercises = [
+  "Reecris `my_atoi` : espaces initiaux, un ou plusieurs signes + ou - (chaque - inverse le signe), chiffres, stop au premier non-chiffre. Teste avec \"  --42abc\" -> attendu : 42.",
+  "Ajoute a my_atoi une detection de debordement : surveille l'accumulateur avant chaque result * 10 + digit et renvoie 0 (ou une erreur) si ca depasse INT_MAX.",
+  "Ecris un parseur robuste base sur strtol qui refuse toute entree non purement numerique (\"12x\" rejete) et tout debordement."
+]
+related = ["chaines-caracteres", "ctype", "gestion-errno", "debordements-entiers"]

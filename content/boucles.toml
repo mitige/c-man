@@ -1,0 +1,82 @@
+id = "boucles"
+title = "boucles — while partout, for nulle part (Norme oblige)"
+category = "langage"
+tags = ["boucles", "while", "norme", "bases"]
+difficulty = 1
+piscine_day = "J01"
+synopsis = "while (cond) { /* corps */ i++; } /* le for est interdit par la Norme */"
+description = '''
+## En une phrase
+
+Une boucle répète un bloc tant que sa condition reste vraie — et à la piscine, il n'y en a qu'une : `while`, parce que la Norme INTERDIT `for`.
+
+## En pratique
+
+`while (cond) { ... }` teste AVANT chaque tour : si la condition est fausse d'entrée, zéro tour. `do { ... } while (cond);` teste APRÈS : le corps s'exécute au moins une fois, utile pour les saisies à recommencer.
+
+`break` sort immédiatement de la boucle la plus proche. `continue` saute au tour suivant en ignorant le reste du corps — mais l'incrément, c'est toi qui le portes : s'il est APRÈS le `continue`, il ne s'exécutera jamais.
+
+Traduction for → while, LE réflexe piscine. `for (init; cond; incr) corps` devient :
+
+- `init;` juste avant la boucle
+- `while (cond) {`
+- le corps
+- `incr;` en TOUTE DERNIÈRE ligne du corps
+- `}`
+
+Oublier l'incrément en fin de corps est le bug numéro un du début de piscine : boucle infinie garantie.
+
+Compter les tours : déclare `int i = 0;` avant, incrémente en fin de corps, et trace mentalement les cas 0, 1 et 2 tours avant de compiler. C'est plus rapide que déboguer.
+
+Boucle infinie volontaire : `while (1) { ... }` avec un `break` dans le corps. Légitime quand la condition de sortie arrive au milieu du travail. Boucle infinie INVOLONTAIRE : Ctrl+C, puis cherche l'incrément manquant ou la condition qui ne peut jamais devenir fausse.
+
+## À retenir
+
+- `while (i < 10);` avec un point-virgule : le corps est vide, la boucle tourne à vide pour toujours.
+- `continue` placé avant l'incrément = boucle infinie. Mets l'incrément tout en haut ou tout en bas du corps, jamais au milieu.
+- `break` ne sort que d'UN niveau de boucle : pour une boucle imbriquée, utilise un flag ou un `return`.
+'''
+example = '''
+#include <stdio.h>
+
+/* Traduction d'un for classique en while conforme a la Norme. */
+static void print_table(int n)
+{
+    int i;
+
+    i = 1;                /* initialisation : le "i = 1" du for */
+    while (i <= 10) {     /* condition : le "i <= 10" */
+        printf("%d x %d = %d\n", n, i, n * i);
+        i++;              /* increment : le "i++", en fin de corps */
+    }
+}
+
+/* Boucle infinie volontaire, cassee par break. */
+int main(void)
+{
+    int count = 0;
+
+    print_table(7);
+    while (1) {
+        count++;
+        if (count >= 3)
+            break;
+        printf("tour %d (pas encore sorti)\n", count);
+    }
+    printf("sorti apres %d tours\n", count);
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier l'increment en fin de corps : la condition reste vraie et la boucle ne s'arrete jamais.",
+  "Le point-virgule parasite : while (i < 10); boucle sur un corps vide, a l'infini.",
+  "Placer l'increment apres un continue : le continue le saute, la boucle ne progresse plus.",
+  "Condition ecrite a l'envers (while (i > 0) au lieu de while (i < n)) : zero tour ou boucle infinie, teste i = 0 et i = n mentalement.",
+  "Modifier la variable de boucle dans le corps ET l'incrementer : des tours sautes ou jamais atteints."
+]
+exercises = [
+  "Calcule la somme des entiers de 1 a 100 avec un while, puis reecris-la avec un do..while et observe la difference si tu pars de 1000.",
+  "Affiche les 15 premiers termes de la suite de Fibonacci avec une seule boucle while et deux variables.",
+  "Trouve le premier multiple de 7 strictement superieur a 100 avec while (1) et break."
+]
+related = ["conditions", "operateurs", "fonctions", "recursivite"]

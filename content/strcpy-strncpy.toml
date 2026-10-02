@@ -1,0 +1,99 @@
+id = "strcpy-strncpy"
+title = "strcpy et strncpy — copier une chaîne sans déborder"
+category = "libc"
+tags = ["string", "copie", "buffer", "securite"]
+difficulty = 2
+piscine_day = "J04"
+synopsis = "char *strcpy(char *dest, const char *src);\nchar *strncpy(char *dest, const char *src, size_t n);"
+description = '''
+## En une phrase
+
+`strcpy` copie une chaîne entière (terminateur compris) dans un buffer qui DOIT être assez grand ; `strncpy` borne la copie à `n` octets, au prix de deux comportements surprenants.
+
+## Prototype et retour
+
+- Header : `<string.h>`
+- `char *strcpy(char *dest, const char *src);` : copie `src` dans `dest` jusqu'au `'\0'` INCLUS.
+- `char *strncpy(char *dest, const char *src, size_t n);` : copie au plus `n` octets.
+- Retour : les deux renvoient `dest` (le pointeur d'origine, pas un pointeur avancé), ce qui permet d'enchaîner les appels.
+
+AUCUNE vérification de taille avec `strcpy` : si `dest` est trop petit, c'est un débordement de buffer, donc un comportement indéfini. A toi de garantir `strlen(src) + 1` octets disponibles.
+
+`strncpy` a deux pièges officiels :
+
+- si `src` fait `n` octets ou plus : `n` octets copiés et PAS de `'\0'` final — tu dois le poser toi-même ;
+- si `src` est plus courte : le reste est bourré de `'\0'` jusqu'à `n` (un coût en O(n) même pour une toute petite source).
+
+> Recouvrement interdit : si `dest` et `src` se chevauchent, comportement indéfini. Pour les zones qui se recouvrent, c'est `memmove` qu'il faut.
+
+## En pratique
+
+Réimplémentation (`my_strcpy`, grand classique du J04) :
+
+- parcours `src` avec un compteur `i` tant que `src[i] != '\0'`
+- copie `dest[i] = src[i]` à chaque tour
+- n'oublie pas le `dest[i] = '\0';` final
+- renvoie `dest` — le pointeur d'ORIGINE, donc sauvegarde-le si tu incrémentes
+
+Pour `my_strncpy`, ajoute la borne `n` dans la boucle de copie, puis une SECONDE boucle qui remplit de `'\0'` jusqu'à `n`. La moulinette teste ce padding, il est dans le contrat.
+
+L'idiome de copie sûre avec le vrai `strncpy` :
+
+- `strncpy(buf, src, sizeof(buf) - 1);`
+- `buf[sizeof(buf) - 1] = '\0';`
+
+Deux lignes, toujours ensemble, jamais l'une sans l'autre.
+
+## À retenir
+
+- `strcpy` ne vérifie rien : dimensionne `dest` à `strlen(src) + 1` minimum.
+- `strncpy` ne garantit PAS le terminateur en cas de troncature : pose-le toi-même.
+- `strncpy` bourre de zéros jusqu'à `n` si la source est courte : ce n'est ni un bug ni une option.
+- La valeur de retour est `dest`, pratique pour écrire `return my_strcpy(a, b);`.
+'''
+example = '''
+#include <stdio.h>
+#include <string.h>
+
+/* Copie src dans dest, '\\0' compris, et renvoie dest. */
+char *my_strcpy(char *dest, const char *src)
+{
+    size_t i;
+
+    i = 0;
+    while (src[i] != '\0') {
+        dest[i] = src[i];
+        i = i + 1;
+    }
+    dest[i] = '\0';
+    return dest;
+}
+
+int main(void)
+{
+    char buffer[32];
+    char court[8];
+    char longue_chaine[] = "piscine C de trop";
+
+    my_strcpy(buffer, "piscine C");
+    printf("buffer = %s\n", buffer);
+    /* strncpy borne la copie, puis on pose le '\\0' soi-meme. */
+    strncpy(court, longue_chaine, sizeof(court) - 1);
+    court[sizeof(court) - 1] = '\0';
+    printf("court = %s\n", court);
+    return 0;
+}
+'''
+gotchas = [
+  "Destination trop petite : strcpy ne verifie rien, un octet de trop ecrase la memoire voisine (comportement indefini).",
+  "strncpy sans '\\0' final : si src fait n octets ou plus, la chaine n'est PAS terminee et le prochain printf lit n'importe ou.",
+  "Oublier le padding : strncpy remplit de '\\0' jusqu'a n quand src est courte, ton my_strncpy doit faire pareil.",
+  "Renvoyer un pointeur incremente au lieu du dest d'origine : le contrat impose de renvoyer dest.",
+  "Copier entre zones qui se chevauchent : comportement indefini, utilise memmove a la place."
+]
+exercises = [
+  "Ecris my_strcpy avec un while, verifie qu'il copie bien le '\\0' final et qu'il renvoie le pointeur d'origine.",
+  "Ecris my_strncpy avec la borne n ET le remplissage a '\\0' jusqu'a n, puis teste avec une source plus courte et plus longue que n.",
+  "Ecris un programme qui copie argv[1] dans un buffer de 16 octets avec strncpy, pose le terminateur, et affiche le resultat."
+]
+related = ["strlen", "chaines-caracteres", "strcat-strncat", "memcpy-memmove", "undefined-behavior"]

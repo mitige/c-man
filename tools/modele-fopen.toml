@@ -1,0 +1,68 @@
+id = "fichier-modele"
+title = "fopen — ouvrir un fichier (stdio bufferisé)"
+category = "libc"
+tags = ["io", "fichier", "stdio"]
+difficulty = 3
+piscine_day = "J10"
+synopsis = "FILE *fopen(const char *pathname, const char *mode);"
+description = '''
+## En une phrase
+
+`fopen` ouvre un fichier et renvoie un flux bufferisé `FILE *`, la porte d'entrée de toute la famille stdio (`fgets`, `fprintf`, `fclose`...).
+
+## En pratique
+
+Contrairement à `open(2)` qui renvoie un descripteur brut, `fopen` ajoute un **buffer** : les lectures/écritures passent par la mémoire avant de toucher le disque, ce qui est bien plus rapide pour du petit trafic.
+
+Les modes à connaître par cœur :
+
+- `"r"` : lecture seule, échoue si le fichier n'existe pas
+- `"w"` : écriture, **écrase** le fichier s'il existe, le crée sinon
+- `"a"` : écriture en ajout à la fin, crée le fichier sinon
+- `"r+"`, `"w+"`, `"a+"` : les mêmes, en lecture + écriture
+
+> **Retour** : un pointeur `FILE *` valide, ou `NULL` en cas d'échec (errno est alors positionné). **Toujours** tester le retour avant d'utiliser le flux.
+
+## À retenir
+
+- Chaque `fopen` réussi doit avoir son `fclose` : sinon fuite de descripteur et buffer non vidé.
+- `fopen` échoue silencieusement si tu oublies de tester : un `NULL` déréférencé par `fgets`, c'est un segfault immédiat.
+- En piscine, `open`/`read`/`write` sont souvent les seuls autorisés : vérifie le sujet avant d'utiliser stdio.
+'''
+example = '''
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+
+/* Lit et affiche un fichier ligne par ligne avec stdio. */
+int main(int argc, char **argv)
+{
+    FILE *file;
+    char line[256];
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <fichier>\n", argv[0]);
+        return 84;
+    }
+    file = fopen(argv[1], "r");
+    if (file == NULL) {
+        fprintf(stderr, "fopen: %s\n", strerror(errno));
+        return 84;
+    }
+    while (fgets(line, sizeof(line), file) != NULL)
+        fputs(line, stdout);
+    fclose(file);
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier de tester le retour NULL : le premier fgets sur un flux NULL segfaulte.",
+  "Ouvrir en \"w\" par réflexe : le fichier existant est écrasé sans sommation.",
+  "Oublier fclose : le buffer n'est pas vidé, les dernières données peuvent ne jamais atteindre le disque.",
+  "Confondre FILE * (stdio) et int (descripteur open) : les deux mondes ne se mélangent pas sans fileno/fdopen."
+]
+exercises = [
+  "Écris un programme `my_cat` qui affiche un fichier passé en argument avec fopen/fgets/fputs, et renvoie 84 sur toute erreur.",
+  "Modifie-le pour compter le nombre de lignes, puis compare le résultat avec `wc -l`."
+]
+related = ["open-close", "read", "write", "gestion-errno"]

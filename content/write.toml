@@ -1,0 +1,103 @@
+id = "write"
+title = "write — écrire des octets, ta seule arme en piscine"
+category = "libc"
+tags = ["io", "syscall", "stdout", "piscine"]
+difficulty = 2
+piscine_day = "J01"
+synopsis = "ssize_t write(int fd, const void *buf, size_t count);"
+description = '''
+## En une phrase
+
+`write` envoie `count` octets depuis `buf` vers le descripteur de fichiers `fd`, directement au noyau, sans buffer ni formatage d'aucune sorte.
+
+## Prototype et retour
+
+```c
+#include <unistd.h>
+ssize_t write(int fd, const void *buf, size_t count);
+```
+
+- `fd` : le descripteur. Trois sont ouverts d'office : `0` = stdin, `1` = stdout, `2` = stderr.
+- `buf` : pointeur vers les octets à écrire. Le `const void *` avale n'importe quel type, un `char *` fait très bien l'affaire.
+- `count` : nombre d'octets à écrire, un `size_t` (non signé).
+
+**Retour** : un `ssize_t` (signé, lui) = le nombre d'octets **réellement écrits**, qui peut être **inférieur à `count`** (tube plein, signal, quota...). En cas d'erreur : `-1`, et `errno` est positionné. Tu ne le testeras pas à chaque fois en piscine, mais sache qu'il existe.
+
+## En pratique
+
+`printf` est presque toujours interdit en piscine : `write` devient ton unique sortie. L'idiome de base :
+
+```c
+write(1, str, strlen(str));
+```
+
+Et comme `strlen` est parfois interdit aussi, tu écriras ton propre compteur dès le premier jour :
+
+```c
+int my_strlen(char *str)
+{
+    int i = 0;
+
+    while (str[i] != '\0')
+        i = i + 1;
+    return i;
+}
+```
+
+Deux réflexes à graver immédiatement :
+
+- `write` n'ajoute **jamais** de `'\n'` : si tu veux une nouvelle ligne, écris-la toi-même avec `write(1, "\n", 1)`.
+- `write` n'est **pas bufferisé** : chaque appel part directement au noyau. Pratique pour déboguer, mais écrire octet par octet dans une boucle de dix millions de tours, ça rame. Regroupe dans un buffer dès que le sujet te le permet.
+
+Pour afficher un nombre, pas de magie : découpe-le chiffre par chiffre (divisions par 10, souvent en récursif) et envoie chaque caractère. C'est l'exercice `my_putnbr`, un grand classique.
+
+## À retenir
+
+- Retour = octets écrits, `-1` = erreur. Jamais de `'\n'` automatique, jamais de formatage.
+- fd `1` = stdout pour l'affichage normal, fd `2` = stderr pour les messages d'erreur : respecte cette convention, la moulinette sépare les deux flux.
+- Les types `ssize_t` et `size_t` arrivent avec `<unistd.h>`.
+- write + une boucle de comptage maison = 90 % de tes affichages de piscine.
+'''
+example = '''
+#include <unistd.h>
+
+/* Compte les caracteres d'une chaine, version maison de strlen. */
+static int my_strlen(char const *str)
+{
+    int i = 0;
+
+    while (str[i] != '\0')
+        i = i + 1;
+    return i;
+}
+
+/* Affiche une chaine sur stdout avec un seul appel a write. */
+static void my_putstr(char const *str)
+{
+    write(1, str, my_strlen(str));
+}
+
+int main(void)
+{
+    char *msg = "Piscine C : write est ta seule arme";
+
+    my_putstr(msg);
+    write(1, "\n", 1);
+    my_putstr("Pas de newline automatique, on la pose a la main.");
+    write(1, "\n", 1);
+    return 0;
+}
+'''
+gotchas = [
+  "Croire que write ajoute un '\\n' : jamais. Tes affichages se collent les uns aux autres tant que tu ne l'écris pas explicitement.",
+  "Hardcoder la longueur : write(1, str, 5) sur une chaine qui change, c'est le bug garanti. Calcule toujours la longueur.",
+  "Oublier que le retour peut être inférieur à count : sur un tube ou une socket, boucle jusqu'à avoir tout écrit.",
+  "Écrire les erreurs sur fd 1 au lieu de fd 2 : la moulinette compare stdout et stderr séparément, tu peux perdre des points pour ça.",
+  "Écrire octet par octet dans une boucle géante : chaque write est un appel système, c'est lent. Regroupe dans un buffer."
+]
+exercises = [
+  "Écris my_putchar (un write d'un octet) puis my_putstr qui l'utilise, et teste-les depuis un main.",
+  "Écris my_putnbr : affiche un int avec uniquement write et la récursivité. Gère le signe et INT_MIN.",
+  "Écris un programme qui affiche chacun de ses arguments (argv) suivi d'un retour à la ligne, avec write uniquement."
+]
+related = ["read", "putchar", "printf", "strlen", "gestion-errno"]

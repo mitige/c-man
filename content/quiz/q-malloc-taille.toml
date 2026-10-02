@@ -1,0 +1,22 @@
+id = "q-malloc-taille"
+category = "memoire"
+difficulty = 3
+question = '''
+Quel est le bug de ce code ?
+
+```c
+int n = 10;
+int *tab = malloc(n);
+```
+'''
+choices = [
+  "malloc prend des octets : il faut malloc(n * sizeof(int)), soit 40 octets et non 10",
+  "malloc ne peut pas recevoir une variable en argument",
+  "Il manque le cast (int *) devant malloc",
+  "Il faut appeler free avant d'écrire dans tab"
+]
+answer = 0
+explanation = '''
+malloc compte en OCTETS, pas en éléments : malloc(10) réserve 10 octets, de quoi ranger à peine 2 int. Écrire 10 int là-dedans déborde de 30 octets — comportement indéfini. L'idiome robuste est malloc(n * sizeof(*tab)) : si le type de tab change un jour (int vers long, par exemple), l'allocation reste correcte sans y repenser.
+'''
+related = ["malloc", "stack-vs-heap", "segfault"]

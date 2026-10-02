@@ -1,0 +1,79 @@
+id = "fonctions"
+title = "fonctions — une tâche, 25 lignes, zéro excuse"
+category = "langage"
+tags = ["fonctions", "prototype", "norme", "bases"]
+difficulty = 1
+piscine_day = "J02"
+synopsis = "int my_add(int a, int b); /* prototype en haut, definition plus bas */"
+description = '''
+## En une phrase
+
+Une fonction encapsule UNE tâche derrière un nom : tu lui passes des valeurs, elle te renvoie un résultat, et la Norme lui impose 25 lignes maximum.
+
+## En pratique
+
+Trois mots à ne plus confondre :
+
+- DÉCLARATION (prototype) : `int my_add(int a, int b);` — annonce au compilateur que la fonction existe, avec ses types exacts.
+- DÉFINITION : le corps complet, là où le code vit.
+- APPEL : `my_add(40, 2)` — saute dans la fonction, puis revient avec la valeur de retour.
+
+Le prototype va en haut du fichier (ou dans un .h). Sans lui, appeler une fonction définie plus bas est une erreur en C99 : la déclaration implicite est interdite, et `-Werror` te crucifie.
+
+`return expr;` quitte la fonction immédiatement et renvoie la valeur. Dans une fonction `void`, `return;` seul sert à sortir plus tôt. Une fonction non-void qui se termine sans return : comportement indéfini si l'appelant lit la valeur.
+
+Passage PAR VALEUR, le concept le plus important du mois : la fonction reçoit une COPIE de chaque argument. Modifier le paramètre ne change JAMAIS la variable de l'appelant. Pour modifier l'original, il faudra passer son adresse — rendez-vous à la fiche pointeurs.
+
+La règle des 25 lignes (Norme) n'est pas une punition : une fonction courte se nomme, se teste et se débogue facilement. Si tu dépasses, découpe : chaque bloc qui fait "un truc" mérite sa propre fonction. Une fonction = une tâche = un nom de verbe clair (`my_putnbr`, `count_words`...).
+
+## À retenir
+
+- Les types du prototype et de la définition doivent être identiques, au caractère près.
+- Paramètre devenu inutile ? -Wextra râle : supprime-le, ou écris `(void)param;` s'il est imposé par une signature.
+- `static` devant une fonction la rend privée au fichier : bon réflexe pour tes helpers.
+'''
+example = '''
+#include <stdio.h>
+
+/* Prototypes : la promesse faite au compilateur. */
+static int my_add(int a, int b);
+static void try_to_modify(int n);
+
+/* Les definitions peuvent venir apres le main. */
+int main(void)
+{
+    int x = 40;
+    int y = 2;
+
+    printf("my_add(%d, %d) = %d\n", x, y, my_add(x, y));
+    try_to_modify(x);
+    printf("x apres try_to_modify = %d (inchange : copie !)\n", x);
+    return 0;
+}
+
+/* Renvoie la somme de deux entiers. */
+static int my_add(int a, int b)
+{
+    return a + b;
+}
+
+/* Recoit une COPIE de l'argument : l'original ne bouge jamais. */
+static void try_to_modify(int n)
+{
+    n = 84;
+    printf("dans la fonction, n vaut %d\n", n);
+}
+'''
+gotchas = [
+  "Appeler une fonction sans prototype visible : erreur de declaration implicite en C99, fatale avec -Werror.",
+  "Croire que modifier le parametre modifie l'argument : passage par valeur, la fonction travaille sur une copie.",
+  "Fonction de 60 lignes : Norme KO. Decoupe en sous-fonctions, chacune doit tenir en 25 lignes.",
+  "Oublier le return dans une fonction non-void : l'appelant lit une valeur indeterminee, comportement indefini.",
+  "Prototype et definition qui divergent (int contre char *) : comportement indefini a l'appel, le compilateur ne peut pas toujours te sauver."
+]
+exercises = [
+  "Ecris int my_max(int a, int b) puis int my_max3(int a, int b, int c) qui appelle my_max deux fois.",
+  "Ecris void print_square(int n) qui affiche un carre de n x n etoiles, en decoupant en print_line(int n).",
+  "Prends un de tes vieux main de 40 lignes et decoupe-le en trois fonctions de moins de 15 lignes."
+]
+related = ["portee-variables", "pointeurs", "recursivite", "la-norme"]

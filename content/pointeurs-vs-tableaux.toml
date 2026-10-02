@@ -1,0 +1,86 @@
+id = "pointeurs-vs-tableaux"
+title = "pointeurs vs tableaux — le grand malentendu"
+category = "memoire"
+tags = ["pointeur", "tableau", "decay", "sizeof", "parametres"]
+difficulty = 4
+piscine_day = "J04"
+synopsis = "int t[10] est un bloc dimensionné, int *p une adresse ; t décroît en &t[0] dans les expressions"
+description = '''
+## En une phrase
+
+Un tableau n'est **pas** un pointeur : c'est un bloc de mémoire dimensionné à la compilation — mais dans la plupart des expressions, il « décroît » (decay) en pointeur vers son premier élément, d'où la confusion éternelle.
+
+## En pratique
+
+```c
+int t[10];   /* 10 int contigus : t N'EST PAS une variable-pointeur */
+int *p = t;  /* decay : t est remplacé par &t[0] dans cette expression */
+```
+
+Le **decay** : dès qu'un tableau apparaît dans une expression (assignation, argument de fonction, arithmétique), il est converti en pointeur vers `t[0]`. C'est pour ça que `t[i]` et `p[i]` se comportent pareil au quotidien.
+
+Mais trois différences trahissent la vraie nature du tableau :
+
+1. `sizeof(t)` donne la taille du **bloc entier** (10 × 4 = 40 octets) ; `sizeof(p)` donne la taille d'une **adresse** (8 octets).
+2. `t` n'est **pas assignable** : `t = p;` ne compile pas. Un tableau n'est pas une variable, c'est une zone.
+3. `&t` a le type « pointeur sur tableau de 10 int » : même valeur d'adresse que `&t[0]`, mais un type différent (`int (*)[10]` vs `int *`).
+
+Piège classique en argument de fonction :
+
+```c
+void f(int t[]);   /* STRICTEMENT identique à : void f(int *t) */
+```
+
+Un paramètre déclaré tableau **est un pointeur** : les crochets sont un mensonge cosmétique. Dans `f`, `sizeof(t)` vaut 8, pas 40 (gcc prévient avec -Wsizeof-array-argument). Conséquence : une fonction ne peut pas deviner la longueur d'un tableau qu'on lui passe — tu dois la passer à côté, ou utiliser un sentinelle (`my_putstr(char *s)` s'en sort car une chaîne se termine par `'\0'`).
+
+```
+t : [int][int][int]...[int]    <- 40 octets contigus, là où il est déclaré
+p : [ adresse --------> t[0] ] <- 8 octets, potentiellement ailleurs
+```
+
+Et `malloc` ne crée pas de tableau non plus : `int *p = malloc(40);` te donne un pointeur, `sizeof(p)` restera 8.
+
+## À retenir
+
+- Tableau = bloc dimensionné ; pointeur = adresse stockée. Deux objets de nature différente.
+- Le decay rend les usages quotidiens interchangeables : `t[i]`, `t + 1`, passage en argument.
+- `sizeof` et l'assignation révèlent la différence — teste-les en cas de doute.
+- En paramètre, `int t[]` == `int *t` : passe toujours la taille avec, ou un sentinelle.
+'''
+example = '''
+#include <stdio.h>
+
+/* "int t[]" en paramètre serait STRICTEMENT identique : c'est un pointeur. */
+static void inspect(int *t)
+{
+    printf("dans inspect : sizeof(t) = %zu octets -> le pointeur seul\n",
+           sizeof(t));
+}
+
+int main(void)
+{
+    int t[10];
+    int *p = t;   /* decay : t vaut &t[0] dans cette expression */
+
+    printf("sizeof(t)  = %zu octets -> le bloc entier (10 int)\n", sizeof(t));
+    printf("sizeof(p)  = %zu octets -> juste une adresse\n", sizeof(p));
+    printf("sizeof(*p) = %zu octets -> un seul int\n", sizeof(*p));
+    printf("&t[0] = %p et p = %p : même adresse\n", (void *)&t[0], (void *)p);
+    inspect(t);
+    /* t = p; ne compile pas : un tableau n'est pas une variable assignable */
+    return 0;
+}
+'''
+gotchas = [
+  "sizeof dans une fonction qui reçoit int t[] : tu obtiens la taille du pointeur (8), pas celle du tableau.",
+  "t = p; sur un tableau : erreur de compilation, un tableau n'est jamais assignable.",
+  "Retourner un tableau local : il decay en pointeur... vers une case de la stack qui va mourir au return.",
+  "Croire que int *p = malloc(...) crée un tableau : non, p reste un pointeur et sizeof(p) vaut 8.",
+  "Confondre &t et &t[0] : même adresse, mais types différents (int (*)[10] contre int *) — l'arithmétique diffère."
+]
+exercises = [
+  "Affiche sizeof d'un tableau dans main, puis dans une fonction appelée avec ce tableau : explique l'écart en deux phrases.",
+  "Écris print_ints(int *t, size_t n) qui affiche un tableau, appelle-la depuis main, et constate que le paramètre n est indispensable.",
+  "Écris t = p; dans main, lis le message d'erreur de gcc, et apprends à reconnaître 'assignment to expression with array type'."
+]
+related = ["pointeurs", "arithmetique-pointeurs", "tableaux", "chaines-caracteres", "malloc"]

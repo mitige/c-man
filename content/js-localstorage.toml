@@ -1,0 +1,107 @@
+id = "js-localstorage"
+title = "localStorage — une mémoire qui survit au rechargement"
+category = "web"
+tags = ["javascript", "localstorage", "persistance", "json"]
+difficulty = 2
+synopsis = "localStorage.setItem('cle', 'valeur') : du texte stocké dans le navigateur, encore là après fermeture."
+description = '''
+## En une phrase
+
+`localStorage` stocke des paires **clé -> valeur** en texte dans le navigateur, et contrairement à tes variables JS, elles **survivent** au rechargement de la page et à la fermeture du navigateur.
+
+## En pratique
+
+Tes variables JS vivent dans la mémoire de la page : un F5 et tout est perdu, comme un programme C qui quitte. `localStorage` est ton petit fichier persistant, isolé par **origine** (protocole + domaine + port). L'API tient en quatre appels :
+
+```js
+localStorage.setItem("pseudo", "Marvin");   // écrire (crée ou remplace)
+localStorage.getItem("pseudo");             // lire : string, ou null si absent
+localStorage.removeItem("pseudo");          // supprimer une clé
+localStorage.clear();                       // tout vider
+```
+
+Deux pièges de type. D'abord, **tout est string** : `setItem("score", 42)` stocke `"42"`, et `getItem` te rendra `"42"` — à toi de convertir avec `Number()`. Ensuite, pour stocker un objet ou un tableau, passage obligé par JSON :
+
+```js
+const joueur = { pseudo: "Marvin", niveau: 3 };
+localStorage.setItem("joueur", JSON.stringify(joueur));  // objet -> texte
+
+const brut = localStorage.getItem("joueur");
+const relu = JSON.parse(brut);                           // texte -> objet
+```
+
+Sans `stringify`, ton objet devient la chaîne `"[object Object]"` — inutilisable, le grand classique.
+
+`sessionStorage` a **exactement la même API**, une seule différence : les données meurent à la fermeture de l'onglet. Choisis `localStorage` pour ce qui doit durer (préférences, thème, panier), `sessionStorage` pour le temporaire (l'étape d'un formulaire multi-pages).
+
+Les limites à connaître :
+
+- Environ **5 Mo** par origine ; au-delà, `setItem` lève une exception.
+- **Synchrone** : chaque appel bloque le thread principal. Parfait pour des réglages, pas pour des méga-octets ni des écritures en boucle.
+- **En clair** : n'importe quel script de la page peut tout lire. Jamais de mot de passe ni de token sensible dedans.
+
+## À retenir
+
+- `setItem` / `getItem` / `removeItem`, et tout est **string** — convertis les nombres.
+- Objets et tableaux : `JSON.stringify` à l'écriture, `JSON.parse` à la lecture.
+- `localStorage` persiste, `sessionStorage` meurt avec l'onglet — même API.
+- ~5 Mo, synchrone, en clair : un tiroir à préférences, pas une base de données.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>localStorage</title>
+</head>
+<body>
+    <h1>Salut <span id="affiche">inconnu</span></h1>
+    <input id="champ" type="text" placeholder="Ton pseudo">
+    <button id="sauver">Sauvegarder</button>
+    <button id="effacer">Oublier</button>
+
+    <script>
+        const affiche = document.querySelector("#affiche");
+        const champ = document.querySelector("#champ");
+
+        // Au chargement : relire ce qui a survécu aux rechargements
+        const pseudo = localStorage.getItem("pseudo");   // string ou null
+        if (pseudo !== null) {
+            affiche.textContent = pseudo;
+            champ.value = pseudo;
+        }
+
+        // Écrire : setItem crée la clé ou remplace sa valeur
+        document.querySelector("#sauver").addEventListener("click", function() {
+            localStorage.setItem("pseudo", champ.value);
+            affiche.textContent = champ.value;
+        });
+
+        // Supprimer une seule clé
+        document.querySelector("#effacer").addEventListener("click", function() {
+            localStorage.removeItem("pseudo");
+            affiche.textContent = "inconnu";
+        });
+
+        // Objets : passage obligé par JSON, sinon "[object Object]"
+        const prefs = { theme: "sombre", fontSize: 14 };
+        localStorage.setItem("prefs", JSON.stringify(prefs));
+        const relu = JSON.parse(localStorage.getItem("prefs"));
+        console.log(relu.theme);   // "sombre"
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "getItem renvoie une string ou null : localStorage.getItem('score') + 1 concatène ('5' + 1 = '51') au lieu d'additionner — convertis avec Number().",
+  "Stocker un objet sans JSON.stringify : tu récupères la chaîne '[object Object]', inutilisable.",
+  "JSON.parse d'une clé absente renvoie null : accéder à une propriété du résultat plante — teste avant.",
+  "Dépasser le quota (~5 Mo par origine) : setItem lève une exception QuotaExceededError.",
+  "Y stocker un mot de passe ou un token : tout est lisible en clair par n'importe quel script de la page."
+]
+exercises = [
+  "Fais un champ pseudo qui se remplit tout seul au rechargement grâce à localStorage.",
+  "Persiste une todo list : sérialise le tableau de tâches en JSON à chaque ajout, recharge-la au démarrage.",
+  "Stocke un compteur de visites en sessionStorage puis en localStorage, et compare après fermeture de l'onglet."
+]
+related = ["js-bases", "js-dom", "js-evenements", "js-formulaires", "js-fonctions"]

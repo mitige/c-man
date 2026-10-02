@@ -1,0 +1,23 @@
+id = "q-web-css-specificity"
+category = "web"
+difficulty = 2
+question = '''
+Avec cette feuille de style :
+
+p { color: blue; }
+.texte { color: green; }
+#intro { color: red; }
+
+De quelle couleur s'affiche <p id="intro" class="texte">Salut</p> ?
+'''
+choices = [
+  "Rouge : le sélecteur d'id est le plus spécifique",
+  "Vert : la classe est plus récente que l'élément dans le fichier",
+  "Bleu : c'est la première règle déclarée qui gagne",
+  "Noir : les règles sont en conflit donc aucune ne s'applique"
+]
+answer = 0
+explanation = '''
+Quand plusieurs règles ciblent le même élément, le navigateur compare la spécificité des sélecteurs : un sélecteur d'id (#intro) bat une classe (.texte), qui bat un sélecteur d'élément (p). L'ordre d'apparition dans le fichier ne sert qu'à départager des règles de MÊME spécificité, auquel cas la dernière gagne. Ici #intro gagne donc haut la main, même s'il est déclaré en dernier. Évite d'empiler les !important pour contourner ces conflits, cela rend le CSS vite ingérable.
+'''
+related = ["css-bases", "html-bases"]

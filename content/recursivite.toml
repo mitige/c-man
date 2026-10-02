@@ -1,0 +1,77 @@
+id = "recursivite"
+title = "récursivité — la fonction qui s'appelle elle-même"
+category = "langage"
+tags = ["recursion", "stack", "cas-de-base", "factorielle"]
+difficulty = 3
+piscine_day = "J06"
+synopsis = "int fact(int n) { return n <= 1 ? 1 : n * fact(n - 1); }"
+description = '''
+## En une phrase
+
+Une fonction récursive s'appelle elle-même sur un problème réduit, jusqu'à un cas de base qui arrête la machine.
+
+## En pratique
+
+Toute récursion saine a deux bras : le **cas de base** (condition d'arrêt, sans appel récursif) et le **cas récursif** (appel sur une donnée strictement plus petite). Factorielle : `fact(n) = n * fact(n - 1)`, cas de base `n <= 1`. Sans cas de base, ou si tu ne t'en rapproches pas à chaque appel, la récursion ne s'arrête jamais.
+
+Chaque appel empile un **contexte** (paramètres, variables locales, adresse de retour) sur la stack. Trop d'appels imbriqués = **stack overflow** : crash sans message gentil. La stack fait quelques mégaoctets ; une récursion à un million de niveaux n'y survivra pas. Et pour `fact`, l'int déborde bien avant : `13!` dépasse déjà `INT_MAX`.
+
+Pense en deux temps : la **descente** (on empile les appels jusqu'au cas de base) puis la **remontée** (chaque appel renvoie son résultat au précédent). C'est la remontée qui permet des tours de magie comme afficher une chaîne à l'envers : appelle d'abord la récursion sur `str + 1`, puis affiche `str[0]` — l'affichage se fait à la remontée, dans l'ordre inverse, sans toucher à la chaîne.
+
+Récursif ou itératif ? Le récursif est souvent plus lisible (arbres, listes, diviser pour régner), l'itératif plus sobre en mémoire. Les exos du J06 (`my_factorial_rec`, `my_power_rec`...) se réécrivent tous en boucle : fais-le, c'est le meilleur entraînement pour sentir l'équivalence.
+
+## À retenir
+
+- Pas de cas de base = récursion infinie = stack overflow. Vérifie-le en premier, avant toute autre chose.
+- Chaque appel coûte un contexte sur la stack : la profondeur n'est pas gratuite.
+- Traitement avant l'appel = descente ; traitement après l'appel = remontée. Maîtrise les deux.
+'''
+example = '''
+#include <stdio.h>
+
+/* Factorielle : n! = n * (n-1)!, cas de base 0! = 1! = 1. */
+static int my_fact_rec(int n)
+{
+    if (n <= 1)
+        return 1;
+    return n * my_fact_rec(n - 1);
+}
+
+/* Puissance : n^p, cas de base p == 0. */
+static int my_power_rec(int n, int p)
+{
+    if (p <= 0)
+        return 1;
+    return n * my_power_rec(n, p - 1);
+}
+
+/* Affiche une chaîne à l'envers : l'affichage se fait à la REMONTÉE. */
+static void my_revprint(char const *str)
+{
+    if (str[0] == '\0')
+        return;
+    my_revprint(str + 1);
+    putchar(str[0]);
+}
+
+int main(void)
+{
+    printf("5! = %d\n", my_fact_rec(5));
+    printf("2^10 = %d\n", my_power_rec(2, 10));
+    printf("epitech a l'envers : ");
+    my_revprint("epitech");
+    putchar('\n');
+    return 0;
+}
+'''
+gotchas = [
+  "Cas de base manquant ou jamais atteint : récursion infinie, stack overflow, segfault sans pitié.",
+  "Appel récursif qui ne réduit pas le problème (fact(n) au lieu de fact(n - 1)) : même punition.",
+  "Déborder de l'int avant d'épuiser la stack : 13! dépasse déjà INT_MAX, le résultat est faux bien avant le crash.",
+  "Oublier que chaque appel empile un contexte : la profondeur maximale est limitée par la taille de la stack."
+]
+exercises = [
+  "Écris my_power_rec(int n, int p) avec le cas de base p == 0, puis sa version itérative, et compare les deux sur les mêmes valeurs.",
+  "Écris my_revprint qui affiche une chaîne à l'envers en plaçant putchar APRÈS l'appel récursif ; déplace-le AVANT l'appel et observe la différence."
+]
+related = ["fonctions", "stack-vs-heap", "boucles", "structures", "segfault"]

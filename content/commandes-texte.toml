@@ -1,0 +1,74 @@
+id = "commandes-texte"
+title = "commandes-texte — grep, sed, awk et les couteaux suisses"
+category = "bash"
+tags = ["grep", "sed", "awk", "tri", "texte"]
+difficulty = 3
+synopsis = "grep -rn motif . | cut -d: -f1 | sort -u"
+description = '''
+## En une phrase
+
+grep cherche, sed transforme, awk découpe : ces couteaux suisses lisent du texte et crachent du texte, prêts à être chaînés par des pipes.
+
+## En pratique
+
+`grep` est ta lampe torche : `grep -rn "malloc" src/` cherche récursivement (`-r`) avec numéros de lignes (`-n`). Ajoute `-i` pour ignorer la casse, `-v` pour inverser (tout SAUF le motif), `-c` pour compter les lignes trouvées, `-l` pour n'avoir que les noms de fichiers.
+
+`sed` édite à la volée : `sed 's/foo/bar/g' fichier` affiche le fichier avec foo remplacé par bar (le `g` = toutes les occurrences de chaque ligne, pas juste la première). L'option `-i` modifie le fichier sur place.
+
+`awk` pense en colonnes : `awk '{print $1}'` affiche la première colonne, `awk -F: '{print $1}'` change le séparateur de champs.
+
+Le reste de la boîte à outils :
+
+- `cut -d: -f1` : découpe sur un délimiteur, garde le champ 1
+- `sort -n` (numérique), `sort -u` (dédoublonné), `sort -r` (ordre inverse)
+- `uniq -c` : compte les doublons **adjacents** — d'où le `sort` presque toujours avant
+- `tr 'a-z' 'A-Z'` : traduit caractère par caractère
+- `head` / `tail` (`-n 20`, et `tail -f` pour suivre un log en direct)
+- `wc -l` : compte les lignes
+- `xargs` : transforme stdin en arguments pour une autre commande
+
+> Le combo piscine ultime : `grep -rn "error" src/ | cut -d: -f1 | sort -u` — la liste des fichiers en erreur, sans doublons, prête pour ta liste de choses à corriger.
+
+## À retenir
+
+- Ces outils lisent stdin ou un fichier et écrivent sur stdout : c'est pour ça qu'ils se chaînent avec `|`.
+- `sort` trie du texte par défaut : 10 passe avant 2. L'option `-n` corrige.
+- Teste `sed` sans `-i` d'abord : la modification sur place ne pardonne pas.
+- `uniq` ne voit que les doublons consécutifs : presque toujours précédé de `sort`.
+'''
+example = '''
+# Traquer des erreurs de compilation dans un gros log de build
+login@epitech:~/rush01$ grep -c "error" build.log     # combien d'erreurs ?
+17
+login@epitech:~/rush01$ grep -n "error" build.log | head -3
+42:main.c:15:5: error: implicit declaration of function 'my_init'
+57:grid.c:8:1: error: unknown type name 'uint'
+89:solve.c:22:9: error: too few arguments to function 'fill'
+login@epitech:~/rush01$ grep "error" build.log | cut -d: -f1 | sort -u
+grid.c
+main.c
+solve.c
+login@epitech:~/rush01$ grep -rn "TODO" src/          # ce qu'il reste à faire
+src/solve.c:31:// TODO: gérer le cas 0x0
+login@epitech:~/rush01$ tr 'a-z' 'A-Z' < logins.txt | sort -u
+ABOURDAR
+JDURAND
+login@epitech:~/rush01$ awk -F: '{print $1, $3}' /etc/passwd | head -2
+root 0
+daemon 1
+login@epitech:~/rush01$ tail -n 5 -f server.log       # suivre un log en direct
+login@epitech:~/rush01$ grep -l "segfault" *.log | xargs wc -l   # compter par fichier
+'''
+gotchas = [
+  "sort est alphabétique par défaut : 1, 10, 2, 3... Utilise sort -n pour du numérique.",
+  "uniq sans sort ne dédoublonne que les lignes adjacentes : la moitié des doublons passe à travers.",
+  "sed -i réécrit le fichier directement : une mauvaise regex et l'original est perdu, teste sans -i d'abord.",
+  "cut -d n'accepte qu'un seul caractère de délimiteur : pour un séparateur plus complexe, passe à awk -F.",
+  "cat fichier | grep motif gaspille un processus : grep motif fichier fait exactement la même chose."
+]
+exercises = [
+  "Compte combien de fois write apparaît dans tes fichiers .c avec grep, d'abord par fichier puis au total.",
+  "Colle un log de moulinette dans un fichier et extrais-en la liste triée et unique des fichiers en erreur.",
+  "Remplace tous les my_ par mon_ dans un fichier de test avec sed, d'abord sans -i pour vérifier, puis avec."
+]
+related = ["pipes-redirections", "bash-bases", "scripts-bash", "methodologie-debug"]

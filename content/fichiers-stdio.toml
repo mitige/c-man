@@ -1,0 +1,114 @@
+id = "fichiers-stdio"
+title = "stdio bufferisée — FILE *, de fopen à fclose"
+category = "libc"
+tags = ["io", "fichier", "stdio", "buffer"]
+difficulty = 3
+piscine_day = "J10"
+synopsis = "FILE *f = fopen(path, mode); /* fgets, fputs, fgetc, fread, fwrite, fseek, ftell, feof, ferror */ fclose(f);"
+description = '''
+## En une phrase
+
+stdio est la surcouche bufferisée de la libc au-dessus des appels système : tu manipules un `FILE *`, et la libc gère pour toi le buffer, les vrais read/write et la position dans le fichier.
+
+## En pratique
+
+Le cycle de vie est toujours le même : `fopen` ouvre, tu lis ou tu écris, `fclose` ferme et vide le buffer. Les fonctions à connaître froid :
+
+- `fopen(path, mode)` / `fclose(f)` : modes `"r"`, `"w"`, `"a"` et leurs variantes `"+"` ; retour NULL à tester systématiquement.
+- `fgets(buf, taille, f)` lit une ligne au plus `taille - 1` caractères, le `'\n'` est conservé ; `fgetc(f)` lit un caractère et renvoie un `int` (pas un char, sinon EOF est indétectable).
+- `fputs(str, f)` et `fputc(c, f)` écrivent côté texte.
+- `fread(ptr, taille_elem, nb_elem, f)` et `fwrite(...)` déplacent des blocs binaires et renvoient le nombre d'éléments réellement transférés : parfait pour des struct, des images, tout ce qui n'est pas du texte.
+- `fseek(f, offset, SEEK_SET / SEEK_CUR / SEEK_END)` repositionne, `ftell(f)` donne la position courante (un `long`, -1L en erreur), `rewind(f)` revient au début.
+- `feof(f)` et `ferror(f)` lisent les indicateurs du flux : feof ne passe à vrai qu'APRÈS une lecture qui a buté sur la fin.
+
+Face à `open`/`read`/`write` : ceux-ci sont des appels système POSIX, non bufferisés, qui parlent en descripteurs `int`. stdio est du C standard, portable, et bien plus rapide dès que tu fais plein de petites lectures. En piscine, la loi c'est la ligne « fonctions autorisées » du sujet : beaucoup de projets (BSQ, my_ls, my_printf) n'autorisent que `open`, `read`, `write`, `malloc`, `free` pour te forcer à comprendre le bas niveau ; d'autres jours laissent stdio libre. Lis le sujet avant de coder, pas après la moulinette.
+
+> Ne mélange jamais stdio et appels système sur le même fichier sans `fdopen`/`fileno` : chacun garde sa propre position et ses propres buffers, la désynchronisation est garantie.
+
+## À retenir
+
+- `fopen` testé contre NULL, `fclose` systématique : ce sont tes malloc/free version fichiers.
+- `feof` dans la condition de boucle = une ligne traitée en trop ; teste le retour de `fgets` ou de `fread`.
+- Texte → `fgets`/`fputs` ; binaire → `fread`/`fwrite` avec les modes `"rb"`/`"wb"`.
+- `fclose` oublié en écriture = buffer perdu, fichier potentiellement vide ou tronqué.
+- En piscine, stdio est souvent interdite : `write` reste ton meilleur ami.
+'''
+example = '''
+#include <stdio.h>
+
+#define BUFFER_SIZE 512
+
+/* Taille d'un flux : on saute a la fin, on lit la position, on revient au debut. */
+static long file_size(FILE *file)
+{
+    long size;
+
+    if (fseek(file, 0, SEEK_END) == -1)
+        return -1;
+    size = ftell(file);
+    rewind(file);
+    return size;
+}
+
+/* Copie binaire par blocs : fread lit, fwrite reecrit exactement ce qui a ete lu. */
+static int copy_stream(FILE *in, FILE *out)
+{
+    char buffer[BUFFER_SIZE];
+    size_t got;
+
+    got = fread(buffer, 1, sizeof(buffer), in);
+    while (got > 0) {
+        if (fwrite(buffer, 1, got, out) != got)
+            return -1;
+        got = fread(buffer, 1, sizeof(buffer), in);
+    }
+    if (ferror(in))
+        return -1;
+    return 0;
+}
+
+/* Affiche la taille de src puis le copie dans dst, tout en stdio. */
+int main(int argc, char **argv)
+{
+    FILE *in;
+    FILE *out;
+    int status;
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <src> <dst>\n", argv[0]);
+        return 84;
+    }
+    in = fopen(argv[1], "rb");
+    if (in == NULL) {
+        fprintf(stderr, "impossible de lire %s\n", argv[1]);
+        return 84;
+    }
+    printf("%s : %ld octets\n", argv[1], file_size(in));
+    out = fopen(argv[2], "wb");
+    if (out == NULL) {
+        fclose(in);
+        return 84;
+    }
+    status = 0;
+    if (copy_stream(in, out) == -1) {
+        fprintf(stderr, "erreur pendant la copie\n");
+        status = 84;
+    }
+    fclose(in);
+    fclose(out);
+    return status;
+}
+'''
+gotchas = [
+  "Utiliser feof comme condition de boucle : feof ne passe a vrai qu'apres une lecture en echec, tu traites donc une ligne de trop. Teste le retour de fgets ou fread.",
+  "Confondre FILE * et descripteur int : les deux mondes ne communiquent que via fileno et fdopen, sans eux les buffers se desynchronisent.",
+  "Oublier fclose en ecriture : le buffer n'est pas vide, le fichier reste vide ou tronque alors que ton programme semblait marcher.",
+  "Stocker le retour de fgetc dans un char : EOF (-1) devient indistinguable d'un vrai caractere 0xFF. Un int, toujours.",
+  "Ecrire dans un flux ouvert \"r\" ou lire dans un flux \"w\" : comportement indefini, il faut un mode avec +."
+]
+exercises = [
+  "Ecris my_wc : compte les lignes, les mots et les octets d'un fichier avec fgetc, puis compare avec la commande wc.",
+  "Ecris my_cp src dst avec fread/fwrite et un buffer de 4096 octets ; verifie avec diff que la copie est identique, meme sur un binaire.",
+  "Ajoute a my_cp un mode append qui ouvre dst en \"ab\" pour concatener au lieu d'ecraser."
+]
+related = ["open-close", "read", "write", "gestion-errno"]

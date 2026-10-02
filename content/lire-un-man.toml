@@ -1,0 +1,64 @@
+id = "lire-un-man"
+title = "Lire un man — la référence ultime, si tu sais la lire"
+category = "demarrer"
+tags = ["man", "documentation", "autonomie"]
+difficulty = 1
+synopsis = "man <section> <nom> — ex : man 2 write, man 3 printf"
+description = '''
+## En une phrase
+
+La man page est la documentation de référence en piscine : apprendre à la lire vite, c'est gagner des heures sur chaque sujet.
+
+## Anatomie d'une page
+
+Une man page suit presque toujours la même structure :
+
+- **NAME** : le nom de la fonction et une phrase de résumé.
+- **SYNOPSIS** : le prototype exact ET le header à inclure. La section à lire en premier.
+- **DESCRIPTION** : le comportement détaillé, paramètre par paramètre.
+- **RETURN VALUE** : ce que la fonction renvoie, et surtout comment elle signale une erreur.
+- **ERRORS** : les valeurs possibles de errno en cas d'échec.
+- **SEE ALSO** : les fonctions cousines, une mine d'or pour découvrir l'écosystème.
+
+## Section 2 vs section 3 : le piège classique
+
+Le manuel est découpé en sections numérotées. Deux comptent pour toi :
+
+- Section **2** : les appels système (tu parles au noyau) — `man 2 write`
+- Section **3** : les fonctions de la libc — `man 3 printf`
+
+Quand un nom existe dans plusieurs sections, `man printf` peut t'afficher la commande shell (section 1) au lieu de la fonction C. Réflexe : précise la section, et vérifie toujours le header indiqué dans le SYNOPSIS.
+
+## Navigation rapide
+
+- `/motif` puis `n` : chercher et sauter d'occurrence en occurrence.
+- `man -k chaine` : chercher un mot-clé dans toutes les pages (équivalent de `apropos`).
+- `q` : quitter.
+
+## À retenir
+
+- Le SYNOPSIS donne le prototype ET le header : copie les deux.
+- Lis RETURN VALUE avant de coder : la majorité des bugs vient d'un retour mal testé.
+- En piscine, le man est souvent la SEULE documentation autorisée : entraîne-toi dès le J01.
+'''
+example = '''
+$ man 2 write         # l'appel systeme write (noyau)
+$ man 3 printf        # la fonction printf de la libc
+$ man write           # ATTENTION : peut tomber sur une autre section
+$ man -k "string"     # toutes les pages qui parlent de chaines
+
+# Dans une page ouverte :
+#   /return  puis  n n n   -> sauter aux occurrences du mot
+#   q                      -> quitter
+# Reflexe : SYNOPSIS d'abord, RETURN VALUE ensuite, ERRORS si echec
+'''
+gotchas = [
+  "Oublier la section : `man write` n'affiche pas forcément la même page que `man 2 write`, tape la section explicitement.",
+  "Coder sans lire RETURN VALUE : tu finis par tester le succès au lieu de tester l'échec.",
+  "Ignorer SEE ALSO : tu réinventes une fonction qui existe déjà deux lignes plus bas."
+]
+exercises = [
+  "Ouvre `man 2 read` et repère header, prototype et valeur de retour en moins de 60 secondes.",
+  "Trouve avec `man -k` trois fonctions de la famille string et lis leur SYNOPSIS."
+]
+related = ["bienvenue", "write", "gestion-errno", "gcc"]

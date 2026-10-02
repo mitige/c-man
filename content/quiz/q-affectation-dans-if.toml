@@ -1,0 +1,24 @@
+id = "q-affectation-dans-if"
+category = "langage"
+difficulty = 2
+question = '''
+Quel est le bug de ce code ?
+
+```c
+int x = 5;
+
+if (x = 0)
+    printf("zero\n");
+```
+'''
+choices = [
+  "La condition devrait être x == 0 : ici = réaffecte x à 0 et le test est toujours faux",
+  "Le code est correct et affiche zero",
+  "Un if ne peut pas contenir de variable int en C",
+  "printf est interdit dans un if"
+]
+answer = 0
+explanation = '''
+= affecte, == compare : x = 0 écrase la valeur de x et l'expression vaut 0, donc la condition est fausse et le bloc n'est jamais exécuté. Bonne nouvelle : gcc -Wall détecte ce piège classique (-Wparentheses), donc avec -Werror le code ne compile même pas — le compilateur te sauve la mise. Une habitude défensive : écrire 0 == x, la constante à gauche, transforme l'oubli en erreur certaine.
+'''
+related = ["conditions", "operateurs", "flags-compilation"]

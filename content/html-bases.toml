@@ -1,0 +1,83 @@
+id = "html-bases"
+title = "HTML — le squelette de toute page web"
+category = "web"
+tags = ["html", "balises", "structure", "sémantique"]
+difficulty = 1
+synopsis = "<!DOCTYPE html> + <html> + <head> + <body> : le squelette minimal de toute page."
+description = '''
+## En une phrase
+
+HTML (HyperText Markup Language) décrit la **structure** et le **contenu** d'une page web avec des balises : ce n'est pas un langage de programmation — pas de variables, pas de boucles — plutôt une énorme struct imbriquée qui décrit ce que la page contient.
+
+## En pratique
+
+Toute page commence par le même squelette : `<!DOCTYPE html>` annonce du HTML5, `<html>` enveloppe tout, `<head>` contient les métadonnées invisibles (encodage, titre de l'onglet, liens CSS) et `<body>` contient ce qui s'affiche. Pense au `head` comme au bloc de `#include` et d'options de compilation : indispensable, mais rien ne s'y dessine.
+
+Les balises du quotidien :
+
+- Titres : `<h1>` (le principal, un seul par page) jusqu'à `<h6>`
+- Texte : `<p>` pour les paragraphes, `<strong>` et `<em>` pour l'emphase
+- Lien : `<a href="...">` — c'est le H de HTML
+- Image : `<img src="..." alt="...">`, balise auto-fermante, pas de `</img>`
+- Listes : `<ul>` (à puces) ou `<ol>` (numérotée), remplies de `<li>`
+- Conteneurs génériques : `<div>` (bloc) et `<span>` (dans le flux du texte)
+
+Une balise s'écrit `<p>contenu</p>` : ouvrante, contenu, fermante avec un `/`. Les **attributs** vivent dans la balise ouvrante, comme les champs d'une struct : `<a href="page.html" target="_blank">` configure le lien.
+
+> **Sémantique** : préfère `<header>`, `<nav>`, `<main>`, `<article>`, `<footer>` à des `<div>` anonymes. Google et les lecteurs d'écran lisent ton HTML, pas ton CSS. Des `<div>` partout, c'est du C avec des variables nommées `a`, `b`, `c` : ça marche, c'est illisible.
+
+Pour voir ta page : enregistre en `index.html` et ouvre le fichier dans ton navigateur. La touche F12 ouvre les DevTools, ton nouvel outil de debug.
+
+## À retenir
+
+- `<!DOCTYPE html>`, `<html>`, `<head>`, `<body>` : le squelette minimal, toujours.
+- Le visible va dans `<body>`, la configuration dans `<head>`.
+- Une balise s'ouvre et se ferme ; les attributs se mettent dans la balise ouvrante.
+- Choisis la balise qui **veut dire** quelque chose avant de taper `<div>`.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- Le head : metadonnees invisibles, jamais de contenu affiche -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma première page</title>
+</head>
+<body>
+    <!-- Le body : tout ce qui s'affiche a l'ecran -->
+    <header>
+        <h1>Bienvenue sur ma page</h1>
+        <nav>
+            <a href="#competences">Compétences</a>
+            <a href="https://www.epitech.eu" target="_blank">Epitech</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2 id="competences">Mes compétences</h2>
+        <p>Je viens de finir la <strong>piscine C</strong>, place au web.</p>
+        <ul>
+            <li>C, gdb et valgrind</li>
+            <li>HTML (en cours)</li>
+        </ul>
+        <img src="logo.png" alt="Logo de mon site">
+    </main>
+
+    <footer>
+        <p>Fait avec un terminal et du café.</p>
+    </footer>
+</body>
+</html>
+'''
+gotchas = [
+  "Oublier la balise fermante (</p>, </li>) : le navigateur devine où elle manque, et pas toujours comme tu l'imagines.",
+  "Mettre du contenu visible dans le <head> : il ne s'affichera jamais, tout le rendu vit dans <body>.",
+  "Oublier <meta charset=\"UTF-8\"> : tes accents se transforment en hiéroglyphes du type Ã©.",
+  "Empiler des <div> génériques au lieu des balises sémantiques : HTML illisible, référencement et accessibilité en berne."
+]
+exercises = [
+  "Crée un index.html de présentation : un h1 avec ton nom, un paragraphe, une liste ul de tes trois langages préférés et un lien vers ton GitHub. Ouvre-le dans ton navigateur.",
+  "Ajoute une image (img avec src et alt) et une seconde section avec un h2, puis retrouve chaque balise dans l'onglet Elements des DevTools (F12)."
+]
+related = ["html-formulaires", "css-bases", "js-bases", "structures"]

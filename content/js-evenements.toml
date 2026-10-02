@@ -1,0 +1,110 @@
+id = "js-evenements"
+title = "Événements — réagir aux actions de l'utilisateur"
+category = "web"
+tags = ["javascript", "événements", "listener", "interactivité"]
+difficulty = 2
+synopsis = "element.addEventListener('click', event => { ... });"
+description = '''
+## En une phrase
+
+Les événements connectent ton JavaScript aux actions de l'utilisateur — clic, frappe, soumission : `addEventListener` abonne une fonction à un événement, comme un handler de signal.
+
+## En pratique
+
+Le navigateur surveille tout ce qui arrive sur la page et déclenche des **événements**. Toi, tu t'abonnes :
+
+```js
+const bouton = document.querySelector("#valider");
+bouton.addEventListener("click", function(event) {
+    console.log("Cliqué !");
+});
+```
+
+C'est le modèle du callback que tu connais : tu enregistres une fonction, le système l'appelle quand l'événement survient — comme un handler de `signal()` en C, sauf que ça ne tue pas ton processus.
+
+Les événements du quotidien :
+
+- `click` : boutons, liens, n'importe quel élément
+- `input` : à **chaque frappe** dans un champ — idéal pour valider en direct
+- `submit` : soumission d'un formulaire
+- `keydown`, `change`, `mouseover` pour le reste
+
+Deux réflexes vitaux dans le handler :
+
+1. **`event.preventDefault()`** : bloque le comportement par défaut. Indispensable sur `submit`, sinon le navigateur recharge la page et envoie le formulaire avant que ton JS ait fini — c'est le bug « ma page se recharge toute seule » de tout débutant.
+2. **`event.target`** : l'élément précis qui a déclenché l'événement. Sur une liste de 50 `<li>`, il te dit lequel a été cliqué.
+
+D'ailleurs, pour ces 50 `<li>`, pas besoin de 50 listeners : un seul sur le `<ul>` parent suffit, car les événements **remontent** l'arbre (bubbling) et `event.target` identifie la vraie cible. C'est la **délégation d'événements** : un listener parent qui gère tous ses enfants, y compris ceux créés plus tard.
+
+> Le combo gagnant du formulaire moderne : `form.addEventListener("submit", ...)`, `event.preventDefault()` en première ligne, lecture des champs avec `.value`, envoi en `fetch`. La page ne recharge jamais.
+
+## À retenir
+
+- `element.addEventListener("type", handler)` : l'abonnement, jamais d'`onclick` dans le HTML.
+- `event.preventDefault()` en première ligne d'un handler `submit`.
+- `event.target` = l'élément déclencheur exact.
+- Délégation : un listener sur le parent gère tous les enfants grâce au bubbling.
+'''
+example = '''
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Événements</title>
+</head>
+<body>
+    <h1>Formulaire piloté en JS</h1>
+
+    <form id="form-pseudo">
+        <label for="pseudo">Pseudo :</label>
+        <input type="text" id="pseudo" name="pseudo">
+        <span id="compteur">0/12</span>
+        <button type="submit">Envoyer</button>
+    </form>
+    <p id="message"></p>
+
+    <ul id="liste">
+        <li>Item 1</li>
+        <li>Item 2</li>
+    </ul>
+
+    <script>
+        const form = document.querySelector("#form-pseudo");
+        const input = document.querySelector("#pseudo");
+        const compteur = document.querySelector("#compteur");
+        const message = document.querySelector("#message");
+
+        // input : se declenche a CHAQUE frappe
+        input.addEventListener("input", function(event) {
+            compteur.textContent = `${event.target.value.length}/12`;
+        });
+
+        // submit : preventDefault bloque le rechargement de la page
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();   // TOUJOURS en premier
+            message.textContent = `Bienvenue ${input.value} !`;
+            form.reset();
+        });
+
+        // Delegation : UN listener sur le parent gere tous les enfants
+        document.querySelector("#liste").addEventListener("click", function(event) {
+            if (event.target.tagName === "LI") {
+                console.log(`Cliqué : ${event.target.textContent}`);
+            }
+        });
+    </script>
+</body>
+</html>
+'''
+gotchas = [
+  "Oublier event.preventDefault() sur un submit : la page recharge avant que ton JS ait fini, et tu perds tout.",
+  "Passer handler() avec parenthèses à addEventListener : la fonction s'exécute immédiatement au lieu d'attendre l'événement.",
+  "Utiliser l'attribut onclick dans le HTML : ça mélange structure et comportement, et une seule fonction possible — addEventListener partout.",
+  "Poser un listener par élément dans une liste de 200 items : un seul listener délégué sur le parent fait mieux le travail."
+]
+exercises = [
+  "Fais un champ texte avec un compteur de caractères en direct (événement input) qui passe en rouge au-delà de 20 caractères.",
+  "Intercepte la soumission d'un formulaire avec preventDefault et affiche les valeurs saisies dans la page, sans rechargement.",
+  "Crée une liste où cliquer sur un li le supprime, avec UN seul listener délégué sur le ul."
+]
+related = ["js-dom", "js-fonctions", "html-formulaires", "js-async"]

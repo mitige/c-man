@@ -1,0 +1,95 @@
+id = "bibliotheques"
+title = "bibliothèques statiques — compiler ta libmy.a avec ar"
+category = "outils"
+tags = ["compilation", "ar", "libmy", "linking"]
+difficulty = 3
+synopsis = "gcc -c *.c  ;  ar rcs libmy.a *.o  ;  gcc main.c -L. -lmy"
+description = '''
+## En une phrase
+
+Une bibliothèque statique `.a` est une archive de fichiers objets `.o` que le linker copie directement dans ton binaire : tu écris tes fonctions une fois, tu les réutilises dans tous tes projets.
+
+## En pratique
+
+La recette de ta `libmy.a` :
+
+1. Range ton code : les `.c` dans `src/`, les prototypes dans `include/my.h`. La Norme t'impose déjà des fonctions courtes, profites-en : un fichier par fonction au début, c'est parfait pour une lib.
+2. Compile en objets sans linker : `gcc -Wall -Wextra -Werror -std=c99 -Iinclude -c src/my_putstr.c` produit `my_putstr.o`.
+3. Archive : `ar rcs libmy.a *.o`. Les options : `r` insère ou remplace, `c` crée l'archive sans avertir, `s` écrit l'index des symboles (c'est le `ranlib` intégré, indispensable pour le linker).
+4. Utilise : `gcc main.c -L. -lmy -o my_prog`. `-L.` dit où chercher, `-lmy` demande le fichier `libmy.a` : le préfixe `lib` et l'extension `.a` sont implicites et obligatoires.
+
+> L'ordre de la ligne de commande compte : mets `-lmy` APRÈS les fichiers qui l'utilisent. Le linker résout de gauche à droite et abandonne les archives dont personne n'a encore réclamé de symbole.
+
+Pourquoi la piscine exige une lib : réutiliser tes fonctions du J01 au Rush final sans copier-coller, t'apprendre la séparation interface (`.h`) / implémentation (`.c`), et te préparer aux vrais projets où chaque module est une bibliothèque. Vérifie ton archive avec `ar t libmy.a` (liste les membres) et `nm libmy.a` (liste les symboles). Et évidemment, toute cette chorégraphie finit dans un Makefile avec ses règles de dépendances, pas dans ton historique shell.
+
+## À retenir
+
+- `.h` = prototypes et include guards ; `.c` = définitions. Jamais de fonction définie dans un `.h`.
+- Pas de `main` dans une lib : il entrera en conflit avec le tien au moment du link.
+- Recompile la lib à chaque modification d'un `.c`, sinon tu debugs une version fantôme.
+- `ar rcs` avec le `s` (ou `ranlib` derrière) : sans index, le linker ne retrouve pas tes symboles.
+- Le Makefile qui construit la lib n'est pas optionnel en piscine : il fait partie du rendu.
+'''
+example = '''
+#include <unistd.h>
+
+/* Ce fichier unique tient lieu de demo. En vrai, chaque bloc ci-dessous
+   vit dans SON fichier, et la lib se construit ainsi :
+     gcc -Wall -Wextra -Werror -std=c99 -Iinclude -c src/my_putchar.c
+     gcc -Wall -Wextra -Werror -std=c99 -Iinclude -c src/my_strlen.c
+     gcc -Wall -Wextra -Werror -std=c99 -Iinclude -c src/my_putstr.c
+     ar rcs libmy.a my_putchar.o my_strlen.o my_putstr.o
+     gcc -Wall -Wextra -Werror -std=c99 main.c -L. -lmy -o my_prog
+*/
+
+/* ---- include/my.h : les prototypes, rien de plus ----
+   void my_putchar(char c);
+   int my_strlen(char const *str);
+   void my_putstr(char const *str);
+   + include guards MY_H_ bien sur
+*/
+
+/* ---- src/my_putchar.c ---- */
+void my_putchar(char c)
+{
+    write(1, &c, 1);
+}
+
+/* ---- src/my_strlen.c ---- */
+int my_strlen(char const *str)
+{
+    int len;
+
+    len = 0;
+    while (str[len] != '\0')
+        len = len + 1;
+    return len;
+}
+
+/* ---- src/my_putstr.c ---- */
+void my_putstr(char const *str)
+{
+    write(1, str, (size_t)my_strlen(str));
+}
+
+/* ---- main.c : le programme qui utilise la lib ---- */
+int main(void)
+{
+    my_putstr("ma lib fonctionne");
+    my_putchar('!');
+    my_putchar('\n');
+    return 0;
+}
+'''
+gotchas = [
+  "Mettre -lmy avant main.c sur la ligne de commande : le linker n'a encore vu personne reclamer tes symboles, il jette l'archive, et tu manges des undefined reference.",
+  "Definir une fonction dans le .h et l'inclure depuis deux .c : symbole duplique au link. Le .h ne contient que des prototypes, proteges par des include guards.",
+  "Oublier de reconstruire la lib apres un fix : ton binaire embarque l'ancienne version et tu debugs un fantome pendant deux heures.",
+  "Nommer l'archive my.a au lieu de libmy.a : -lmy ne la trouvera jamais, le prefixe lib est une convention que -l impose.",
+  "Laisser un main dans la lib : symbole main duplique au link des que ton programme a le sien."
+]
+exercises = [
+  "Cree libmy.a avec my_putchar, my_putstr, my_strlen et my_put_nbr, chacun dans son .c, puis ecris un main de test qui les appelle tous.",
+  "Ecris le Makefile minimal (regles all, clean, fclean, re) qui construit ta libmy.a a partir de src/*.c."
+]
+related = ["gcc", "makefile", "linking", "headers-include-guards"]

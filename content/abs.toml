@@ -1,0 +1,83 @@
+id = "abs"
+title = "abs — valeur absolue d'un int (et le piège INT_MIN)"
+category = "libc"
+tags = ["valeur-absolue", "stdlib", "limites", "math"]
+difficulty = 1
+synopsis = "int abs(int j);\nlong labs(long j);\nlong long llabs(long long j);"
+description = '''
+## En une phrase
+
+`abs` renvoie la valeur absolue d'un `int` : le signe saute, la magnitude reste.
+
+## Prototype et retour
+
+```c
+#include <stdlib.h>
+int abs(int j);
+```
+
+Un `int` en entrée, un `int` positif ou nul en retour. Pour les types plus grands, même header : `long labs(long j);` et `long long llabs(long long j);`. Il n'existe aucune version pour les `double` ici — ça, c'est le boulot de `fabs` dans `<math.h>`.
+
+## En pratique
+
+Le cas d'usage typique, c'est la distance : différence de coordonnées, écart entre deux scores, valeur à rendre positive avant un affichage ou un calcul de moyenne.
+
+```c
+int distance = abs(x1 - x2);
+```
+
+> Ne confonds jamais avec `fabs` de `<math.h>` : `fabs` travaille sur des `double`, `abs` sur des `int`. Passer un `double` à `abs` le tronque silencieusement en entier — tous tes calculs derrière deviennent faux, sans le moindre warning.
+
+## À retenir
+
+- **Le piège INT_MIN** : sur 32 bits, un `int` va de -2147483648 à 2147483647. Il n'existe donc PAS de `+2147483648` représentable : `abs(INT_MIN)` est un **comportement indéfini**. Ce n'est pas un bug de la libc, c'est mathématique.
+- Si tes valeurs peuvent frôler les limites, teste AVANT d'appeler `abs`, ou passe par un `long long`.
+- Réimplémenter `my_abs` tient en un ternaire (`return (x < 0) ? -x : x;`), mais le cas INT_MIN reste insoluble en `int` : documente-le ou refuse-le explicitement.
+- `abs` est déclaré dans `<stdlib.h>`, pas dans `<math.h>`. Sans le bon include, gcc refuse de compiler en C99 strict.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+/* Affiche la valeur absolue d'un entier passe en argument,
+   en refusant explicitement le cas indefini INT_MIN. */
+static void print_abs(const char *str)
+{
+    int value;
+
+    value = atoi(str);
+    if (value == INT_MIN) {
+        printf("abs(%d) est indefini : on refuse de calculer.\n", value);
+        return;
+    }
+    printf("abs(%d) = %d\n", value, abs(value));
+}
+
+int main(int argc, char **argv)
+{
+    int i;
+
+    if (argc < 2) {
+        printf("Usage: %s <entier> [entier...]\n", argv[0]);
+        return 84;
+    }
+    i = 1;
+    while (i < argc) {
+        print_abs(argv[i]);
+        i = i + 1;
+    }
+    return 0;
+}
+'''
+gotchas = [
+  "abs(INT_MIN) est indefini : +2147483648 ne tient pas dans un int 32 bits. Teste la limite AVANT d'appeler abs.",
+  "Confondre abs (int, <stdlib.h>) et fabs (double, <math.h>) : passer un double a abs le tronque en int sans crier gare.",
+  "Chercher abs dans <math.h> : il vit dans <stdlib.h>. Sans le bon header, la declaration implicite fait echouer la compile en C99.",
+  "Croire que abs renvoie un type non signe : non, il renvoie un int, positif ou nul."
+]
+exercises = [
+  "Code `my_abs` en une ligne avec un ternaire, puis ajoute un test qui refuse INT_MIN au lieu de renvoyer un resultat indefini.",
+  "Ecris un programme qui prend deux entiers en argument (via atoi) et affiche leur distance absolue ; teste-le avec -2147483648 et observe."
+]
+related = ["math", "debordements-entiers", "atoi-strtol", "variables-types"]

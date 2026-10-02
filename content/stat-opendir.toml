@@ -1,0 +1,121 @@
+id = "stat-opendir"
+title = "stat & opendir — explorer fichiers et répertoires"
+category = "libc"
+tags = ["fichier", "repertoire", "stat", "posix"]
+difficulty = 3
+piscine_day = "J11"
+synopsis = "int stat(const char *path, struct stat *sb);  DIR *opendir(const char *name);  struct dirent *readdir(DIR *dir);"
+description = '''
+## En une phrase
+
+`read` et `write` lisent le contenu des fichiers ; `stat` et `opendir` lisent leurs métadonnées : type, taille, droits, et le contenu des répertoires eux-mêmes.
+
+## En pratique
+
+`stat(path, &sb)` remplit une `struct stat` déclarée dans `<sys/stat.h>`. Les champs qui comptent :
+
+- `st_mode` : le type du fichier ET ses droits, mélangés dans un même entier. On ne le lit jamais brut, on passe par les macros `S_ISDIR(mode)`, `S_ISREG(mode)`, `S_ISLNK(mode)`.
+- `st_size` : la taille en octets, de type `off_t` ; affiche-la avec un cast `(long)` et `%ld`.
+- `st_uid`, `st_gid`, `st_mtime` : propriétaire, groupe, date de dernière modification.
+
+`lstat` fait la même chose mais ne suit PAS les liens symboliques : `stat` te donne la cible, `lstat` le lien lui-même. C'est exactement la différence entre `ls` et `ls -l`.
+
+Pour explorer un répertoire : `opendir(path)` renvoie un `DIR *`, `readdir(dir)` renvoie un `struct dirent *` par entrée (`d_name` contient un simple nom, pas un chemin complet), NULL quand il n'y a plus rien, et `closedir(dir)` libère. `getcwd(buf, size)` te donne le répertoire courant.
+
+Piège de compilation : avec `-std=c99`, tout ceci est POSIX, pas C standard. Les prototypes restent cachés tant que tu n'as pas mis `#define _POSIX_C_SOURCE 200809L` (ou `_DEFAULT_SOURCE`) AVANT le moindre include. Sinon : implicit declaration, et `-Werror` refuse ta compile.
+
+> `readdir` renvoie aussi les entrées `"."` et `".."` : oublie de les filtrer et ton ls récursif boucle à l'infini.
+
+## À retenir
+
+- `stat` renvoie -1 sur un chemin inexistant : teste le retour, `errno` explique pourquoi.
+- Une entrée de répertoire est un NOM : reconstruis le chemin complet `dir/name` avant de la stater.
+- Un `opendir` appelle un `closedir`, sinon fuite de descripteur.
+- `d_type` existe dans `struct dirent` mais n'est pas portable (DT_UNKNOWN est légal) : repasse par `lstat` pour être sûr.
+- Ces appels sont le squelette de my_ls : apprends-les avant le rush, pas pendant.
+'''
+example = '''
+#define _POSIX_C_SOURCE 200809L
+/* ^ indispensable avec -std=c99 : stat, lstat, opendir, readdir et getcwd
+   sont POSIX, pas C standard. Sans ce define AVANT les includes, les
+   headers cachent leurs prototypes et -Werror refuse la compilation. */
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+/* Traduit le st_mode en un caractere de type, facon ls -l. */
+static char type_of(mode_t mode)
+{
+    if (S_ISDIR(mode))
+        return 'd';
+    if (S_ISLNK(mode))
+        return 'l';
+    if (S_ISREG(mode))
+        return '-';
+    return '?';
+}
+
+/* Affiche type, taille et nom d'une entree : on reconstruit le chemin
+   complet avant de stater, d_name seul ne suffit pas. */
+static void print_entry(char const *dir, char const *name)
+{
+    char path[1024];
+    struct stat sb;
+
+    snprintf(path, sizeof(path), "%s/%s", dir, name);
+    if (lstat(path, &sb) == -1) {
+        perror("lstat");
+        return;
+    }
+    printf("%c %8ld %s\n", type_of(sb.st_mode), (long)sb.st_size, name);
+}
+
+/* Mini ls : liste le repertoire passe en argument (ou le courant). */
+int main(int argc, char **argv)
+{
+    char cwd[1024];
+    char const *target;
+    DIR *dir;
+    struct dirent *entry;
+
+    if (argc > 2) {
+        fprintf(stderr, "Usage: %s [repertoire]\n", argv[0]);
+        return 84;
+    }
+    if (argc == 2)
+        target = argv[1];
+    else
+        target = getcwd(cwd, sizeof(cwd));
+    if (target == NULL)
+        return 84;
+    dir = opendir(target);
+    if (dir == NULL) {
+        perror("opendir");
+        return 84;
+    }
+    entry = readdir(dir);
+    while (entry != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
+            print_entry(target, entry->d_name);
+        entry = readdir(dir);
+    }
+    closedir(dir);
+    return 0;
+}
+'''
+gotchas = [
+  "Boucle recursive sur readdir sans filtrer \".\" et \"..\" : tu redescends dans le repertoire courant et dans son pere, boucle infinie garantie.",
+  "Stater entry->d_name au lieu du chemin complet : stat cherche dans le repertoire courant et echoue (ENOENT) des que tu explores autre chose.",
+  "Oublier le define _POSIX_C_SOURCE 200809L avec -std=c99 : implicit declaration of lstat ou opendir, et -Werror te refuse la compile.",
+  "Oublier closedir : chaque DIR * tient un descripteur de fichier, la fuite finit par taper la limite de descripteurs du processus.",
+  "Se fier a d_type : DT_UNKNOWN est une valeur legale sur certains systemes de fichiers, repasse par lstat pour le type."
+]
+exercises = [
+  "Ecris my_ls qui liste le repertoire passe en argument, une entree par ligne, en filtrant \".\" et \"..\".",
+  "Ajoute l'affichage du type (d, -, l) et de la taille via lstat, facon ls -l simplifie.",
+  "Rends-le recursif : quand une entree est un S_ISDIR, descends dedans avec le chemin complet."
+]
+related = ["structures", "open-close", "gestion-errno", "chaines-caracteres"]

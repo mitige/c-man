@@ -1,0 +1,97 @@
+id = "ctype"
+title = "ctype — classer et convertir les caractères"
+category = "libc"
+tags = ["caracteres", "parsing", "ascii", "bases"]
+difficulty = 1
+piscine_day = "J03"
+synopsis = "int isalpha(int c);\nint isdigit(int c);\nint isalnum(int c);\nint isspace(int c);\nint isupper(int c);\nint islower(int c);\nint toupper(int c);\nint tolower(int c);"
+description = '''
+## En une phrase
+
+`<ctype.h>` classe les caractères (`isdigit`, `isalpha`, `isspace`...) et les convertit (`toupper`, `tolower`) : la boîte à outils de tout parser, à commencer par ton futur `my_atoi`.
+
+## Prototype et retour
+
+- Header : `<ctype.h>`
+- Tests : `isalpha`, `isdigit`, `isalnum`, `isspace`, `isupper`, `islower` — tous en `int f(int c)`.
+- Conversions : `toupper` et `tolower`, même signature.
+- Retour des tests : un entier NON NUL (pas forcément 1) si vrai, `0` sinon. Retour des conversions : le caractère converti, ou le caractère INCHANGÉ s'il n'y a rien à convertir.
+
+Détail de contrat : le paramètre `c` doit être une valeur d'`unsigned char` (0 à 255) ou `EOF`. Passer un `char` signé négatif — un octet accentué, par exemple — est un comportement indéfini. Le réflexe pro : `isdigit((unsigned char)c)`.
+
+> `isspace` couvre six caractères : espace, `\t`, `\n`, `\v`, `\f`, `\r`. Dans la locale C par défaut, `isalpha` ne connaît que A-Z et a-z : pas d'accents.
+
+## En pratique
+
+Réimplémentation triviale : les plages ASCII suffisent, les caractères sont contigus et ordonnés. Pas de tableau, pas de magie :
+
+- `my_isdigit` : `return (c >= '0' && c <= '9');`
+- `my_isupper` : `return (c >= 'A' && c <= 'Z');`
+- `my_tolower` : si `my_isupper(c)`, renvoie `c - 'A' + 'a'`, sinon renvoie `c`
+
+L'arithmétique `c - 'a' + 'A'` fonctionne parce que majuscules et minuscules sont décalées de 32 en ASCII (`'a' - 'A' == 32`). Retiens ce décalage, il revient partout.
+
+Usage roi en piscine : `my_atoi`. Tu sautes les espaces avec un `my_isspace`, tu gères le signe, puis tant que `my_isdigit(*str)` tu accumules `nbr = nbr * 10 + (*str - '0')`. Même logique pour valider un login, compter les mots d'une phrase ou découper une ligne.
+
+## À retenir
+
+- Retour « vrai » = non nul, pas forcément 1 : teste `!= 0` ou utilise le résultat en booléen.
+- Cast `(unsigned char)` systématique sur les entrées utilisateur, sinon comportement indéfini possible.
+- `toupper('a')` vaut `'A'`, mais `toupper('5')` vaut `'5'` : pas de conversion possible, pas d'erreur.
+- Réimplémenter la famille ctype est un échauffement idéal avant `my_atoi`.
+'''
+example = '''
+#include <ctype.h>
+#include <stdio.h>
+
+int my_isdigit(int c)
+{
+    return (c >= '0' && c <= '9');
+}
+
+int my_isupper(int c)
+{
+    return (c >= 'A' && c <= 'Z');
+}
+
+int my_tolower(int c)
+{
+    if (my_isupper(c))
+        return (c - 'A' + 'a');
+    return (c);
+}
+
+int main(void)
+{
+    const char *s = "Piscine 42";
+    size_t i;
+    int chiffres;
+
+    chiffres = 0;
+    i = 0;
+    while (s[i] != '\0') {
+        if (my_isdigit((unsigned char)s[i]))
+            chiffres = chiffres + 1;
+        putchar(my_tolower((unsigned char)s[i]));
+        i = i + 1;
+    }
+    putchar('\n');
+    printf("%d chiffres dans \"%s\"\n", chiffres, s);
+    printf("isspace(' ') = %d, isalnum('z') = %d\n",
+           isspace(' ') != 0, isalnum('z') != 0);
+    return 0;
+}
+'''
+gotchas = [
+  "Passer un char signe negatif (octet accentue) : comportement indefini, caste en (unsigned char) avant l'appel.",
+  "Tester le retour avec == 1 : les fonctions renvoient non nul, pas forcement 1.",
+  "Confondre caractere et valeur : isdigit('0') est vrai, isdigit(0) est faux.",
+  "Oublier qu'isspace couvre aussi '\\t', '\\n', '\\v', '\\f' et '\\r', pas seulement l'espace.",
+  "Attendre une erreur de toupper sur un chiffre : il renvoie le caractere inchange, silencieusement."
+]
+exercises = [
+  "Ecris my_isdigit, my_isalpha et my_isupper avec les plages ASCII, et teste-les contre les vraies fonctions sur tout l'alphabet.",
+  "Ecris my_toupper et my_tolower avec le decalage de 32, et mets une phrase complete en majuscules.",
+  "Commence my_atoi : saute les espaces avec un my_isspace, puis accumule les chiffres avec my_isdigit et la formule nbr = nbr * 10 + (c - '0')."
+]
+related = ["atoi-strtol", "chaines-caracteres", "conditions", "variables-types", "strcmp-strncmp"]

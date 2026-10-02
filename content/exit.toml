@@ -1,0 +1,89 @@
+id = "exit"
+title = "exit — terminer proprement, avec le bon code"
+category = "libc"
+tags = ["processus", "stdlib", "code-retour", "piscine"]
+difficulty = 2
+synopsis = "void exit(int status);"
+description = '''
+## En une phrase
+
+`exit` termine immédiatement ton programme, **proprement** : buffers stdio vidés, fonctions `atexit` appelées, puis le code de retour est transmis au shell.
+
+## Prototype et retour
+
+```c
+#include <stdlib.h>
+void exit(int status);
+```
+
+Pas de retour : la fonction est qualifiée `_Noreturn`, elle ne rend **jamais** la main. Tout code placé après un `exit` est du code mort.
+
+Le `status` suit la convention Unix : **`0` = succès, toute valeur non nulle = erreur**. Chez Epitech, l'erreur se code **`84`**, par tradition gravée dans le marbre. Le shell récupère cette valeur dans `$?`.
+
+## En pratique
+
+Deux façons de quitter un programme, presque équivalentes **dans main uniquement** :
+
+```c
+return 84;   /* dans main : flush + atexit, comme exit */
+exit(84);    /* partout : depuis n'importe quelle fonction */
+```
+
+Ailleurs que dans `main`, `return` ne termine que la fonction courante : `exit` est ton seul moyen de tout stopper net depuis une fonction profonde.
+
+L'ordre exact des opérations de `exit` :
+
+1. Appel des fonctions enregistrées avec `atexit`, en **ordre inverse** de l'enregistrement.
+2. Flush et fermeture de tous les flux stdio : un `printf` sans `'\n'` apparaît quand même.
+3. Terminaison réelle via `_exit` côté noyau.
+
+Son cousin brutal : **`_exit(status)`** (`<unistd.h>`) coupe tout **sans flush ni atexit**. Un `printf` encore coincé dans le buffer disparaît à jamais. Tu ne l'utiliseras quasiment jamais en piscine, sauf après un `fork` dans le fils.
+
+## À retenir
+
+- `0` = succès, `84` = erreur Epitech, `$?` pour vérifier dans le shell.
+- `exit` flush stdio et appelle les `atexit` ; `_exit` ne fait rien de tout ça.
+- Dans `main`, `return n` vaut `exit(n)` ; ailleurs, seul `exit` termine le programme.
+- `exit` depuis une fonction profonde court-circuite les `free` en chemin : pour un programme Valgrind-friendly, préfère remonter proprement quand tu peux.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Sera appelee par exit, en ordre inverse de l'enregistrement. */
+static void cleanup(void)
+{
+    printf("cleanup: atexit execute au moment de exit\n");
+}
+
+int main(int argc, char **argv)
+{
+    int value;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <nombre positif>\n", argv[0]);
+        return 84;
+    }
+    atexit(cleanup);
+    value = atoi(argv[1]);
+    if (value < 0) {
+        fprintf(stderr, "Nombre negatif : abandon immediat\n");
+        exit(84);
+    }
+    printf("Tout va bien, value = %d\n", value);
+    return 0;
+}
+'''
+gotchas = [
+  "Placer du code après un exit : il ne s'exécutera jamais, la fonction est _Noreturn. gcc et la Norme détestent le code mort.",
+  "Renvoyer 0 sur une erreur : la moulinette teste $?, un programme qui échoue en silence est pire qu'un crash. 0 = succès, 84 = erreur, sans exception.",
+  "Confondre exit et _exit : _exit jette les buffers stdio, tes printf en cours disparaissent. Sauf cas précis (fork), utilise exit.",
+  "Oublier que exit court-circuite les free : depuis une fonction profonde, la mémoire allouée en chemin fuit. Valgrind s'en souviendra.",
+  "Croire que return 84 dans une sous-fonction termine le programme : non, ça ne quitte que la fonction. Seul exit stoppe tout."
+]
+exercises = [
+  "Écris un programme qui exige exactement un argument numérique positif : message sur stderr et exit(84) sinon, affichage et 0 si tout va bien. Vérifie chaque cas avec echo $?",
+  "Enregistre deux fonctions avec atexit et observe leur ordre d'appel : tu dois voir l'inverse de l'ordre d'enregistrement.",
+  "Compare exit et _exit : place un printf sans '\\n' juste avant chacun (dans deux programmes séparés) et observe ce qui s'affiche."
+]
+related = ["gestion-errno", "main-argc-argv", "printf", "free", "erreurs-frequentes"]

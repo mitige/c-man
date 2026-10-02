@@ -1,0 +1,15 @@
+id = "q-web-dom"
+category = "web"
+difficulty = 2
+question = "Tu veux récupérer en JavaScript le premier paragraphe <p class=\"intro\"> de la page. Quelle méthode accepte directement le sélecteur CSS '.intro' ?"
+choices = [
+  "document.querySelector('.intro')",
+  "document.getElementById('.intro')",
+  "document.getElementById('intro')",
+  "document.selectByClass('.intro')"
+]
+answer = 0
+explanation = '''
+querySelector prend n'importe quel sélecteur CSS ('.intro', '#titre', 'p.intro span') et retourne le premier élément correspondant, ou null s'il n'y en a pas. getElementById ne cherche que par id et prend le nom SANS le # : getElementById('intro') cible id="intro", pas la classe. Le DOM est la représentation en arbre de ton HTML construite par le navigateur : chaque balise devient un nœud que JavaScript peut lire et modifier via l'objet document.
+'''
+related = ["js-dom", "js-bases"]

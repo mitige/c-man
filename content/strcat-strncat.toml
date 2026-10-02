@@ -1,0 +1,97 @@
+id = "strcat-strncat"
+title = "strcat et strncat — concaténer sans exploser le buffer"
+category = "libc"
+tags = ["string", "copie", "buffer", "performance"]
+difficulty = 2
+piscine_day = "J05"
+synopsis = "char *strcat(char *dest, const char *src);\nchar *strncat(char *dest, const char *src, size_t n);"
+description = '''
+## En une phrase
+
+`strcat` colle `src` à la fin de `dest` en écrasant son `'\0'` ; `strncat` borne à `n` octets ajoutés et garantit, lui, le `'\0'` final.
+
+## Prototype et retour
+
+- Header : `<string.h>`
+- `char *strcat(char *dest, const char *src);` : parcourt `dest` jusqu'à son `'\0'`, y recopie `src` (terminateur inclus).
+- `char *strncat(char *dest, const char *src, size_t n);` : ajoute AU PLUS `n` octets de `src`, puis pose TOUJOURS un `'\0'` final.
+- Retour : `dest`, comme toute la famille `str*`.
+
+Place nécessaire dans `dest` : `strlen(dest) + strlen(src) + 1` octets. Un octet de moins et c'est le débordement.
+
+Attention au sens de `n` dans `strncat` : c'est le nombre maximal d'octets AJOUTÉS, pas la taille totale du buffer. Pour un buffer de taille `sizeof(dest)`, la valeur sûre est `sizeof(dest) - strlen(dest) - 1`.
+
+> Contrairement à `strncpy`, `strncat` termine TOUJOURS par `'\0'`. C'est l'inverse qui aurait été logique, mais non : retiens cette asymétrie, la moulinette adore la tester.
+
+## En pratique
+
+Réimplémentation (`my_strcat`, J05) : deux `while` à la suite.
+
+- premier `while` : trouver la fin de `dest` (`while (dest[len] != '\0') len = len + 1;`)
+- deuxième `while` : copier `src[i]` dans `dest[len + i]` jusqu'au `'\0'` de `src`
+- terminer par `dest[len + i] = '\0';` et renvoyer `dest`
+
+Astuce de fainéant professionnel : si tu as déjà `my_strlen` et `my_strcpy`, `my_strcat` tient en une ligne : `my_strcpy(dest + my_strlen(dest), src)`. Comprendre POURQUOI ça marche, c'est avoir compris l'arithmétique des pointeurs.
+
+Le piège de performance : `strcat` reparcourt TOUT `dest` à chaque appel. Concaténer 1000 morceaux dans une boucle, c'est l'algorithme du peintre Schlemiel : O(n²). En pratique, garde un pointeur sur la fin courante et fais-le avancer à chaque copie.
+
+`my_strncat` : même chose avec une borne `n` sur la deuxième boucle, et le `'\0'` posé DANS TOUS LES CAS.
+
+## À retenir
+
+- `dest` doit être une chaîne VALIDE (terminée) et avoir la place : `strlen(dest) + strlen(src) + 1`.
+- `strncat` garantit le `'\0'` final ; `n` compte les octets ajoutés, pas la taille du buffer.
+- Les deux renvoient `dest` : sauvegarde le pointeur d'origine si tu incrémentes.
+- Évite `strcat` en boucle : coût quadratique, préfère un curseur de fin.
+'''
+example = '''
+#include <stdio.h>
+#include <string.h>
+
+/* Accroche src au bout de dest. dest doit avoir la place ! */
+char *my_strcat(char *dest, const char *src)
+{
+    size_t i;
+    size_t len;
+
+    len = 0;
+    while (dest[len] != '\0')
+        len = len + 1;
+    i = 0;
+    while (src[i] != '\0') {
+        dest[len + i] = src[i];
+        i = i + 1;
+    }
+    dest[len + i] = '\0';
+    return dest;
+}
+
+int main(void)
+{
+    char chemin[64] = "/tmp/";
+    char msg[32] = "";
+
+    my_strcat(chemin, "epitech");
+    printf("%s\n", chemin);
+    /* strncat ajoute au plus n octets, '\\0' final garanti. */
+    strncat(msg, "abcdef", 3);
+    strncat(msg, "0123456789", 4);
+    printf("%s\n", msg);
+    printf("place utilisee : %zu/%zu octets\n", strlen(chemin) + 1,
+           sizeof(chemin));
+    return 0;
+}
+'''
+gotchas = [
+  "Buffer trop petit : il faut strlen(dest) + strlen(src) + 1 octets dans dest, un de moins et c'est le debordement.",
+  "dest non initialise : strcat marche jusqu'au premier '\\0', dans des octets au hasard s'il n'y a pas de chaine valide.",
+  "Mauvais sens de n dans strncat : c'est le nombre d'octets AJOUTES, pas la taille totale du buffer.",
+  "strcat dans une boucle : chaque appel reparcourt dest depuis le debut, ton programme devient quadratique.",
+  "Croire que strncat tronque comme strncpy : lui garantit toujours le '\\0' final."
+]
+exercises = [
+  "Ecris my_strcat avec deux while, puis recris-le en une ligne en reutilisant my_strlen et my_strcpy.",
+  "Ecris my_strncat avec la borne n et le '\\0' final garanti, et teste-le avec n superieur a la longueur de src.",
+  "Ecris une fonction join_path(dir, file) qui alloue avec malloc la taille exacte et y concatene dir, '/' et file, sans depasser d'un octet."
+]
+related = ["strlen", "strcpy-strncpy", "malloc", "stack-vs-heap", "chaines-caracteres"]

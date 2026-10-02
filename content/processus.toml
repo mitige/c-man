@@ -1,0 +1,72 @@
+id = "processus"
+title = "processus — voir, suspendre, tuer"
+category = "bash"
+tags = ["processus", "kill", "jobs", "ps"]
+difficulty = 3
+synopsis = "ps aux | grep prog ; kill PID ; jobs ; fg %1 ; top"
+description = '''
+## En une phrase
+
+Tout programme qui tourne est un processus identifié par un PID, et savoir les voir, les suspendre et les tuer te rend maître de ta machine.
+
+## En pratique
+
+`ps aux` photographie tous les processus du système ; repère le tien avec `ps aux | grep my_prog`. La colonne qui compte est le **PID**, l'identifiant unique du processus.
+
+`kill PID` envoie un signal : par défaut **SIGTERM** (15), c'est-à-dire « termine-toi proprement ». Le programme peut capter ce signal pour sauvegarder et fermer ses fichiers. `kill -9 PID` (SIGKILL) est le pistolet : impossible à capter ou ignorer, mort immédiate — mais sans aucun nettoyage. **Toujours TERM d'abord, -9 en dernier recours.**
+
+Le contrôle de jobs du shell :
+
+- `cmd &` : lance la commande en arrière-plan
+- `jobs` : liste les jobs du shell courant
+- **Ctrl+Z** : suspend le programme au premier plan (gelé, pas mort)
+- `bg %1` : le fait reprendre en arrière-plan
+- `fg %1` : le ramène au premier plan
+- **Ctrl+C** : interrompt (SIGINT) et tue le programme au premier plan
+
+`top` — ou `htop`, plus lisible — affiche en direct les gourmands en CPU et en mémoire.
+
+> Le piège classique de la piscine : ton programme C boucle à l'infini, tu fermes le terminal sans le tuer, et il continue de manger 100 % d'un cœur. `top` pour le repérer, `kill` pour l'achever, et c'est réglé.
+
+## À retenir
+
+- Ctrl+C tue, Ctrl+Z suspend : après un Ctrl+Z, le processus est toujours là — tape `jobs` pour t'en convaincre.
+- `kill` sans numéro de signal envoie TERM : laisse une chance au programme de finir proprement.
+- `kill -9` ne laisse pas fermer les fichiers ni libérer la mémoire : fichiers corrompus possibles.
+- Un `&` oublié dans un script peut laisser tourner des processus en arrière-plan bien après ta déconnexion.
+'''
+example = '''
+# Dompter un programme parti en boucle infinie
+login@epitech:~/j04$ ./my_infinite_loop &
+[1] 4242                          # job numéro 1, PID 4242
+login@epitech:~/j04$ jobs         # les jobs du shell courant
+[1]+  Running    ./my_infinite_loop &
+login@epitech:~/j04$ ps aux | grep my_infinite
+login  4242  98.5  0.1  2340  756 pts/0  R  14:02  0:12 ./my_infinite_loop
+login@epitech:~/j04$ kill 4242    # SIGTERM : poli mais ferme
+login@epitech:~/j04$ jobs
+[1]+  Terminated   ./my_infinite_loop
+login@epitech:~/j04$ sleep 600    # un job inoffensif pour jouer
+^Z                                # Ctrl+Z : suspendu, PAS tué
+[1]+  Stopped    sleep 600
+login@epitech:~/j04$ bg %1        # reprend en arrière-plan
+[1]+ sleep 600 &
+login@epitech:~/j04$ fg %1        # ramène au premier plan
+sleep 600
+^C                                # Ctrl+C : interrompu, mort
+login@epitech:~/j04$ kill -9 4242
+bash: kill: (4242) - No such process   # déjà terminé : normal
+'''
+gotchas = [
+  "kill -9 en premier réflexe : le programme ne peut rien nettoyer, et les fichiers temporaires ou corrompus s'accumulent.",
+  "Ctrl+Z ne tue rien : le processus est gelé en mémoire et jobs te le rappellera à la fermeture du shell.",
+  "Tuer un PID au hasard : vérifie toujours avec ps que c'est bien ton programme avant d'appuyer.",
+  "Un & oublié laisse des processus tourner en fond et manger du CPU après ta déconnexion.",
+  "Fermer le terminal envoie SIGHUP aux jobs attachés : ils meurent, mais pas toujours proprement."
+]
+exercises = [
+  "Lance sleep 300 en arrière-plan, retrouve son PID avec jobs puis ps, tue-le avec TERM et vérifie qu'il a disparu.",
+  "Écris un programme C avec une boucle infinie, lance-le en fond, observe-le dans top, puis tue-le proprement.",
+  "Lance trois sleep en fond, ramène le deuxième au premier plan avec fg %2, suspend-le avec Ctrl+Z, puis fais le ménage avec kill."
+]
+related = ["bash-bases", "permissions", "gdb", "segfault"]

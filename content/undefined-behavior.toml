@@ -1,0 +1,79 @@
+id = "undefined-behavior"
+title = "undefined behavior — le contrat est rompu"
+category = "memoire"
+tags = ["undefined-behavior", "standard", "optimiseur", "pieges", "warnings"]
+difficulty = 4
+synopsis = "UB : le standard ne garantit plus rien — ni crash, ni résultat, ni message"
+description = '''
+## En une phrase
+
+Le comportement indéfini (UB), c'est quand ton code viole une règle du standard C : à partir de là, **le langage ne garantit plus rien** — ni un crash, ni un résultat, ni même un message d'erreur.
+
+## En pratique
+
+Trois régimes à bien distinguer :
+
+- **Undefined behavior** : tout peut arriver. Le code « marche » sur ta machine, et la moulinette compile avec d'autres flags sur une autre machine → résultat différent ou crash.
+- **Unspecified behavior** : le standard autorise plusieurs choix légitimes sans imposer lequel (l'ordre d'évaluation des arguments d'une fonction). Programme valide, mais n'écris rien qui dépende du choix.
+- **Implementation-defined** : le standard exige que le compilateur documente son choix (la taille de `int`). Tu peux t'y fier **sur cette plateforme** seulement.
+
+La collection d'UB qui te guette en piscine :
+
+```c
+i = i++;                    /* 2 écritures non séquencées sur i */
+INT_MAX + 1                 /* débordement signé                */
+*p   avec p == NULL         /* déréférencement invalide         */
+tab[i] hors limites         /* accès hors tableau               */
+*p après free(p)            /* use-after-free                   */
+```
+
+Le vrai danger : l'**optimiseur**. Avec `-O2`, gcc raisonne ainsi : « le programmeur ne ferait jamais d'UB, donc cette branche est morte » — et supprime ton test de sécurité. Exemple célèbre : après `*p = 1;`, gcc peut éliminer un `if (p == NULL)` situé plus loin, car « si p valait NULL, le programme était déjà indéfini ». Résultat : le bug n'apparaît qu'en version optimisée — typiquement celle de la moulinette.
+
+D'où la règle d'or : **zéro warning, zéro UB**. `-Wall -Wextra -Werror` détecte statiquement une bonne partie des UB bêtes (variable non initialisée, adresse de locale retournée, séquencement douteux). Si gcc parle, écoute : il sait des choses que tu ne vois pas.
+
+## À retenir
+
+- UB ≠ « ça plante ». UB = « plus aucun contrat » : ça peut marcher 100 fois et exploser la 101e.
+- « Ça marche sur ma machine » n'est JAMAIS une preuve de correction.
+- L'optimiseur transforme les UB en comportements absurdes : debug en `-g -O0`, mais pense `-O2`.
+- Apprends la liste des UB courants : c'est la check-list mentale de chaque relecture de code.
+'''
+example = '''
+#include <stdio.h>
+#include <limits.h>
+
+/*
+ * Chaque ligne commentée est un comportement INDÉFINI :
+ * décommente à tes risques et périls (et teste en -O0 puis -O2).
+ * Le programme exécuté, lui, est entièrement DÉFINI.
+ */
+int main(void)
+{
+    unsigned int u = UINT_MAX;
+    int i = 0;
+
+    /* i = i++;                    écritures non séquencées sur i : UB */
+    /* i = INT_MAX + 1;            débordement signé : UB              */
+    /* { int t[2]; t[7] = 0; }     accès hors tableau : UB             */
+    /* { int *p = NULL; i = *p; }  déréférencement de NULL : UB        */
+
+    u = u + 1;      /* non signé : modulo 2^32, DÉFINI -> u vaut 0 */
+    i = i + 1;      /* séquencé proprement : aucun problème */
+    printf("u = %u (wrap garanti), i = %d\n", u, i);
+    printf("INT_MAX = %d : au-delà, plus aucune garantie\n", INT_MAX);
+    return 0;
+}
+'''
+gotchas = [
+  "'Ça marche chez moi' : un UB peut produire le bon résultat par accident, puis casser à la moulinette.",
+  "i = i++ ou printf(\"%d %d\", i, i++) : écritures non séquencées sur i, résultat indéfini.",
+  "Compter sur le wrap signé (INT_MAX + 1 == INT_MIN) : c'est un UB, pas une loi de l'univers.",
+  "Avec -O2, l'optimiseur exploite les UB pour supprimer du code : ton test de sécurité peut disparaître.",
+  "Un warning gcc est souvent un UB détecté : avec -Werror tu n'as pas le droit de l'ignorer."
+]
+exercises = [
+  "Compile i = i++; avec -Wall -Wextra : lis le warning de séquencement, puis corrige en deux instructions séparées.",
+  "Teste un débordement signé en -O0 puis en -O2 : observe la différence de comportement et explique pourquoi c'est un UB.",
+  "Classe ces trois cas — taille de int, ordre d'évaluation des arguments, déréférencement de NULL — en implementation-defined, unspecified ou UB."
+]
+related = ["segfault", "debordements-entiers", "gcc", "flags-compilation", "erreurs-frequentes"]

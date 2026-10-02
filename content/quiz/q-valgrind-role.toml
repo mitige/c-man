@@ -1,0 +1,15 @@
+id = "q-valgrind-role"
+category = "outils"
+difficulty = 1
+question = "À quoi sert valgrind ?"
+choices = [
+  "À reformater le code selon la Norme",
+  "À détecter les fuites mémoire et les accès invalides pendant l'exécution",
+  "À compiler plus rapidement",
+  "À générer la documentation du projet"
+]
+answer = 1
+explanation = '''
+valgrind exécute ton programme dans un environnement instrumenté et traque chaque octet : fuites (definitely lost), lectures et écritures hors limites, variables non initialisées, double free. Lance-le avec --leak-check=full sur un binaire compilé avec -g pour obtenir les numéros de ligne. En piscine, un programme qui fuit est un programme raté : fais de valgrind un réflexe avant chaque push.
+'''
+related = ["valgrind", "fuites-memoire", "methodologie-debug"]

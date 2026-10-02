@@ -1,0 +1,74 @@
+id = "printf"
+title = "printf — l'affichage formaté de stdio"
+category = "libc"
+tags = ["io", "stdio", "format", "affichage"]
+difficulty = 2
+piscine_day = "J01"
+synopsis = "int printf(const char *format, ...);"
+description = '''
+## En une phrase
+
+`printf` affiche du texte **formaté** sur stdout : une chaîne de format avec des `%` partout, et autant d'arguments qu'il faut derrière pour les remplir.
+
+## Prototype et retour
+
+```c
+#include <stdio.h>
+int printf(const char *format, ...);
+```
+
+**Retour** : le nombre de caractères affichés, ou une valeur négative en cas d'erreur. Personne ne le teste en pratique, mais il existe.
+
+Les formats indispensables :
+
+- `%d` / `%i` : int signé, `%u` : non signé, `%c` : caractère, `%s` : chaîne
+- `%x` / `%X` : hexadécimal minuscule/majuscule, `%o` : octal, `%p` : pointeur (caste en `void *`)
+- `%f` : double, `%%` : un vrai pourcent
+
+Largeur et précision : `%5d` aligne à droite sur 5 colonnes, `%-5d` à gauche, `%05d` complète avec des zéros, `%.2f` arrondit à deux décimales, `%.3s` tronque une chaîne.
+
+## En pratique
+
+Le point qui surprend tout le monde : **stdout est bufferisé**. Tes caractères partent dans un buffer en mémoire et ne sont réellement écrits que sur `'\n'` (sur un terminal), quand le buffer est plein, ou à la fin du programme. Conséquence : si tu mélanges `printf` et `write`, les textes peuvent apparaître **dans le désordre**, car `write` court-circuite le buffer.
+
+En piscine, `printf` est presque toujours **interdit** : vérifie le sujet. Tu feras tout avec `write`, et un jour on te demandera de recoder un `my_printf` : tu comprendras alors chaque ligne de cette fiche.
+
+## À retenir
+
+- Un `%` = un argument, dans le même ordre et le bon type. `%s` sur un int ou un argument manquant = undefined behavior immédiat.
+- `%%` pour afficher un pourcent littéral.
+- Le buffer peut retarder l'affichage : ajoute `'\n'` ou appelle `fflush(stdout)` quand l'ordre compte.
+- Le retour est le nombre de caractères écrits : pratique pour mesurer une sortie.
+'''
+example = '''
+#include <stdio.h>
+
+int main(void)
+{
+    char *name = "piscine";
+    int day = 5;
+    double ratio = 42.0 / 7.0;
+
+    printf("Bienvenue en %s C\n", name);
+    printf("Jour %02d sur 26\n", day);
+    printf("Ratio: %.2f | hexa de %d: %x | octal: %o\n", ratio, day, day, day);
+    printf("A droite: '%5d' | a gauche: '%-5d' | zero: '%05d'\n", 42, 42, 42);
+    printf("Un vrai pourcent: 100%%\n");
+    printf("Adresse de day: %p\n", (void *)&day);
+    printf("Caracteres affiches par cet appel: comptes par printf\n");
+    return 0;
+}
+'''
+gotchas = [
+  "Argument qui ne correspond pas au format (%s sur un int, argument manquant) : undefined behavior immédiat, segfault ou valeurs absurdes à l'écran.",
+  "Oublier que printf est bufferisé : mélangé avec write, les affichages sortent dans le désordre. Un '\\n' ou fflush(stdout) règle le problème.",
+  "%s sur un pointeur NULL ou une chaîne non terminée : crash. Vérifie tes chaînes avant de les passer.",
+  "Oublier %% pour afficher un vrai pourcent : le % seul avale le caractère suivant comme format fantôme.",
+  "Utiliser printf en piscine sans vérifier le sujet : il est presque toujours interdit. write est ta sortie officielle."
+]
+exercises = [
+  "Affiche la table de multiplication de 1 à 9 en colonnes parfaitement alignées grâce à %3d.",
+  "Affiche les adresses de trois variables locales avec %p, puis leurs valeurs en décimal et en hexadécimal.",
+  "Recodes un my_printf minimal qui gère %s, %d, %c et %% avec write et stdarg.h. Teste-le contre le vrai."
+]
+related = ["write", "putchar", "scanf", "chaines-caracteres", "undefined-behavior"]

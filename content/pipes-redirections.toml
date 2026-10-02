@@ -1,0 +1,81 @@
+id = "pipes-redirections"
+title = "pipes-redirections — brancher les commandes entre elles"
+category = "bash"
+tags = ["pipe", "redirection", "stdout", "stderr", "flux"]
+difficulty = 2
+synopsis = "cmd1 | cmd2 ; cmd > out.txt ; cmd >> log.txt ; cmd 2>&1 ; cmd &> tout.txt"
+description = '''
+## En une phrase
+
+Chaque commande a trois flux — stdin (0), stdout (1), stderr (2) — et les redirections te permettent de brancher ces tuyaux exactement où tu veux.
+
+## En pratique
+
+Par défaut, stdout et stderr partent à l'écran, stdin vient du clavier. Tout le jeu consiste à les détourner :
+
+- `cmd > fichier` : stdout dans le fichier (**écrase** le contenu existant)
+- `cmd >> fichier` : stdout ajouté à la fin du fichier
+- `cmd < fichier` : stdin lu depuis le fichier au lieu du clavier
+- `cmd 2> erreurs.txt` : stderr seul dans un fichier
+- `cmd > out.txt 2>&1` : stderr **fusionné** avec stdout, tout dans out.txt
+- `cmd &> tout.txt` : raccourci bash pour stdout + stderr ensemble
+- `cmd 2> /dev/null` : jette les erreurs dans le trou noir
+
+Le pipe `|` est différent : il envoie stdout d'une commande vers stdin de la suivante, sans fichier intermédiaire :
+
+```bash
+./my_prog | grep OK                       # ne garde que les lignes OK
+cat log.txt | sort | uniq -c | sort -n    # compte les lignes identiques
+```
+
+> **L'ordre compte** : `cmd > f 2>&1` envoie tout dans f, mais `cmd 2>&1 > f` laisse stderr à l'écran — le `2>&1` a copié stdout avant que celui-ci ne soit redirigé.
+
+Et `tee` résout le dilemme « voir ou sauvegarder » : il fait les deux, comme un raccord en T de plomberie.
+
+```bash
+make 2>&1 | tee build.log    # tu vois la compilation ET elle est enregistrée
+```
+
+Exemple piscine complet : `gcc *.c -o my_prog 2> erreurs.txt` capture les erreurs de compilation pour les relire calmement, puis `./my_prog | grep -c OK` compte tes tests réussis.
+
+## À retenir
+
+- `|` ne transporte que stdout ; ajoute `2>&1` avant le pipe pour embarquer les erreurs.
+- `>` écrase, `>>` ajoute : un seul caractère de différence, un fichier de perdu.
+- `/dev/null` avale tout ce que tu lui envoies : parfait pour taire une commande bavarde.
+- `tee` = une entrée, deux sorties : l'écran ET le fichier.
+'''
+example = '''
+# Journée de tests : capturer, filtrer, compter
+login@epitech:~/j05$ gcc *.c -o my_prog 2> erreurs.txt   # erreurs capturées
+login@epitech:~/j05$ wc -l erreurs.txt          # combien d'erreurs ?
+12 erreurs.txt
+login@epitech:~/j05$ head -n 2 erreurs.txt      # les deux premières
+main.c:7:5: error: expected declaration before '}' token
+utils.c:3:10: fatal error: my.h: No such file or directory
+login@epitech:~/j05$ ./my_prog > resultats.txt 2>&1   # sortie + erreurs au même endroit
+login@epitech:~/j05$ ./my_prog | grep OK        # filtrer en direct
+test 01 : OK
+test 04 : OK
+login@epitech:~/j05$ ./my_prog | grep -c OK     # compter les succès
+2
+login@epitech:~/j05$ ./my_prog 2>/dev/null | tee trace.txt   # voir + garder
+test 01 : OK
+test 02 : KO
+login@epitech:~/j05$ cat resultats.txt | sort | uniq -c | sort -nr | head -3
+      5 test 03 : SKIP
+      2 test 01 : OK
+      1 test 02 : KO
+'''
+gotchas = [
+  "> écrase sans prévenir : un > rendu.txt sur le mauvais fichier et le contenu précédent est perdu à jamais.",
+  "cmd 2>&1 > fichier ne fait pas ce que tu crois : l'ordre compte, écris cmd > fichier 2>&1.",
+  "Le pipe ne transmet que stdout : les erreurs continuent d'aller à l'écran sauf si tu ajoutes 2>&1.",
+  "cat fichier | grep motif est un processus de trop : grep motif fichier fait la même chose.",
+  "Rediriger stderr de gcc vers /dev/null ne corrige rien : lis tes erreurs, elles sont ta carte au trésor."
+]
+exercises = [
+  "Casse volontairement un fichier .c, compile avec gcc *.c 2> erreurs.txt, puis compte les erreurs avec wc -l.",
+  "Enchaîne ./my_prog 2>&1 | tee trace.txt | grep -c OK et explique à voix haute ce que fait chaque maillon du pipe."
+]
+related = ["variables-shell", "commandes-texte", "gcc", "gestion-errno"]

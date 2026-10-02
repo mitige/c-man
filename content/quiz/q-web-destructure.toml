@@ -1,0 +1,21 @@
+id = "q-web-destructure"
+category = "web"
+difficulty = 2
+question = '''
+Qu'affiche ce code ?
+
+const user = { name: 'Ada', age: 36 };
+const { age, name } = user;
+console.log(name);
+'''
+choices = [
+  "Ada",
+  "36",
+  "undefined",
+  "Une erreur : les variables doivent être destructurées dans l'ordre de l'objet"
+]
+answer = 0
+explanation = '''
+Le destructuring d'objet se fait par NOM de propriété, pas par position : const { age, name } = user crée deux variables age et name peu importe l'ordre dans lequel on les écrit. Ici name reçoit donc user.name, soit 'Ada'. C'est une différence majeure avec le destructuring de tableau, qui lui dépend de la position. Si la propriété n'existe pas dans l'objet, la variable vaut undefined sans erreur.
+'''
+related = ["js-objets", "js-bases", "js-fonctions"]

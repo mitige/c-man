@@ -1,0 +1,86 @@
+id = "math"
+title = "math.h — sqrt, pow et le fameux -lm"
+category = "libc"
+tags = ["math", "double", "linking", "lm"]
+difficulty = 2
+synopsis = "double sqrt(double x);\ndouble pow(double x, double y);\ndouble fabs(double x);\ndouble ceil(double x);\ndouble floor(double x);\ndouble fmod(double x, double y);"
+description = '''
+## En une phrase
+
+`<math.h>` regroupe les fonctions mathématiques de la libc — racines, puissances, arrondis, valeur absolue flottante — qui travaillent toutes sur des `double` et exigent le flag `-lm` au link.
+
+## Prototype et retour
+
+```c
+#include <math.h>
+double sqrt(double x);          /* racine carree, NaN si x < 0 */
+double pow(double x, double y); /* x puissance y */
+double fabs(double x);          /* valeur absolue d'un double */
+double ceil(double x);          /* arrondi au-dessus : 4.0 pour 3.2 */
+double floor(double x);         /* arrondi en dessous : 3.0 pour 3.8 */
+double fmod(double x, double y);/* reste de la division flottante */
+```
+
+Tout rentre en `double`, tout sort en `double`. Un `int` passé en argument est converti implicitement, mais le résultat reste un flottant : cast si tu veux un entier (`(int)sqrt(42)`).
+
+## En pratique
+
+**Le piège n°1 de la piscine** : compiler sans `-lm`. Le code compile, puis le linker hurle :
+
+```
+undefined reference to `sqrt'
+```
+
+La solution : `gcc main.c -lm`, avec le `-lm` APRÈS les fichiers sources (l'ordre compte pour le linker). Le header déclare, la bibliothèque `-lm` définit : ce sont deux mondes différents.
+
+Deux réflexes performance : `pow(x, 2.0)` est bien plus lent que `x * x`, et `sqrt` coûte cher — pour comparer deux distances, compare leurs carrés et zappe la racine.
+
+> Il n'y a AUCUNE version entière de ces fonctions dans `<math.h>`. Pour les `int` : `abs` (stdlib), `x * x`, et `%` à la place de `fmod`.
+
+## À retenir
+
+- `-lm` au link, toujours, et en fin de ligne de commande.
+- `fabs` = double, `abs` = int : ne les échange jamais, le compilateur ne te préviendra pas.
+- `M_PI` n'est PAS C99 strict : avec `-std=c99` il est invisible. Définis ta propre constante.
+- `ceil` et `floor` renvoient un `double` (`4.0`, pas `4`).
+- Domaine : `sqrt(-1)` renvoie `NaN` (avec souvent `errno` à `EDOM`, selon l'implémentation).
+'''
+example = '''
+#include <stdio.h>
+#include <math.h>
+
+/* Geometrie express : hypothenuse, aire de disque et arrondis.
+   Compilation : gcc -Wall -Wextra -Werror -std=c99 main.c -lm */
+int main(void)
+{
+    double a = 3.0;
+    double b = 4.0;
+    double hypo;
+    double rayon = 2.5;
+    double aire;
+    double pi = 3.14159265358979323846;
+
+    hypo = sqrt(a * a + b * b);
+    printf("Hypotenuse : %.2f\n", hypo);
+    aire = pi * rayon * rayon;
+    printf("Aire disque : %.3f (ceil=%.0f, floor=%.0f)\n",
+           aire, ceil(aire), floor(aire));
+    printf("fabs(-4.2) = %.1f\n", fabs(-4.2));
+    printf("fmod(10, 3) = %.1f\n", fmod(10.0, 3.0));
+    printf("pow(2, 10) = %.0f\n", pow(2.0, 10.0));
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier -lm au link : undefined reference to sqrt/pow/... alors que le code compilait. Mets -lm en fin de ligne de commande.",
+  "Utiliser abs au lieu de fabs sur un double : le resultat est tronque en int, calculs fausses en silence.",
+  "Compter sur M_PI avec -std=c99 : il est masque en C strict. Definis ton propre #define ou une variable const.",
+  "Ecrire pow(x, 2) partout : c'est un appel de fonction couteux la ou x * x suffit amplement.",
+  "Utiliser fmod sur des int : pour les entiers c'est l'operateur %, fmod est reserve aux double."
+]
+exercises = [
+  "Ecris un programme qui calcule la distance euclidienne entre deux points (x1,y1) et (x2,y2) definis en dur ; compile-le d'abord SANS -lm pour voir l'erreur, puis avec.",
+  "Code `my_sqrt` entier : le plus grand entier dont le carre est inferieur ou egal a n (boucle ou dichotomie), sans toucher a math.h.",
+  "Compare avec `time` la vitesse de pow(x, 2.0) contre x * x sur 100 millions d'iterations."
+]
+related = ["abs", "linking", "gcc", "flags-compilation", "debordements-entiers"]

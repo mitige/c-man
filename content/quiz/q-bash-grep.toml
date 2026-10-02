@@ -1,0 +1,15 @@
+id = "q-bash-grep"
+category = "bash"
+difficulty = 2
+question = "Tu veux retrouver toutes les occurrences de la chaîne TODO dans tous les fichiers de ton projet, sous-dossiers inclus. Quelle commande utilises-tu ?"
+choices = [
+  "grep -r \"TODO\" .",
+  "grep \"TODO\" .",
+  "find \"TODO\" .",
+  "grep -r . \"TODO\""
+]
+answer = 0
+explanation = '''
+grep ne descend pas dans les dossiers tout seul : l'option -r (récursif) lui dit de parcourir toute l'arborescence à partir du chemin donné, ici le dossier courant. Sans -r, grep "TODO" . se contente de râler que . est un dossier et ne cherche nulle part. La syntaxe est grep -r MOTIF CHEMIN : dans grep -r . "TODO", le motif recherché serait le point, pas TODO, et grep essaierait d'ouvrir un fichier nommé TODO. Ajoute -n pour afficher les numéros de ligne et -i pour ignorer la casse.
+'''
+related = ["commandes-texte", "bash-bases"]

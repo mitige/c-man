@@ -1,0 +1,82 @@
+id = "free"
+title = "free — rendre la mémoire, une seule fois"
+category = "memoire"
+tags = ["free", "heap", "double-free", "use-after-free", "liberation"]
+difficulty = 2
+piscine_day = "J07"
+synopsis = "void free(void *ptr);  /* rend le bloc au heap ; free(NULL) est sans effet */"
+description = '''
+## En une phrase
+
+`free(ptr)` rend au heap le bloc que `ptr` désigne — sans toucher au pointeur lui-même, qui devient alors **pendant** (dangling) jusqu'à ce que tu le réassignes.
+
+## En pratique
+
+Le prototype : `void free(void *ptr);` dans `<stdlib.h>`. On ne libère que ce qui vient de `malloc`/`calloc`/`realloc` (ou d'une fonction qui alloue, comme `strdup`) : free sur une variable locale, un littéral ou le milieu d'un bloc = comportement indéfini.
+
+Les trois pièges qui font planter ta piscine :
+
+1. **Double free** : libérer deux fois le même bloc corrompt les structures internes de l'allocateur. glibc le détecte souvent : `double free or corruption`, abort immédiat. Sinon : corruption silencieuse, crash 200 lignes plus loin.
+2. **Use-after-free** : lire ou écrire `*p` après `free(p)`. La mémoire n'est effacée nulle part — elle est juste réutilisable, donc ça peut sembler marcher. UB complet.
+3. **Oublier tout court** : la fuite. Moins spectaculaire, mais valgrind te la facture octet par octet.
+
+L'hygiène qui sauve des heures de gdb :
+
+```c
+free(p);
+p = NULL;
+```
+
+`free(NULL)` est explicitement **sans effet** : remettre à NULL après libération transforme un hypothétique double free en non-opération, et rend le use-after-free détectable (segfault net au lieu d'une corruption floue). Note bien : `free` seul ne réinitialise **pas** le pointeur — il reçoit une copie de l'adresse, il ne peut pas modifier ta variable. C'est à toi de couper le lien.
+
+```
+p ---> [ bloc heap ]     free(p) : le bloc retourne au heap
+p ---> ??? (dangling)    p garde l'ancienne adresse !
+p = NULL                 réflexe : couper le lien
+```
+
+## À retenir
+
+- Un `malloc` = un `free`, exactement un. Zéro = fuite, deux = double free.
+- `free(NULL)` est toujours sûr : inutile de tester avant de libérer.
+- `free(p); p = NULL;` : deux lignes, un seul réflexe.
+- On ne free jamais ce qui n'a pas été alloué, ni un intérieur de bloc (`free(p + 1)` : interdit).
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void)
+{
+    int *p = malloc(sizeof(*p));
+
+    if (p == NULL)
+        return 84;
+    *p = 42;
+    printf("*p = %d\n", *p);
+    free(p);
+    p = NULL;        /* hygiène : le pointeur ne pointe plus nulle part */
+    free(p);         /* free(NULL) : sans effet, donc sans danger */
+    /*
+     * Ne jamais faire, même pour tester :
+     *   *p = 1;       use-after-free ou déréférencement de NULL : UB
+     *   free(p);      double free sur une vraie adresse : UB
+     *   free(&x);     free sur une variable de la stack : UB
+     */
+    printf("bloc libéré, pointeur neutralisé\n");
+    return 0;
+}
+'''
+gotchas = [
+  "Double free : libérer deux fois le même bloc corrompt l'allocateur — 'double free or corruption', puis abort.",
+  "Use-after-free : après free(p), *p est interdit même si la valeur semble encore là — c'est de l'UB.",
+  "free sur autre chose qu'un malloc/calloc/realloc (variable locale, littéral de chaîne) : UB immédiat.",
+  "Croire que free(p) remet p à NULL : free reçoit une copie de l'adresse, ton pointeur garde l'ancienne valeur.",
+  "free(p + 1) : on ne libère que l'adresse EXACTE reçue de malloc, jamais un pointeur vers l'intérieur du bloc."
+]
+exercises = [
+  "Écris un programme qui malloc/free proprement, ajoute un second free, et lis le message de glibc (ou de valgrind) : apprends à le reconnaître.",
+  "Adopte le réflexe free(p); p = NULL; puis vérifie sous valgrind qu'un double free devient un non-événement.",
+  "Écris une fonction qui alloue trois blocs, échoue volontairement au troisième, et libère les deux premiers avant de renvoyer 84."
+]
+related = ["malloc", "calloc-realloc", "fuites-memoire", "segfault", "valgrind"]

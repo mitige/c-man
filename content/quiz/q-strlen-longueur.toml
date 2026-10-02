@@ -1,0 +1,23 @@
+id = "q-strlen-longueur"
+category = "libc"
+difficulty = 1
+question = '''
+Quelle est la sortie de ce programme ?
+
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main(void)
+{
+    printf("%zu\n", strlen("piscine"));
+    return 0;
+}
+```
+'''
+choices = ["8", "6", "7", "Cela dépend de l'implémentation"]
+answer = 2
+explanation = '''
+strlen compte les caractères AVANT le caractère nul final : piscine fait 7 lettres, et le '\0' n'est jamais compté. C'est LA différence avec sizeof sur un tableau de char, qui inclut le terminateur. Dernier point : strlen parcourt toute la chaîne à chaque appel — stocke le résultat dans une variable si tu t'en sers dans une boucle.
+'''
+related = ["strlen", "chaines-caracteres"]

@@ -1,0 +1,80 @@
+id = "scanf"
+title = "scanf — la saisie formatée, et tous ses pièges"
+category = "libc"
+tags = ["io", "stdio", "saisie", "format"]
+difficulty = 2
+synopsis = "int scanf(const char *format, ...);"
+description = '''
+## En une phrase
+
+`scanf` lit stdin selon un format et **écrit dans tes variables via leurs adresses** : c'est le miroir de `printf`, en beaucoup plus dangereux.
+
+## Prototype et retour
+
+```c
+#include <stdio.h>
+int scanf(const char *format, ...);
+```
+
+- Les arguments sont des **pointeurs** : `scanf("%d", &age)`, jamais `scanf("%d", age)`.
+- Exception : pour `%s`, un tableau `char name[64]` décaye déjà en pointeur : `scanf("%63s", name)`, **sans `&`**.
+
+**Retour** : le nombre d'assignations **réussies** (0 si l'entrée ne correspond pas), ou `EOF` si la fin de fichier arrive avant toute assignation. **Teste-le systématiquement** : c'est la seule façon de savoir si tes variables ont été remplies.
+
+## En pratique
+
+Le réflexe de survie avec `%s` : **toujours une borne**. `scanf("%s", name)` sur un `char name[64]` laisse l'utilisateur taper 10 000 lettres et exploser ta stack. On écrit `scanf("%63s", name)` : 63 caractères plus le `'\0'` que scanf pose lui-même.
+
+Autres comportements à connaître :
+
+- `%d`, `%f`, `%s` **sautent les espaces** blancs avant de lire ; `%c` ne les saute pas (écris `" %c"` avec un espace pour le forcer).
+- Ce que scanf ne consomme pas **reste dans le buffer d'entrée** : le `'\n'` de validation, par exemple. Le `scanf("%c")` suivant l'avale sans que tu ne touches au clavier.
+
+En piscine, tu feras souvent autrement : `read` + parsing manuel (ton propre `my_getnbr`). C'est plus verbeux mais infiniment plus contrôlable, et scanf est fréquemment interdit.
+
+## À retenir
+
+- `&` partout sauf `%s` ; borne systématique sur `%s` (`%63s` pour un `char[64]`).
+- Retour = nombre d'assignations réussies : `if (scanf("%d", &age) != 1)` est le minimum syndical.
+- Le résidu dans le buffer d'entrée explique 90 % des « mon scanf saute une étape ».
+- Entrée invalide = variable **inchangée**, pas remise à zéro.
+'''
+example = '''
+#include <stdio.h>
+
+int main(void)
+{
+    int age = 0;
+    char name[64];
+
+    printf("Age: ");
+    if (scanf("%d", &age) != 1) {
+        fprintf(stderr, "Saisie invalide : un entier etait attendu\n");
+        return 84;
+    }
+    printf("Nom (sans espace): ");
+    if (scanf("%63s", name) != 1) {
+        fprintf(stderr, "Saisie invalide : un mot etait attendu\n");
+        return 84;
+    }
+    printf("Tu t'appelles %s et tu as %d ans\n", name, age);
+    if (age < 0 || age > 150) {
+        fprintf(stderr, "Age improbable, mais la saisie a fonctionne\n");
+        return 84;
+    }
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier le & : scanf(\"%d\", age) passe la VALEUR de age comme adresse, segfault quasi garanti. gcc -Wformat hurle : lis tes warnings.",
+  "%s sans borne : un mot trop long explose le buffer. Toujours une largeur : %63s pour un char[64].",
+  "Ignorer le retour : si l'utilisateur tape 'abc' pour un %d, scanf renvoie 0 et ta variable garde son ancienne valeur, souvent un garbage.",
+  "Le '\\n' de validation reste dans le buffer : le scanf(\"%c\") suivant le lit instantanément. Nettoie le flux ou saute les blancs avec \" %c\".",
+  "Croire que scanf remet la variable à zéro en cas d'échec : non, elle est inchangée. Initialise-la toi-même si tu t'en sers après."
+]
+exercises = [
+  "Écris un programme qui demande deux entiers et affiche leur somme ; renvoie 84 proprement si l'utilisateur tape n'importe quoi (retour de scanf != 2).",
+  "Demande un prénom avec %63s puis un caractère avec \" %c\" : observe le rôle de l'espace dans le format en testant sans lui.",
+  "Réécris la saisie d'un entier avec read + un parsing manuel façon my_getnbr, et compare la robustesse des deux approches."
+]
+related = ["printf", "read", "atoi-strtol", "chaines-caracteres", "undefined-behavior"]

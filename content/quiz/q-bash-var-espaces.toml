@@ -1,0 +1,22 @@
+id = "q-bash-var-espaces"
+category = "bash"
+difficulty = 2
+question = '''
+Chasse au bug : pourquoi ce script n'affiche-t-il pas Epitech ?
+
+```bash
+NAME = "Epitech"
+echo $NAME
+```
+'''
+choices = [
+  "Les espaces autour de = font que bash exécute la commande NAME avec = et Epitech comme arguments : il faut écrire NAME=\"Epitech\" sans espaces",
+  "Les guillemets sont interdits dans une variable",
+  "Il faut obligatoirement export NAME pour que echo puisse la lire",
+  "echo ne peut pas afficher une variable dont le nom est en majuscules"
+]
+answer = 0
+explanation = '''
+En bash, l'affectation s'écrit VAR=valeur SANS aucun espace autour du =. Avec des espaces, bash ne voit plus une affectation mais une commande nommée NAME suivie de deux arguments, d'où un message du type NAME : commande introuvable. Note aussi qu'au moment de l'affectation on écrit NAME=valeur sans $ : le $ ne sert que pour lire la variable. export n'est nécessaire que pour transmettre la variable aux processus enfants.
+'''
+related = ["variables-shell", "scripts-bash"]

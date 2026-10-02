@@ -1,0 +1,86 @@
+id = "bienvenue"
+title = "Bienvenue — ton manuel de piscine dans le terminal"
+category = "demarrer"
+tags = ["c-man", "demarrage", "tui", "cli"]
+difficulty = 1
+synopsis = "c-man [<sujet>] [-l] [-s <mot>] [--random]"
+description = '''
+## En une phrase
+
+c-man est ton manuel de C hors ligne, taillé pour la piscine : des fiches courtes, un exemple qui compile, les pièges et des exercices, directement dans ton terminal.
+
+## En pratique
+
+Cinq façons de l'utiliser depuis le shell :
+
+- `c-man` : ouvre la TUI, l'interface plein écran qui liste toutes les fiches.
+- `c-man malloc` : affiche directement la fiche demandée (id exact).
+- `c-man -l` : liste tous les sujets disponibles, un par ligne.
+- `c-man -s chaine` : recherche plein texte dans le contenu des fiches.
+- `c-man --random` : tire une fiche au hasard, parfait pour réviser en cinq minutes.
+
+Et les outils intégrés, depuis le shell ou la TUI (`Ctrl+O`) :
+
+- `c-man check .` : vérifie la Coding Style Epitech (fichier, ligne, explication).
+- `c-man fix .` : corrige automatiquement ce qui peut l'être, puis re-vérifie.
+- `c-man explain N-COL80` : explique une règle de la Norme (les codes officiels C-A3 marchent aussi).
+- `c-man quiz memoire` : 5 questions pour valider un thème (score enregistré).
+- `c-man apprendre malloc` : un sujet sous tous ses angles (lis → teste → pratique → explique).
+- `c-man defend pointeurs` : soutenance blanche interactive (le Coach t'évalue).
+- `c-man ask professeur "c'est quoi un pointeur ?"` : interroge les agents IA.
+- `c-man plan "mes tâches du jour"` : l'orchestrateur construit ton plan d'attaque.
+- `c-man morning` : la session du matin, ciblée sur tes points fragiles.
+- `c-man new my_strlen -f "int my_strlen(char *s)"` : squelette .c norme-compliant.
+- `c-man test .` : norme + build + lance les tests du projet d'un coup.
+- `c-man serve` : sert le dossier en HTTP (prévisualiser ton web).
+- `c-man edit fichier.c` : l'éditeur epitech-nano (Tab = 4 espaces, complétion IA).
+- `c-man doctor` : vérifie que ton environnement est complet.
+- `c-man progress` : ta progression (fiches vues, quiz, notions fragiles).
+- `c-man exo` : exercices guidés dont le code est VRAIMENT testé.
+- `c-man next` : la seule chose à faire maintenant (quand tu ne sais pas par où commencer).
+- `c-man recap` : le bilan du soir + la suite pour demain.
+- `c-man rush sujet.txt` : analyse l'énoncé + scaffold le projet, d'un coup.
+- `c-man push "msg"` : la livraison (norme → add → commit → push).
+- `c-man note malloc "ta compréhension"` : écris le concept avec TES mots.
+- `c-man dsh` : lance dsh sans quitter ton environnement.
+
+Dans la TUI, tout se fait au clavier :
+
+- `j` / `k` (ou les flèches) : descendre et monter dans la liste.
+- `/` : ouvrir la recherche, taper un motif, `Enter` pour filtrer.
+- `Enter` : ouvrir la fiche sélectionnée.
+- `Ctrl+O` : le menu outils (norme, compile, quiz, progression, IA, orchestrateur).
+- `!` : handoff vers dsh.
+- `?` : afficher l'aide.
+- `q` : revenir à la liste, puis quitter.
+
+Chaque fiche suit toujours le même contrat : une explication dense, un exemple compilable commenté en français, les pièges concrets et des micro-exercices. La bonne méthode : lis, recopie l'exemple, compile-le avec `gcc -Wall -Wextra -Werror`, puis fais l'exercice sans regarder la fiche.
+
+## À retenir
+
+- Une fiche lue sans coder est oubliée demain : compile toujours l'exemple.
+- `c-man --random` pendant les temps morts : de la révision gratuite.
+- Prochaine étape logique : `c-man roadmap`, ton plan de bataille pour le mois.
+'''
+example = '''
+# Les cinq commandes a connaitre par coeur
+$ c-man                     # TUI : j/k naviguent, / cherche, Enter ouvre, q quitte
+$ c-man malloc              # affiche la fiche "malloc" directement
+$ c-man -l                  # liste tous les sujets disponibles
+$ c-man -s pointeur         # recherche "pointeur" dans toutes les fiches
+$ c-man --random            # une fiche au hasard pour reviser
+
+# Combo utile en piscine : chercher, puis ouvrir
+$ c-man -s chaine           # reperer les fiches qui parlent des chaines
+$ c-man chaines-caracteres  # ouvrir celle qui t'interesse
+'''
+gotchas = [
+  "Passer un nom approximatif à `c-man <sujet>` : l'id doit être exact ; pour chercher vaguement, utilise `-s`.",
+  "Rester bloqué dans la TUI : `q` revient à la liste, un second `q` quitte, et `?` affiche l'aide à tout moment.",
+  "Lire les fiches sans compiler les exemples : tu reconnaîtras le code sans savoir le reproduire."
+]
+exercises = [
+  "Lance `c-man -l`, compte les fiches et repère celles de la catégorie demarrer.",
+  "Ouvre trois fiches avec `c-man --random` et résume chacune en une phrase à voix haute."
+]
+related = ["roadmap", "lire-un-man", "la-norme", "conseils-piscine"]

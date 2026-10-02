@@ -1,0 +1,97 @@
+id = "css-bases"
+title = "CSS — sélecteurs et premiers styles"
+category = "web"
+tags = ["css", "sélecteurs", "style", "couleurs"]
+difficulty = 1
+synopsis = "selecteur { propriete: valeur; } dans un fichier .css lié avec <link>."
+description = '''
+## En une phrase
+
+CSS (Cascading Style Sheets) décrit l'**apparence** de ton HTML — couleurs, polices, tailles, espacements — en ciblant des éléments avec des sélecteurs.
+
+## En pratique
+
+Trois façons d'injecter du CSS, une seule sérieuse :
+
+1. **Inline** : `<p style="color: red;">` — à éviter, ça mélange tout
+2. **Interne** : un bloc `<style>` dans le `<head>` — acceptable pour un test de cinq minutes
+3. **Externe** : `<link rel="stylesheet" href="style.css">` — la vraie méthode : contenu et style séparés, fichier mis en cache, réutilisable sur cinquante pages
+
+Même réflexe qu'en C : on ne met pas tout le code dans un header, on sépare les responsabilités.
+
+La syntaxe d'une règle : `selecteur { propriete: valeur; }`. Les sélecteurs essentiels :
+
+- `p` : tous les `<p>`
+- `.card` : tous les éléments avec `class="card"` — réutilisable partout, ton choix par défaut
+- `#menu` : l'unique élément avec `id="menu"`
+- `nav a` : les `<a>` **descendants** d'un `<nav>`
+
+Les propriétés du quotidien : `color` (texte), `background-color` (fond), `font-size`, `font-family`, `margin` (espace extérieur), `padding` (espace intérieur), `border`, `text-align`.
+
+> **Spécificité en une phrase** : en cas de conflit, `#id` bat `.classe` qui bat `p`, et à armes égales la **dernière** règle du fichier gagne. C'est tout ce qu'il te faut pour l'instant.
+
+Le navigateur ne râle jamais : une propriété mal orthographiée est ignorée en silence. Ouvre les DevTools (F12), onglet Styles : une règle barrée ou absente te dit tout. C'est ton gdb du style.
+
+## À retenir
+
+- Un fichier `.css` externe lié avec `<link>`, point final.
+- `selecteur { propriete: valeur; }`, sans oublier le point-virgule.
+- `.classe` pour 95 % de tes ciblages, `#id` pour l'élément unique.
+- Aucune erreur affichée en cas de faute de frappe : les DevTools sont ton débogueur.
+'''
+example = '''
+<!-- ===== index.html ===== -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ma page stylée</title>
+    <!-- Le CSS externe : la seule methode serieuse -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1 class="titre-principal">Hello piscine web</h1>
+    <p>Un premier paragraphe.</p>
+    <p class="info">Un paragraphe avec une classe.</p>
+    <div class="carte">
+        <p>Du texte dans une carte.</p>
+    </div>
+</body>
+</html>
+
+/* ===== style.css ===== */
+
+/* Selecteur d'element : tous les <p> */
+p {
+    color: #333333;
+    font-size: 16px;
+}
+
+/* Selecteur de classe : reutilisable partout */
+.titre-principal {
+    color: navy;
+    text-align: center;
+}
+
+.info {
+    background-color: #eeeeff;
+    padding: 8px;
+    margin: 12px 0;
+}
+
+/* Selecteur descendant : les <p> a l'interieur d'un .carte */
+.carte p {
+    font-style: italic;
+}
+'''
+gotchas = [
+  "Oublier le point-virgule final : la propriété suivante est avalée avec et ignorée en silence.",
+  "Écrire maclasse sans le point : le navigateur cherche une balise <maclasse> qui n'existe pas et n'applique rien.",
+  "Une faute de frappe dans une propriété ne produit aucune erreur : vérifie l'onglet Styles des DevTools, une règle barrée est une règle morte.",
+  "Mettre du style inline partout : impossible à maintenir, et ça écrase presque tout par spécificité."
+]
+exercises = [
+  "Crée index.html et style.css lié par <link> : un titre centré en bleu nuit, des paragraphes gris foncé, et une classe .encadre avec bordure et padding appliquée à un paragraphe.",
+  "Dans les DevTools (F12), modifie une couleur en direct puis désactive une règle pour comprendre la cascade et la spécificité."
+]
+related = ["html-bases", "css-boxmodel", "css-flexbox", "js-dom"]

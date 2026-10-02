@@ -1,0 +1,27 @@
+id = "q-priorite-operateurs"
+category = "langage"
+difficulty = 3
+question = '''
+Avec gcc -Wall -Wextra -Werror, que se passe-t-il à la compilation de ce programme ?
+
+```c
+#include <stdio.h>
+
+int main(void)
+{
+    printf("%d\n", 1 + 2 << 3);
+    return 0;
+}
+```
+'''
+choices = [
+  "Erreur : + est prioritaire sur <<, et gcc exige des parenthèses explicites (-Wparentheses)",
+  "Il compile et affiche 17",
+  "Il compile et affiche 24",
+  "Erreur : on ne peut pas mélanger addition et décalage de bits en C"
+]
+answer = 0
+explanation = '''
+Les opérateurs arithmétiques sont prioritaires sur les décalages de bits : 1 + 2 << 3 se lit (1 + 2) << 3, ce qui vaudrait 24. Mais gcc -Wall juge ce mélange ambigu et suggère des parenthèses (-Wparentheses) ; avec -Werror, l'avertissement devient erreur et la compilation échoue. Double leçon : connais les priorités, ET parenthèse dès que tu mélanges des familles d'opérateurs.
+'''
+related = ["operateurs", "operateurs-bitwise", "flags-compilation"]

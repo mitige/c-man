@@ -1,0 +1,23 @@
+id = "q-bash-glob"
+category = "bash"
+difficulty = 2
+question = '''
+Soit le script suivant, exécuté dans un dossier qui ne contient AUCUN fichier .c :
+
+for f in *.c; do
+    echo "== $f"
+done
+
+Que se passe-t-il ?
+'''
+choices = [
+  "La boucle tourne une fois avec f valant littéralement *.c",
+  "La boucle ne s'exécute jamais car le motif ne correspond à rien",
+  "Le script s'arrête immédiatement avec une erreur de syntaxe",
+  "f prend successivement la valeur de tous les fichiers du dossier"
+]
+answer = 0
+explanation = '''
+C'est le shell qui dévelope le motif *.c avant de lancer la boucle : s'il trouve des fichiers correspondants, il les substitue, sinon il laisse la chaîne *.c telle quelle. La boucle tourne donc une fois avec la valeur littérale *.c, ce qui produit l'affichage == *.c et peut provoquer des erreurs plus loin dans le script. Pour s'en protéger, on peut tester [ -e "$f" ] dans la boucle ou activer l'option nullglob de bash. Teste toujours tes boucles sur un dossier vide avant de les lancer sur un vrai projet.
+'''
+related = ["boucles-bash", "bash-bases", "scripts-bash"]

@@ -1,0 +1,110 @@
+id = "makefile"
+title = "Makefile — automatise ta compilation comme un pro"
+category = "outils"
+tags = ["make", "compilation", "automatisation"]
+difficulty = 2
+piscine_day = "J05"
+synopsis = "make / make clean / make fclean / make re"
+description = '''
+## En une phrase
+
+Un Makefile dit à `make` comment construire ton projet : il relance gcc pour toi, dans le bon ordre, et uniquement sur ce qui a changé.
+
+## Anatomie d'une règle
+
+```make
+cible: dépendances
+[TAB]recette
+```
+
+- **cible** : ce que tu veux obtenir (le binaire, un `.o`, une action).
+- **dépendances** : les fichiers dont la cible a besoin ; si l'un est plus récent que la cible, make relance la recette.
+- **recette** : la commande shell à exécuter. Elle commence par une **tabulation**, pas des espaces. C'est l'erreur n°1 des débutants.
+
+## Les variables qui sauvent des heures
+
+```make
+CC = gcc
+CFLAGS = -Wall -Wextra -Werror -std=c99
+NAME = my_prog
+SRC = main.c utils.c
+OBJ = $(SRC:.c=.o)
+```
+
+`$(SRC:.c=.o)` transforme la liste des `.c` en liste des `.o` : ajouter un fichier = une ligne à éditer.
+
+La règle générique et ses variables automatiques :
+
+```make
+%.o: %.c
+[TAB]$(CC) $(CFLAGS) -c $< -o $@
+```
+
+- `$@` : la cible (le `.o` produit)
+- `$<` : la première dépendance (le `.c` source)
+- `$^` : toutes les dépendances
+
+## Les cibles exigées par la piscine
+
+Ton Makefile DOIT fournir :
+
+- `all` (première cible, donc celle par défaut) : compile le binaire
+- `clean` : supprime les `.o`
+- `fclean` : `clean` + supprime le binaire
+- `re` : `fclean` + `all`, pour recompiler à zéro
+
+Et le binaire doit porter **le nom exact demandé par le sujet**. Ajoute `.PHONY: all clean fclean re` pour que make ne confonde jamais ces cibles avec des fichiers du même nom.
+
+## À retenir
+
+- make n'exécute que le nécessaire grâce aux dates de modification : c'est tout l'intérêt.
+- `make -n` affiche les commandes sans les exécuter : parfait pour vérifier ton Makefile.
+- La première cible du fichier est la cible par défaut : mets `all` tout en haut.
+'''
+example = '''
+# Makefile piscine-type.
+# ATTENTION : chaque ligne de recette commence par une vraie TABULATION
+# (présente dans cette fiche ; un copier-coller maladroit peut la casser :
+#  "missing separator" = remets une tab, jamais des espaces).
+
+CC      = gcc
+CFLAGS  = -Wall -Wextra -Werror -std=c99
+NAME    = my_prog
+
+SRC     = main.c \
+          my_putchar.c \
+          my_putstr.c
+
+OBJ     = $(SRC:.c=.o)
+
+all: $(NAME)
+
+$(NAME): $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(OBJ)
+
+fclean: clean
+	rm -f $(NAME)
+
+re: fclean all
+
+.PHONY: all clean fclean re
+'''
+gotchas = [
+  "Espaces au lieu de tabulation : 'Makefile:12: *** missing separator. Stop.' — remets une vraie tab.",
+  "Oublier .PHONY : crée un fichier nommé clean et make refusera de nettoyer ('clean is up to date').",
+  "Modifier un .h ne recompile rien avec la règle %.o: %.c basique : fais make re après avoir touché un header.",
+  "Nommer le binaire différemment du sujet : la moulinette ne le trouve pas, note zéro.",
+  "Mettre all après une autre cible : la première règle du fichier gagne, make pourrait ne rien construire."
+]
+exercises = [
+  "Écris ce Makefile pour un projet à 3 fichiers, teste make, make clean, make fclean, make re, et vérifie avec ls ce qui apparaît et disparaît.",
+  "Casse volontairement une tabulation, lis l'erreur, répare ; puis crée un fichier vide nommé clean et observe pourquoi .PHONY existe.",
+  "Lance make -n re et liste mentalement toutes les commandes gcc qui vont partir."
+]
+related = ["gcc", "flags-compilation", "linking", "headers-include-guards", "moulinette"]

@@ -1,0 +1,90 @@
+id = "malloc"
+title = "malloc — réserver de la mémoire à la demande"
+category = "memoire"
+tags = ["malloc", "heap", "allocation", "stdlib", "null"]
+difficulty = 3
+piscine_day = "J07"
+synopsis = "void *malloc(size_t size);  /* <stdlib.h> : renvoie un bloc non initialisé, ou NULL */"
+description = '''
+## En une phrase
+
+`malloc` réserve `size` octets sur le heap et renvoie l'adresse du bloc — ou `NULL` en cas d'échec ; le contenu est **indéterminé** et la libération est **à ta charge**.
+
+## En pratique
+
+Le prototype : `void *malloc(size_t size);` dans `<stdlib.h>`. Le `void *` se convertit implicitement vers n'importe quel pointeur d'objet : **ne caste jamais** le retour en C. `(int *)malloc(...)` est inutile et peut masquer un oubli d'`#include <stdlib.h>`. L'idiome sûr :
+
+```c
+int *tab = malloc(sizeof(*tab) * n);
+```
+
+Pourquoi `sizeof(*tab)` plutôt que `sizeof(int)` ? Si le type de `tab` change un jour (`int` → `long`), l'allocation reste correcte sans y penser. Zéro redondance, zéro bug de cohérence.
+
+Règles de survie :
+
+1. **Toujours tester le retour.** Oublier le `if (tab == NULL)`, c'est déréférencer NULL au premier accès : segfault (ou pire, silence).
+2. **Le contenu est indéterminé** : ce sont les restes d'anciennes données. Ne lis jamais avant d'avoir écrit. Tu veux du zéro ? Prends `calloc`.
+3. **Chaque malloc a son free.** Ni plus (double free), ni moins (fuite).
+4. `malloc(0)` est légal : il renvoie soit NULL, soit un pointeur unique à passer à `free` — ne dépend jamais de son contenu.
+5. La taille est en **octets** : `malloc(n)` pour `n` int est LE bug classique — il faut `malloc(sizeof(*tab) * n)`.
+
+```
+tab = malloc(5 * sizeof(int));
+heap : [????][????][????][????][????]   <- indéterminé, PAS des zéros
+        ^
+        tab (sur la stack : contient l'adresse du bloc)
+```
+
+En piscine : un malloc non testé ou non libéré, et la moulinette + valgrind te tombent dessus. Intègre le couple malloc/test-NULL comme un seul geste, et note mentalement le `free` dès que tu écris le `malloc`.
+
+## À retenir
+
+- `malloc` = octets bruts sur le heap, contenu poubelle, retour testé **systématiquement**.
+- Idiome : `p = malloc(sizeof(*p) * n);` — jamais de cast, jamais de taille en dur.
+- Qui alloue libère : le `free` se planifie en même temps que le `malloc`.
+- Échec = NULL, pas d'exception : le test est ta seule protection.
+'''
+example = '''
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void)
+{
+    size_t n = 5;
+    size_t i = 0;
+    int *tab;
+
+    /* L'idiome : sizeof(*tab) * n, sans caster le retour. */
+    tab = malloc(sizeof(*tab) * n);
+    if (tab == NULL) {
+        fprintf(stderr, "malloc a échoué\n");
+        return 84;
+    }
+    /* malloc n'initialise PAS : on écrit avant de lire. */
+    while (i < n) {
+        tab[i] = (int)(i * i);
+        i = i + 1;
+    }
+    i = 0;
+    while (i < n) {
+        printf("%d ", tab[i]);
+        i = i + 1;
+    }
+    printf("\n");
+    free(tab);   /* chaque malloc a son free */
+    return 0;
+}
+'''
+gotchas = [
+  "Oublier de tester le retour NULL : le premier accès déréférence NULL et segfaulte.",
+  "malloc(n) pour n int : la taille est en OCTETS — il faut malloc(sizeof(*p) * n).",
+  "Caster le retour ((int *)malloc(...)) : inutile en C, et ça masque l'oubli de #include <stdlib.h>.",
+  "Lire le bloc avant d'écrire : le contenu est indéterminé, ce ne sont pas des zéros.",
+  "Perdre le pointeur sans free (réassignation, oubli sur un chemin d'erreur) : fuite garantie."
+]
+exercises = [
+  "Écris my_range(int min, int max) qui renvoie un tableau malloc'd contenant tous les entiers de min à max - 1 (classique de piscine).",
+  "Ajoute à my_range le test du retour de malloc et renvoie NULL proprement en cas d'échec, sans rien laisser fuir.",
+  "Sous valgrind, vérifie que ton programme de test affiche 'All heap blocks were freed' : corrige jusqu'à zéro fuite."
+]
+related = ["free", "calloc-realloc", "stack-vs-heap", "fuites-memoire", "valgrind"]

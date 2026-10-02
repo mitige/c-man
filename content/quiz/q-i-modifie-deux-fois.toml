@@ -1,0 +1,23 @@
+id = "q-i-modifie-deux-fois"
+category = "langage"
+difficulty = 4
+question = '''
+Que dit le standard C99 à propos de ce code ?
+
+```c
+int i = 1;
+
+i = i++;
+```
+'''
+choices = [
+  "i vaut 1 à coup sûr",
+  "i vaut 2 à coup sûr",
+  "Comportement indéfini : i est modifiée deux fois sans point de séquence entre les deux",
+  "Erreur de syntaxe : cette instruction est invalide en C"
+]
+answer = 2
+explanation = '''
+Entre deux points de séquence, une variable ne peut être modifiée qu'une seule fois : i = i++ modifie i par l'affectation ET par l'incrémentation, sans ordre garanti — comportement indéfini, le résultat dépend du compilateur et des flags d'optimisation. gcc -Wall le détecte ici (-Wsequence-point), donc -Werror bloque la compilation. Le correctif est trivial : écris deux instructions séparées.
+'''
+related = ["undefined-behavior", "operateurs"]

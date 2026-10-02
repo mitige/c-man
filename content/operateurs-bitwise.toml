@@ -1,0 +1,93 @@
+id = "operateurs-bitwise"
+title = "operateurs-bitwise — parler directement aux bits"
+category = "langage"
+tags = ["bits", "binaire", "masques", "flags"]
+difficulty = 3
+piscine_day = "J05"
+synopsis = "flags = O_RDONLY | O_CREAT; /* combiner, tester, effacer des bits */"
+description = '''
+## En une phrase
+
+Les opérateurs bitwise manipulent un entier bit par bit : c'est le langage des masques, des flags, et de tout ce qui parle au matériel.
+
+## En pratique
+
+Les six opérateurs :
+
+- `&` ET : 1 seulement si les deux bits sont à 1
+- `|` OU : 1 si au moins un bit est à 1
+- `^` XOR : 1 si les bits DIFFÈRENT
+- `~` NON : inverse tous les bits
+- `<< n` décale de n bits à gauche (des zéros entrent à droite)
+- `>> n` décale de n bits à droite
+
+Le C99 n'a pas de littéral binaire (`0b1010` n'existe pas) : on écrit en hexadécimal, un chiffre hexa = exactement 4 bits. `0x0F` vaut 00001111. Apprends la table 0-F une fois, elle te servira toute ta vie.
+
+Les quatre gestes de survie avec les masques (bit numéro n) :
+
+- TESTER : `if (x & (1 << n))` — non nul si le bit n est à 1
+- ALLUMER : `x |= (1 << n);`
+- ÉTEINDRE : `x &= ~(1 << n);`
+- INVERSER : `x ^= (1 << n);`
+
+C'est exactement le mécanisme des flags système : `open("f", O_RDONLY | O_CREAT)` COMBINE des options avec `|`, et la fonction teste chaque option avec `&`. Un seul entier transporte 32 booléens.
+
+Arithmétique pratique : `x << n` multiplie par 2^n, et `x >> n` divise par 2^n (pour les positifs). `1 << 4` vaut 16 : c'est aussi la façon standard de construire un masque.
+
+## À retenir
+
+- `&` n'est pas `&&` : `6 & 3` vaut 2 (bits communs), `6 && 3` vaut 1 (les deux sont vrais). Même piège avec `|` et `||`.
+- Priorité traîtresse : `==` passe AVANT `&`. Écris TOUJOURS `(flags & MASK) == 0` avec les parenthèses.
+- Décaler un signé négatif avec `>>` propage le bit de signe (décalage arithmétique) : pour du bit-fiddling propre, travaille en `unsigned`.
+- `1 << 31` sur un int 32 bits signé : comportement indéfini. Écris `1u << 31`.
+'''
+example = '''
+#include <stdio.h>
+
+/* Affiche les 8 bits d'un octet, du poids fort au poids faible. */
+static void print_bits8(unsigned char c)
+{
+    int i = 7;
+
+    while (i >= 0) {
+        if (c & (1 << i))
+            putchar('1');
+        else
+            putchar('0');
+        i--;
+    }
+    putchar('\n');
+}
+
+/* Teste, allume et eteint des bits dans un octet de flags. */
+int main(void)
+{
+    unsigned char flags = 0;
+
+    flags |= (1 << 2);
+    flags |= (1 << 5);
+    printf("apres allumage   : ");
+    print_bits8(flags);
+    if (flags & (1 << 2))
+        printf("le bit 2 est actif\n");
+    flags &= ~(1 << 2);
+    printf("apres extinction : ");
+    print_bits8(flags);
+    printf("1 << 4  = %d (2 puissance 4)\n", 1 << 4);
+    printf("40 >> 2 = %d (40 divise par 4)\n", 40 >> 2);
+    return 0;
+}
+'''
+gotchas = [
+  "Confondre & et && : 6 & 3 vaut 2, 6 && 3 vaut 1. Un test de flag avec && est un bug silencieux.",
+  "Oublier que == passe avant & : flags & MASK == 0 se lit flags & (MASK == 0). Parentheses obligatoires.",
+  "~ inverse TOUS les bits, signe compris : ~0 vaut -1 sur un int signe en complement a deux.",
+  "Decaler a droite un int negatif : le bit de signe est propage (decalage arithmetique). Passe en unsigned pour manipuler des bits.",
+  "Decaler de plus que la largeur du type (x << 32 sur un int 32 bits) : comportement indefini."
+]
+exercises = [
+  "Ecris int count_bits(unsigned int n) qui compte les bits a 1 avec une boucle while et un decalage.",
+  "Ecris int is_power_of_two(unsigned int n) en une seule expression : n non nul et (n & (n - 1)) nul.",
+  "Stocke 8 drapeaux dans un seul unsigned char : ecris trois fonctions set_flag, clear_flag, has_flag qui prennent le numero du bit."
+]
+related = ["operateurs", "variables-types", "open-close", "undefined-behavior"]

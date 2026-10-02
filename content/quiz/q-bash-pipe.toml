@@ -1,0 +1,15 @@
+id = "q-bash-pipe"
+category = "bash"
+difficulty = 1
+question = "Que fait le pipe | dans la commande cat log.txt | grep error ?"
+choices = [
+  "Il envoie la sortie standard de cat vers l'entrée standard de grep",
+  "Il lance grep seulement si cat réussit",
+  "Il écrit la sortie de cat dans un fichier nommé grep",
+  "Il exécute cat et grep en parallèle puis mélange leurs deux sorties"
+]
+answer = 0
+explanation = '''
+Le pipe | connecte la sortie standard (stdout) de la commande de gauche à l'entrée standard (stdin) de celle de droite : les lignes de log.txt ne passent pas par un fichier intermédiaire, elles circulent directement dans le pipe. Exécuter la seconde commande seulement si la première réussit, c'est le rôle de &&, pas de |. Les deux commandes tournent d'ailleurs en même temps, chacune dans son propre processus, les données étant consommées au fur et à mesure.
+'''
+related = ["pipes-redirections", "bash-bases", "commandes-texte"]

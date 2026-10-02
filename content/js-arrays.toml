@@ -1,0 +1,104 @@
+id = "js-arrays"
+title = "Méthodes de tableaux — map, filter, reduce et leurs copines"
+category = "web"
+tags = ["javascript", "tableaux", "map", "filter", "fonctionnel"]
+difficulty = 3
+synopsis = "const doubles = nombres.map(n => n * 2); // transformer un tableau sans boucle for"
+description = '''
+## En une phrase
+
+`map`, `filter`, `reduce` et leurs sœurs remplacent la boucle `for` par une intention lisible : chacune prend une fonction callback et l'applique aux éléments du tableau.
+
+## En pratique
+
+Chaque méthode répond à une question précise. Soit `notes = [12, 8, 15, 9]` :
+
+- **`map`** — « transforme chaque élément » → nouveau tableau de **même taille** : `notes.map(n => n * 2)` → `[24, 16, 30, 18]`
+- **`filter`** — « garde ceux qui passent le test » → tableau **plus court** : `notes.filter(n => n >= 10)` → `[12, 15]`
+- **`reduce`** — « plie tout en une seule valeur » : `notes.reduce((acc, n) => acc + n, 0)` → `44`. L'accumulateur `acc` démarre à la valeur initiale (ici 0) et avale chaque élément.
+- **`find`** — « le premier qui correspond », ou `undefined` : `notes.find(n => n >= 15)` → `15`
+- **`forEach`** — « fais ceci pour chacun » et **ne renvoie rien** : uniquement pour les effets de bord (afficher, toucher au DOM)
+- **`includes`** — « contient-il cette valeur ? » : `notes.includes(8)` → `true`
+- **`some` / `every`** — « au moins un ? / tous ? » : `notes.some(n => n < 10)` → `true`, `notes.every(n => n >= 0)` → `true`
+- **`sort`** — trie **sur place** (il modifie le tableau) et, piège, **alphabétiquement** par défaut : `[10, 9, 80].sort()` → `[10, 80, 9]`. Pour des nombres, passe un comparateur : `.sort((a, b) => a - b)`.
+
+La puissance vient du **chaînage** : chaque méthode renvoie un tableau, tu enchaînes :
+
+```js
+const nomsAdmis = etudiants
+    .filter(e => e.note >= 10)
+    .map(e => e.prenom);
+```
+
+Quand garder une boucle classique quand même ? Quand tu dois **sortir tôt** (`break` au premier trouvé sur un énorme tableau), quand la logique mélange trop de conditions pour tenir en un callback lisible, ou quand tu fais du `await` **en série** : `forEach` lance les promesses en parallèle et n'en attend aucune, alors qu'un `for...of` les enchaîne proprement.
+
+> `map`, `filter`, `reduce` ne modifient **pas** le tableau d'origine : elles en créent un nouveau. Seules `sort`, `reverse`, `splice`, `push`... mutent. Mémo : « retourne un tableau » = non destructif.
+
+## À retenir
+
+- `map` transforme, `filter` sélectionne, `reduce` agrège, `find` cherche le premier.
+- `forEach` pour les effets de bord seulement : il renvoie `undefined`.
+- `sort` trie en place et alphabétiquement : passe `(a, b) => a - b` pour des nombres.
+- Le chaînage `filter(...).map(...)` remplace 90 % de tes boucles — lisible et testable.
+- Boucle classique si `break` prématuré, logique complexe ou `await` séquentiel.
+'''
+example = '''
+// js-arrays : les methodes de tableaux en action
+// Donnees : une promo fictive
+const etudiants = [
+    { prenom: "Alice", note: 15, ville: "Paris" },
+    { prenom: "Bob",   note: 8,  ville: "Lyon" },
+    { prenom: "Chloé", note: 12, ville: "Paris" },
+    { prenom: "David", note: 9,  ville: "Nantes" },
+    { prenom: "Emma",  note: 17, ville: "Lyon" }
+];
+
+// map : transformer chaque element -> nouveau tableau, meme taille
+const appreciations = etudiants.map(e => `${e.prenom} : ${e.note}/20`);
+console.log(appreciations[0]);           // "Alice : 15/20"
+
+// filter : garder ceux qui passent -> tableau plus court
+const admis = etudiants.filter(e => e.note >= 10);
+console.log(admis.length);               // 3
+
+// chainage : filtrer PUIS transformer, en une seule intention
+const nomsAdmis = etudiants
+    .filter(e => e.note >= 10)
+    .map(e => e.prenom);
+console.log(nomsAdmis);                  // ["Alice", "Chloé", "Emma"]
+
+// reduce : plier en une seule valeur (ici la moyenne des notes)
+const moyenne = etudiants.reduce((acc, e) => acc + e.note, 0) / etudiants.length;
+console.log(moyenne.toFixed(1));         // "12.2"
+
+// find : le premier qui correspond (ou undefined si personne)
+const lyonnais = etudiants.find(e => e.ville === "Lyon");
+console.log(lyonnais.prenom);            // "Bob"
+
+// includes / some / every : questions booleennes
+const notes = etudiants.map(e => e.note);
+console.log(notes.includes(17));         // true
+console.log(notes.some(n => n < 10));    // true  (au moins un)
+console.log(notes.every(n => n >= 8));   // true  (tous)
+
+// sort : TRIE EN PLACE, alphabetiquement par defaut -> comparateur !
+// On trie une COPIE avec [...tableau] pour ne pas casser l'original
+const parNote = [...etudiants].sort((a, b) => b.note - a.note);
+console.log(parNote[0].prenom);          // "Emma" (meilleure note)
+
+// forEach : effet de bord, ne renvoie rien
+etudiants.forEach(e => console.log(`${e.prenom} habite à ${e.ville}`));
+'''
+gotchas = [
+  "sort() sans comparateur trie en chaînes de caractères : [10, 9, 80].sort() donne [10, 80, 9] — toujours passer (a, b) => a - b pour des nombres.",
+  "Utiliser map pour un simple affichage : si tu n'exploites pas le tableau retourné, c'est forEach qu'il te faut — map crée un tableau pour rien.",
+  "Oublier la valeur initiale de reduce : sur un tableau vide, reduce((acc, n) => acc + n) lève une TypeError — passe toujours le 0 (ou l'objet) initial.",
+  "Croire que filter ou map modifient l'original : elles renvoient un NOUVEAU tableau — si tu n'assignes pas le résultat, il est perdu.",
+  "Mettre un await dans un forEach : les promesses partent en parallèle et personne ne les attend — utilise for...of pour du séquentiel."
+]
+exercises = [
+  "Depuis un tableau d'étudiants {prenom, note}, produis en une seule chaîne filter+map le tableau des prénoms des admis (note >= 10).",
+  "Calcule la moyenne des notes avec reduce, sans boucle ni variable intermédiaire.",
+  "Trie une copie du tableau par note décroissante, puis affiche le podium (les 3 premiers) avec slice et forEach."
+]
+related = ["js-fonctions", "js-bases", "js-async", "js-dom"]

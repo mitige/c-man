@@ -1,0 +1,15 @@
+id = "q-malloc-contenu"
+category = "memoire"
+difficulty = 2
+question = "Que contient la zone mémoire renvoyée par malloc(10) ?"
+choices = [
+  "Dix octets mis à zéro",
+  "Dix octets indéterminés : les restes d'anciennes données",
+  "Dix espaces",
+  "Dix octets remplis de 0xFF"
+]
+answer = 1
+explanation = '''
+malloc n'initialise RIEN : la zone contient des valeurs indéterminées, souvent les restes de données précédemment libérées. Lire cette zone avant d'y avoir écrit est une erreur — valgrind la signalera comme use of uninitialised value. Si tu veux une zone remise à zéro, c'est calloc qu'il te faut.
+'''
+related = ["malloc", "calloc-realloc"]

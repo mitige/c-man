@@ -1,0 +1,27 @@
+id = "q-point-virgule-while"
+category = "langage"
+difficulty = 2
+question = '''
+Que fait ce code ?
+
+```c
+int i = 0;
+
+while (i < 3);
+{
+    printf("tour\n");
+    i = i + 1;
+}
+```
+'''
+choices = [
+  "Il affiche tour trois fois",
+  "Il boucle indéfiniment sans rien afficher : le ; après le while crée un corps vide",
+  "Il affiche tour une seule fois",
+  "Il refuse de compiler avec n'importe quel compilateur"
+]
+answer = 1
+explanation = '''
+Le point-virgule juste après le while est une instruction vide, et c'est ELLE qui forme le corps de la boucle : i n'est jamais modifié, la condition reste vraie, la boucle ne s'arrête pas. Le bloc entre accolades est détaché de la boucle et ne s'exécuterait qu'après — donc jamais ici. gcc -Wall -Wextra repère d'ailleurs l'indentation trompeuse (-Wmisleading-indentation), et -Werror bloque la compilation.
+'''
+related = ["boucles", "erreurs-frequentes"]

@@ -1,0 +1,56 @@
+id = "moulinette"
+title = "La moulinette — un correcteur automatique sans pitié"
+category = "demarrer"
+tags = ["moulinette", "tests", "rendu", "epitech"]
+difficulty = 2
+synopsis = "Le correcteur automatique : sortie exacte, cas limites, zéro pitié."
+description = '''
+## En une phrase
+
+La moulinette est le correcteur automatique d'Epitech : une batterie de tests qui exécute ton code tel quel, sur des cas limites que tu n'as jamais imaginés.
+
+## En pratique
+
+Le principe est brutal : tu pushes sur ton dépôt, elle clone, compile dans son propre environnement, lance des dizaines de tests et crache un pourcentage de réussite. Elle ne lit pas ton code avec bienveillance : elle teste les entrées vides, les tailles énormes, les arguments tordus, les cas que le sujet n'explicite pas.
+
+Ses exigences typiques :
+
+- **Sortie EXACTE** : un espace en trop ou un retour à la ligne oublié, et le test échoue. Compare avec `diff`, pas à l'œil.
+- **Aucun printf de debug** dans le rendu : une trace oubliée casse toute une batterie de tests.
+- **Compilation propre** : ton code est compilé avec des flags stricts ; un warning toléré chez toi peut être une erreur chez elle.
+- **`make re` et `make fclean` doivent passer** : elle reconstruit ton projet à partir de rien.
+- **Norme respectée** : les fautes de style coûtent des points même quand les tests passent.
+
+## Ta contre-stratégie
+
+- Écris tes propres tests AVANT de push : entrée vide, un élément, valeur maximale, arguments invalides.
+- Compare chaque sortie avec `diff` sur un fichier de référence.
+- Relis le sujet de rendu : bon dossier, bons noms de fichiers et de fonctions, prototypes exacts.
+- Push tôt et souvent : chaque passage intermédiaire te dit où tu en es.
+
+## À retenir
+
+- Ton code est testé tel quel, dans un environnement vierge : "chez moi ça marche" ne suffit pas.
+- Un main de test oublié dans le rendu peut faire échouer tous les tests.
+- La moulinette a toujours raison : si elle échoue, c'est ton code ou ta lecture du sujet qui pêche.
+'''
+example = '''
+# La checklist anti-zero avant chaque rendu
+$ make re > /dev/null && echo BUILD OK     # reconstruction complete
+$ make fclean && ls *.o 2>/dev/null        # ne doit rien afficher
+$ ./my_prog "" ; echo "ret=$?"             # cas limite : chaine vide
+$ ./my_prog | diff - attendu.txt           # sortie au caractere pres
+$ grep -rn "dprintf\|printf" src/          # traquer les debug oublies
+$ git add . && git commit && git push      # push tot, push souvent
+'''
+gotchas = [
+  "Oublier un printf de debug : un seul caractère en trop sur stdout et c'est zéro sur toute la batterie.",
+  "Tester uniquement l'exemple du sujet : la moulinette, elle, teste les cas limites.",
+  "Rendre sans vérifier make re : un .o traînant dans ton dossier masque un Makefile cassé.",
+  "Push à la dernière minute sans lire les rapports intermédiaires : ce sont tes meilleurs alliés."
+]
+exercises = [
+  "Écris un script qui lance ton programme sur 5 cas limites et compare chaque sortie avec diff.",
+  "Sur ton dernier rendu : make fclean && make re, relance tous tes tests, puis relis le sujet de A à Z."
+]
+related = ["la-norme", "methodologie-debug", "erreurs-frequentes", "conseils-piscine"]
