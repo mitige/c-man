@@ -24,13 +24,13 @@ sudo pacman -U c-man-<version>-x86_64.pkg.tar.zst
 ### Binaire précompilé (toute distro Linux x86_64)
 Depuis les [Releases](../../releases) :
 ```sh
-curl -LO https://github.com/<toi>/c-man/releases/latest/download/c-man
+curl -LO https://github.com/mitige/c-man/releases/latest/download/c-man
 chmod +x c-man && sudo mv c-man /usr/local/bin/
 ```
 
 ### Depuis les sources (partout où Rust est)
 ```sh
-git clone https://github.com/<toi>/c-man && cd c-man
+git clone https://github.com/mitige/c-man && cd c-man
 cargo install --path . --locked
 ```
 
